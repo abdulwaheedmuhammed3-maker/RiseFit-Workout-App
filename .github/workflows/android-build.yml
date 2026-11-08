@@ -27,6 +27,8 @@ jobs:
         run: npm run build
       - name: Generate Android project
         run: npx cap add android
+      - name: Declare Android camera permission
+        run: sed -i '/<application/i\    <uses-permission android:name="android.permission.CAMERA" />' android/app/src/main/AndroidManifest.xml
       - name: Sync Capacitor Android
         run: npx cap sync android
       - name: Build debug APK
