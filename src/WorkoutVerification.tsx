@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { FilesetResolver, PoseLandmarker } from '@mediapipe/tasks-vision';
-import { Activity, Camera, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { Camera, CheckCircle2, ShieldCheck, RotateCcw } from 'lucide-react';
 
 type Props = { target?: number; onVerified: () => void };
 type Landmark = { x: number; y: number; visibility?: number };
@@ -12,7 +12,7 @@ export default function WorkoutVerification({ target = 20, onVerified }: Props) 
   const rafRef = useRef<number>(0);
   const phaseRef = useRef<'standing' | 'lowered'>('standing');
   const [count, setCount] = useState(0);
-  const [ready, setReady] = useState(false);
+  const [retryAttempt, setRetryAttempt] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [poseSeen, setPoseSeen] = useState(false);
@@ -23,6 +23,11 @@ export default function WorkoutVerification({ target = 20, onVerified }: Props) 
     const start = async () => {
       try {
         setLoading(true);
+        setError('');
+        setPoseSeen(false);
+        setCount(0);
+        setComplete(false);
+        phaseRef.current = 'standing';
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
           audio: false,
@@ -46,7 +51,6 @@ export default function WorkoutVerification({ target = 20, onVerified }: Props) 
         });
         if (!alive) { model.close(); return; }
         landmarkerRef.current = model;
-        setReady(true);
         setLoading(false);
         const loop = () => {
           if (!alive || !videoRef.current || !landmarkerRef.current) return;
@@ -71,7 +75,6 @@ export default function WorkoutVerification({ target = 20, onVerified }: Props) 
                     const next = prev + 1;
                     if (next >= target) {
                       setComplete(true);
-                      setReady(false);
                     }
                     return Math.min(next, target);
                   });
@@ -96,7 +99,7 @@ export default function WorkoutVerification({ target = 20, onVerified }: Props) 
       landmarkerRef.current?.close();
       streamRef.current?.getTracks().forEach(t => t.stop());
     };
-  }, [target]);
+  }, [target, retryAttempt]);
 
   useEffect(() => {
     if (complete) {
@@ -120,7 +123,7 @@ export default function WorkoutVerification({ target = 20, onVerified }: Props) 
       <div className="number">{count}<small>/ {target} reps</small></div>
       <div className="progress-track count-track"><i style={{width:`${count/target*100}%`}}/></div>
     </div>
-    {error && <div className="notice"><Camera size={17}/><span>{error}</span></div>}
+    {error && <><div className="notice"><Camera size={17}/><span>{error}</span></div><button className="secondary full" onClick={() => setRetryAttempt(value => value + 1)}><RotateCcw size={15}/> Retry camera &amp; pose setup</button></>}
     {complete ? <><div className="notice"><ShieldCheck size={17}/><span>Live camera pose tracking recorded the target repetitions on this device. Your camera feed is not uploaded.</span></div><button className="primary full" onClick={onVerified}><CheckCircle2 size={17}/> Dismiss challenge</button></> : <p className="muted" style={{textAlign:'center',fontSize:12}}>On-device pose estimation · No video recording or upload</p>}
   </section>;
 }
