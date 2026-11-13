@@ -21,7 +21,7 @@ function MuscleFigure({ back = false }: { back?: boolean }) {
           <stop offset="1" stopColor="#505362" />
         </linearGradient>
       </defs>
-      <g fill="#171923" stroke="url(#bodyFront)" strokeWidth="2.2" strokeLinejoin="round">
+      <g fill="#171923" stroke="#9da1b6" strokeWidth="2.2" strokeLinejoin="round">
         <ellipse cx="90" cy="25" rx="18" ry="22" />
         <path d="M76 49 Q62 50 52 62 L35 75 24 119 13 164 Q10 177 22 182 L35 151 43 123 42 190 Q40 218 49 244 L39 305 27 358 Q25 370 39 373 L54 334 70 277 79 244 90 264 101 244 110 277 126 334 141 373 Q155 370 153 358 L141 305 131 244 Q140 218 138 190 L137 123 145 151 158 182 Q170 177 167 164 L156 119 145 75 128 62 Q118 50 104 49Z" />
         <path d="M76 48 Q90 58 104 48 L111 62 105 92 90 105 75 92 69 62Z" />
