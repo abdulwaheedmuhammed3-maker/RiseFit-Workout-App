@@ -57,7 +57,6 @@ export default function WorkoutVerification({ target = 20, exercise = 'squat', o
   const landmarkerRef = useRef<PoseLandmarker | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const rafRef = useRef<number>(0);
-  const aliveRef = useRef(false);
   const phaseRef = useRef<Phase>('ready');
   const lastCountAtRef = useRef(0);
   const stableFramesRef = useRef(0);
@@ -71,7 +70,6 @@ export default function WorkoutVerification({ target = 20, exercise = 'squat', o
 
   useEffect(() => {
     let alive = true;
-    aliveRef.current = true;
     let visibilityHandler: (() => void) | undefined;
 
     const stopCamera = () => {
@@ -180,7 +178,9 @@ export default function WorkoutVerification({ target = 20, exercise = 'squat', o
     visibilityHandler = () => {
       if (document.hidden) {
         cancelAnimationFrame(rafRef.current);
+        streamRef.current?.getVideoTracks().forEach(track => { track.enabled = false; });
       } else if (alive && landmarkerRef.current && !complete) {
+        streamRef.current?.getVideoTracks().forEach(track => { track.enabled = true; });
         startLoop();
       }
     };
@@ -189,7 +189,6 @@ export default function WorkoutVerification({ target = 20, exercise = 'squat', o
 
     return () => {
       alive = false;
-      aliveRef.current = false;
       document.removeEventListener('visibilitychange', visibilityHandler!);
       cancelAnimationFrame(rafRef.current);
       landmarkerRef.current?.close();
