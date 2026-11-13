@@ -2,16 +2,30 @@ import { useEffect, useRef, useState } from 'react';
 import { FilesetResolver, PoseLandmarker } from '@mediapipe/tasks-vision';
 import { Camera, CheckCircle2, ShieldCheck, RotateCcw, UserRound } from 'lucide-react';
 
-type ExerciseType = 'squat' | 'pushup' | 'jumping-jack' | 'situp';
-type Props = { target?: number; exercise?: ExerciseType; onVerified: () => void };
+export type ExerciseType = 'squat' | 'pushup' | 'jumping-jack' | 'situp' | 'plank' | 'lunge' | 'highknees' | 'deadbug' | 'bridge';
+type Unit = 'reps' | 'sec';
+type Variant = 'alarm' | 'workout';
+type Props = {
+  target?: number;
+  exercise?: ExerciseType;
+  unit?: Unit;
+  variant?: Variant;
+  completionLabel?: string;
+  onVerified: () => void;
+};
 type Landmark = { x: number; y: number; z?: number; visibility?: number };
-type Phase = 'ready' | 'down' | 'up' | 'open' | 'closed';
+type Phase = 'ready' | 'down' | 'up' | 'open' | 'closed' | 'hold';
 
 const EXERCISES: Record<ExerciseType, { title: string; instruction: string; setup: string }> = {
   squat: { title: 'bodyweight squats', instruction: 'Bend your knees and hips, then return to a fully upright position.', setup: 'Stand far enough back for your shoulders, hips, knees and ankles to stay visible. A side-facing camera angle works best.' },
   pushup: { title: 'push-ups', instruction: 'Lower your chest with bent elbows while keeping your body aligned, then press back up.', setup: 'Place the phone low enough to see your shoulders, elbows, hips and wrists. Keep your full body in frame.' },
   'jumping-jack': { title: 'jumping jacks', instruction: 'Jump or step your feet apart while raising both hands, then return to the closed position.', setup: 'Stand back so your hands and feet remain visible throughout the movement.' },
   situp: { title: 'sit-ups', instruction: 'Raise your upper body from the lowered position and return under control.', setup: 'Position the phone side-on and keep your shoulders, hips and knees visible.' },
+  plank: { title: 'a forearm plank', instruction: 'Hold a straight line from your shoulders through your hips to your ankles. The timer only advances while your plank position is detected.', setup: 'Place the phone side-on at a low angle. Keep your shoulders, hips and ankles visible and hold your body in a straight line.' },
+  lunge: { title: 'reverse lunges', instruction: 'Step one foot back, lower with control, then return to standing. Alternate legs.', setup: 'Face the camera at a slight angle and keep both hips, knees and ankles in frame.' },
+  highknees: { title: 'high knees', instruction: 'Raise one knee at a time toward hip height, alternating sides with control.', setup: 'Face the camera and keep your hips and both knees visible. Lift each knee clearly above hip level.' },
+  deadbug: { title: 'dead bugs', instruction: 'Lie on your back and slowly extend a leg, then return to the bent starting position.', setup: 'Position the phone side-on. Keep your shoulders, hips, knees and ankles visible while lying down.' },
+  bridge: { title: 'glute bridges', instruction: 'Lie on your back with knees bent, lift your hips, then lower under control.', setup: 'Position the phone side-on and keep your shoulders, hips and knees visible.' },
 };
 
 function angle(a: Landmark, b: Landmark, c: Landmark) {
@@ -24,35 +38,78 @@ function angle(a: Landmark, b: Landmark, c: Landmark) {
 }
 
 function getMovementPhase(pose: Landmark[], exercise: ExerciseType): { phase: Phase; valid: boolean } {
-  const left = (index: number) => pose[index];
+  const point = (index: number) => pose[index];
   const required = exercise === 'squat' ? [11,12,23,24,25,26,27,28]
     : exercise === 'pushup' ? [11,12,13,14,15,16,23,24]
     : exercise === 'jumping-jack' ? [11,12,15,16,27,28]
+    : exercise === 'situp' ? [11,12,23,24,25,26]
+    : exercise === 'plank' ? [11,23,27]
+    : exercise === 'lunge' ? [11,12,23,24,25,26,27,28]
+    : exercise === 'highknees' ? [23,24,25,26]
+    : exercise === 'deadbug' ? [11,12,23,24,25,26]
     : [11,12,23,24,25,26];
-  if (!required.every(i => pose[i] && (pose[i].visibility ?? 1) > 0.55)) return { phase: 'ready', valid: false };
+
+  if (!required.every(index => point(index) && (point(index).visibility ?? 1) > 0.55)) {
+    return { phase: 'ready', valid: false };
+  }
 
   if (exercise === 'squat') {
-    const knee = (angle(left(23), left(25), left(27)) + angle(left(24), left(26), left(28))) / 2;
+    const knee = (angle(point(23), point(25), point(27)) + angle(point(24), point(26), point(28))) / 2;
     return { phase: knee < 105 ? 'down' : knee > 155 ? 'up' : 'ready', valid: true };
   }
   if (exercise === 'pushup') {
-    const elbow = (angle(left(11), left(13), left(15)) + angle(left(12), left(14), left(16))) / 2;
+    const elbow = (angle(point(11), point(13), point(15)) + angle(point(12), point(14), point(16))) / 2;
     return { phase: elbow < 95 ? 'down' : elbow > 150 ? 'up' : 'ready', valid: true };
   }
   if (exercise === 'jumping-jack') {
-    const wristY = (left(15).y + left(16).y) / 2;
-    const shoulderY = (left(11).y + left(12).y) / 2;
-    const feetGap = Math.abs(left(27).x - left(28).x);
-    const shoulderGap = Math.max(0.08, Math.abs(left(11).x - left(12).x));
+    const wristY = (point(15).y + point(16).y) / 2;
+    const shoulderY = (point(11).y + point(12).y) / 2;
+    const feetGap = Math.abs(point(27).x - point(28).x);
+    const shoulderGap = Math.max(0.08, Math.abs(point(11).x - point(12).x));
     const open = wristY < shoulderY - 0.04 && feetGap > shoulderGap * 2.1;
     const closed = wristY > shoulderY + 0.02 && feetGap < shoulderGap * 1.65;
     return { phase: open ? 'open' : closed ? 'closed' : 'ready', valid: true };
   }
-  const hip = (angle(left(11), left(23), left(25)) + angle(left(12), left(24), left(26))) / 2;
-  return { phase: hip < 115 ? 'up' : hip > 145 ? 'down' : 'ready', valid: true };
+  if (exercise === 'situp') {
+    const hip = (angle(point(11), point(23), point(25)) + angle(point(12), point(24), point(26))) / 2;
+    return { phase: hip < 115 ? 'up' : hip > 145 ? 'down' : 'ready', valid: true };
+  }
+  if (exercise === 'plank') {
+    const bodyAngle = angle(point(11), point(23), point(27));
+    const bodyLevel = Math.abs(point(11).y - point(27).y) < 0.22;
+    const bodyExtended = Math.abs(point(11).x - point(27).x) > 0.18;
+    return { phase: 'hold', valid: bodyAngle > 150 && bodyLevel && bodyExtended };
+  }
+  if (exercise === 'lunge') {
+    const leftKnee = angle(point(23), point(25), point(27));
+    const rightKnee = angle(point(24), point(26), point(28));
+    const deepestKnee = Math.min(leftKnee, rightKnee);
+    const standing = Math.min(leftKnee, rightKnee) > 150;
+    return { phase: deepestKnee < 112 ? 'down' : standing ? 'up' : 'ready', valid: true };
+  }
+  if (exercise === 'highknees') {
+    const raised = point(25).y < point(23).y - 0.1 || point(26).y < point(24).y - 0.1;
+    return { phase: raised ? 'open' : 'closed', valid: true };
+  }
+  if (exercise === 'deadbug') {
+    const hipExtension = Math.max(
+      angle(point(11), point(23), point(25)),
+      angle(point(12), point(24), point(26))
+    );
+    return { phase: hipExtension > 148 ? 'up' : hipExtension < 125 ? 'down' : 'ready', valid: true };
+  }
+  const hipAngle = (angle(point(11), point(23), point(25)) + angle(point(12), point(24), point(26))) / 2;
+  return { phase: hipAngle < 130 ? 'down' : hipAngle > 155 ? 'up' : 'ready', valid: true };
 }
 
-export default function WorkoutVerification({ target = 20, exercise = 'squat', onVerified }: Props) {
+export default function WorkoutVerification({
+  target = 20,
+  exercise = 'squat',
+  unit = 'reps',
+  variant = 'alarm',
+  completionLabel,
+  onVerified,
+}: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const landmarkerRef = useRef<PoseLandmarker | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -60,6 +117,8 @@ export default function WorkoutVerification({ target = 20, exercise = 'squat', o
   const phaseRef = useRef<Phase>('ready');
   const lastCountAtRef = useRef(0);
   const stableFramesRef = useRef(0);
+  const activeDurationRef = useRef(0);
+  const lastFrameAtRef = useRef(0);
   const [count, setCount] = useState(0);
   const [retryAttempt, setRetryAttempt] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -70,33 +129,44 @@ export default function WorkoutVerification({ target = 20, exercise = 'squat', o
 
   useEffect(() => {
     let alive = true;
-    let visibilityHandler: (() => void) | undefined;
-
     const stopCamera = () => {
       cancelAnimationFrame(rafRef.current);
       streamRef.current?.getTracks().forEach(track => track.stop());
       streamRef.current = null;
     };
-
     const startLoop = () => {
       const loop = () => {
         if (!alive || !videoRef.current || !landmarkerRef.current || document.hidden) return;
         const video = videoRef.current;
         if (video.readyState >= 2) {
           try {
-            const result = landmarkerRef.current.detectForVideo(video, performance.now());
+            const now = performance.now();
+            const result = landmarkerRef.current.detectForVideo(video, now);
             const pose = result.landmarks?.[0] as Landmark[] | undefined;
             if (pose) {
               const movement = getMovementPhase(pose, exercise);
               setPoseSeen(movement.valid);
-              if (movement.valid && movement.phase !== 'ready') {
+
+              if (unit === 'sec') {
+                if (movement.valid) {
+                  const delta = lastFrameAtRef.current ? Math.min(now - lastFrameAtRef.current, 120) : 0;
+                  lastFrameAtRef.current = now;
+                  activeDurationRef.current += delta;
+                  const next = Math.min(Math.floor(activeDurationRef.current / 1000), target);
+                  setCount(value => value === next ? value : next);
+                  if (next >= target) setComplete(true);
+                } else {
+                  lastFrameAtRef.current = 0;
+                  phaseRef.current = 'ready';
+                  stableFramesRef.current = 0;
+                }
+              } else if (movement.valid && movement.phase !== 'ready') {
                 stableFramesRef.current += 1;
                 if (stableFramesRef.current >= 2) {
                   const previous = phaseRef.current;
-                  const isCompletedCycle = (exercise === 'squat' || exercise === 'pushup' || exercise === 'situp')
+                  const isCompletedCycle = (exercise === 'squat' || exercise === 'pushup' || exercise === 'situp' || exercise === 'lunge' || exercise === 'deadbug' || exercise === 'bridge')
                     ? previous === 'down' && movement.phase === 'up'
-                    : previous === 'open' && movement.phase === 'closed';
-                  const now = performance.now();
+                    : previous === 'closed' && movement.phase === 'open';
                   if (isCompletedCycle && now - lastCountAtRef.current > 650) {
                     lastCountAtRef.current = now;
                     setCount(value => {
@@ -117,6 +187,7 @@ export default function WorkoutVerification({ target = 20, exercise = 'squat', o
               setPoseSeen(false);
               stableFramesRef.current = 0;
               phaseRef.current = 'ready';
+              lastFrameAtRef.current = 0;
             }
           } catch {
             setError('Pose tracking paused. Reposition your phone and retry if detection does not resume.');
@@ -138,6 +209,8 @@ export default function WorkoutVerification({ target = 20, exercise = 'squat', o
         phaseRef.current = 'ready';
         stableFramesRef.current = 0;
         lastCountAtRef.current = 0;
+        activeDurationRef.current = 0;
+        lastFrameAtRef.current = 0;
 
         if (!navigator.mediaDevices?.getUserMedia) {
           throw new Error('Camera access is unavailable. Open RiseFit in its Android app or a secure browser context.');
@@ -169,17 +242,20 @@ export default function WorkoutVerification({ target = 20, exercise = 'squat', o
         startLoop();
       } catch (e) {
         if (alive) {
+          streamRef.current?.getTracks().forEach(track => track.stop());
+          streamRef.current = null;
           setLoading(false);
           setError(e instanceof Error ? e.message : 'Camera or pose model could not start. Allow camera access and retry.');
         }
       }
     };
 
-    visibilityHandler = () => {
+    const visibilityHandler = () => {
       if (document.hidden) {
         cancelAnimationFrame(rafRef.current);
+        lastFrameAtRef.current = 0;
         streamRef.current?.getVideoTracks().forEach(track => { track.enabled = false; });
-      } else if (alive && landmarkerRef.current && !complete) {
+      } else if (alive && landmarkerRef.current) {
         streamRef.current?.getVideoTracks().forEach(track => { track.enabled = true; });
         startLoop();
       }
@@ -189,13 +265,13 @@ export default function WorkoutVerification({ target = 20, exercise = 'squat', o
 
     return () => {
       alive = false;
-      document.removeEventListener('visibilitychange', visibilityHandler!);
+      document.removeEventListener('visibilitychange', visibilityHandler);
       cancelAnimationFrame(rafRef.current);
       landmarkerRef.current?.close();
       landmarkerRef.current = null;
       stopCamera();
     };
-  }, [target, exercise, retryAttempt]);
+  }, [target, exercise, unit, retryAttempt]);
 
   useEffect(() => {
     if (complete) {
@@ -207,21 +283,29 @@ export default function WorkoutVerification({ target = 20, exercise = 'squat', o
     }
   }, [complete]);
 
-  return <section className="panel session">
-    <span className="eyebrow">ALARM CHALLENGE · LIVE VERIFICATION</span>
-    <h2>Complete {target} {config.title}</h2>
+  const isWorkout = variant === 'workout';
+  const progressUnit = unit === 'sec' ? 'seconds' : 'reps';
+  const heading = unit === 'sec'
+    ? `Hold ${config.title} for ${target} seconds`
+    : `Complete ${target} ${config.title}`;
+
+  return <section className={isWorkout ? 'verification-workout' : 'panel session'}>
+    <span className="eyebrow">{isWorkout ? 'WORKOUT · LIVE CAMERA TRACKING' : 'ALARM CHALLENGE · LIVE VERIFICATION'}</span>
+    <h2>{heading}</h2>
     <p className="muted">{config.instruction}</p>
-    <div style={{position:'relative', overflow:'hidden', borderRadius:16, background:'#090b08', aspectRatio:'4/3', margin:'18px 0'}}>
+    <div style={{position:'relative', overflow:'hidden', borderRadius:16, background:'#09090d', aspectRatio:'4/3', margin:'18px 0'}}>
       <video ref={videoRef} muted playsInline style={{width:'100%',height:'100%',objectFit:'cover',transform:'scaleX(-1)'}} />
-      {!poseSeen && !complete && <div style={{position:'absolute',inset:0,display:'grid',placeItems:'center',background:'#090b08aa',color:'#f4f5f2',textAlign:'center',padding:20}}><UserRound size={28}/><p>{config.setup}</p></div>}
-      {complete && <div style={{position:'absolute',inset:0,display:'grid',placeItems:'center',background:'#10160dcc',color:'#9a8cff'}}><CheckCircle2 size={52}/><b>Challenge complete</b></div>}
+      {!poseSeen && !complete && <div style={{position:'absolute',inset:0,display:'grid',placeItems:'center',background:'#09090dcc',color:'#f4f4f7',textAlign:'center',padding:20}}><UserRound size={28}/><p>{loading ? 'Starting camera and pose detection…' : config.setup}</p></div>}
+      {complete && <div style={{position:'absolute',inset:0,display:'grid',placeItems:'center',background:'#10101dcc',color:'#9a91ff'}}><CheckCircle2 size={52}/><b>Target verified</b></div>}
     </div>
     <div className="counter">
-      <span className="eyebrow">{loading ? 'INITIALIZING CAMERA & POSE MODEL' : error ? 'CAMERA / TRACKING ISSUE' : poseSeen ? 'BODY DETECTED · KEEP MOVING' : 'SEARCHING FOR FULL BODY'}</span>
-      <div className="number">{count}<small>/ {target} reps</small></div>
+      <span className="eyebrow">{loading ? 'INITIALIZING CAMERA & POSE MODEL' : error ? 'CAMERA / TRACKING ISSUE' : poseSeen ? (unit === 'sec' ? 'PLANK POSITION VERIFIED · HOLD STEADY' : 'BODY DETECTED · KEEP MOVING') : 'POSITION YOUR BODY IN FRAME'}</span>
+      <div className="number">{count}<small>/ {target} {progressUnit}</small></div>
       <div className="progress-track count-track"><i style={{width:`${count/target*100}%`}}/></div>
     </div>
     {error && <><div className="notice"><Camera size={17}/><span>{error}</span></div><button className="secondary full" onClick={() => setRetryAttempt(value => value + 1)}><RotateCcw size={15}/> Retry camera &amp; pose setup</button></>}
-    {complete ? <><div className="notice"><ShieldCheck size={17}/><span>RiseFit detected the target movement cycles on this device. Your camera feed is not uploaded.</span></div><button className="primary full" onClick={onVerified}><CheckCircle2 size={17}/> Dismiss challenge</button></> : <p className="muted" style={{textAlign:'center',fontSize:12}}>On-device pose estimation · No video recording or upload</p>}
+    {complete
+      ? <><div className="notice"><ShieldCheck size={17}/><span>{unit === 'sec' ? 'RiseFit verified the hold duration while your body remained in the detected plank position.' : 'RiseFit detected the target movement cycles on this device.'} Your camera feed is not uploaded.</span></div><button className="primary full" onClick={onVerified}><CheckCircle2 size={17}/> {completionLabel ?? (isWorkout ? 'Continue' : 'Dismiss challenge')}</button></>
+      : <p className="muted" style={{textAlign:'center',fontSize:12}}>On-device pose estimation · No video recording or upload</p>}
   </section>;
 }
