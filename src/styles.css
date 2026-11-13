@@ -3,3 +3,51 @@
 /* Statistics screen: visual direction based on the supplied fitness reference */
 .stats-screen{color:#f5f5f7;padding:10px 0 22px;max-width:780px;margin:0 auto}.stats-heading{display:flex;align-items:center;justify-content:center;position:relative;margin:4px 0 28px}.stats-heading h2{font:700 25px 'Space Grotesk';margin:0}.avatar{position:absolute;right:0;top:-7px;width:48px;height:48px;border:3px solid #303136;background:#191a20;color:#777cff;border-radius:50%;display:grid;place-items:center}.stats-period{display:grid;grid-template-columns:repeat(4,1fr);background:#202023;border-radius:30px;padding:4px;margin-bottom:24px}.stats-period button{border:0;background:transparent;color:#f1f1f4;padding:12px 4px;border-radius:26px;font-weight:700;font-size:13px}.stats-period button.chosen{background:#55565f;color:#fff}.stats-metrics{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:13px}.stat-tile{display:flex;align-items:center;gap:13px;background:#171719;border:1px solid #303034;border-radius:22px;padding:19px 16px;min-width:0}.stat-icon{width:54px;height:54px;display:grid;place-items:center;flex-shrink:0;background:#20213b;color:#7279ff;border-radius:50%}.stat-tile div{display:flex;flex-direction:column;gap:5px;min-width:0}.stat-tile b{font-size:15px;color:#f4f4f5}.stat-tile strong{font:700 24px 'Space Grotesk';color:#92929b;white-space:nowrap}.weight-tile{margin-bottom:15px;padding:22px 19px}.weight-tile .stat-icon{width:66px;height:66px}.weight-tile strong{font-size:27px}.level-card{border:1px solid #303034;background:#151517;border-radius:24px;padding:20px 18px 16px;overflow:hidden}.level-top{display:flex;justify-content:space-between;align-items:center}.level-top span{font-size:14px;color:#92929b;font-weight:600}.level-top h3{font:700 30px 'Space Grotesk';color:#7379ff;margin:5px 0}.level-actions{display:flex;align-items:center;gap:12px}.level-actions button{display:flex;align-items:center;gap:5px;border:0;background:transparent;color:#a1a1aa;font-size:13px;font-weight:700}.level-actions button:last-child{color:#7379ff}.muscle-illustrations{display:flex;justify-content:center;align-items:center;gap:35px;height:260px;margin:10px 0 4px}.muscle-illustrations svg{height:100%;width:calc(50% - 15px);max-width:130px}.level-badges{display:flex;justify-content:space-between;gap:7px;flex-wrap:wrap}.level-badges span{background:#242427;border-radius:24px;padding:9px 11px;font-size:12px;font-weight:700;color:#f1f1f2}.stats-bottom-nav{display:flex;justify-content:space-around;gap:4px;background:#242427;border:1px solid #343438;border-radius:35px;padding:9px 5px;margin-top:18px}.stats-bottom-nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;flex:1;border:0;background:transparent;color:#e7e7ea;font-size:21px;font-weight:700;min-width:0}.stats-bottom-nav button span{font-size:10px}.stats-bottom-nav button svg{width:23px;height:23px}.stats-bottom-nav button.current{color:#7379ff;background:#35353c;border-radius:28px}
 @media(max-width:760px){.stats-screen{padding:4px 0 12px}.stats-heading{margin:0 0 24px}.stats-heading h2{font-size:23px}.avatar{width:42px;height:42px}.stats-period{margin-bottom:20px}.stats-period button{font-size:12px;padding:10px 3px}.stats-metrics{gap:9px}.stat-tile{border-radius:20px;padding:15px 12px;gap:10px}.stat-icon{width:48px;height:48px}.stat-tile b{font-size:14px}.stat-tile strong{font-size:22px}.weight-tile{padding:19px 14px}.weight-tile .stat-icon{width:59px;height:59px}.weight-tile strong{font-size:24px}.level-card{padding:17px 14px 14px;border-radius:22px}.level-top span{font-size:13px}.level-top h3{font-size:27px}.level-actions{gap:8px}.level-actions button{font-size:11px}.muscle-illustrations{height:245px;gap:20px}.level-badges span{font-size:11px;padding:8px 9px}.stats-bottom-nav{margin-top:16px}.stats-bottom-nav button span{font-size:9px}}
+
+/* RiseFit full UI refresh: graphite + indigo/violet fitness styling */
+:root{--lime:#777bff;--muted:#9899a7;--line:#303037;--card:#171719;background:#080809;color:#f4f4f7}
+body{background:#080809;color:#f4f4f7}
+.sidebar{background:#09090b;border-right-color:#242429}
+.brand-symbol{background:#777bff;color:#09090d}
+.nav{color:#999aa8}
+.nav.active{background:#22233a;color:#8589ff}
+.motto{background:#15151d;border-color:#2b2b3b}
+.hero{background:linear-gradient(115deg,#191923,#131318)}
+.hero,.streak,.panel{border-color:#303037;background-color:#171719}
+.pill{border-color:#39394c;color:#b0b1c3;background:#1c1c29}
+.pill i{background:#777bff}
+.primary{background:#777bff;color:#09090d}
+.clock-art{color:#777bff}.ring{border-color:#39394c;background:#1c1c29;box-shadow:0 0 0 20px #171720,0 0 0 21px #303047}
+.day b{background:#292932;color:#898a99}.day.done b{background:#777bff;color:#08080b}
+.plan-row{background:#151519;border-color:#2b2b31}
+.tone0{background:#22233b;color:#8589ff}.tone1{background:#202c35;color:#92c9ed}.tone2{background:#30243a;color:#c2a3ff}
+.play{border-color:#3b3b50;background:#22223a;color:#8589ff}
+.quote{border-color:#2b2b31;background:#131317}.quote>span{color:#8589ff}
+.alarm-form{background:#1c1c22;border-color:#303037}.alarm-form input{background:#101014;border-color:#3a3a44}
+.toggle.on{background:#777bff}.toggle.on i{background:#09090d}
+.alarm-card{border-color:#303037;color:#8589ff}.notice{background:#1d1d2a;border-color:#35354b;color:#8589ff}.notice span{color:#b0b0bf}
+.filters button{background:#1b1b21;color:#a1a1b0;border-color:#33333c}.filters button.selected{background:#777bff;color:#09090d;border-color:#777bff}
+.exercise-card{background:#17171b;border-color:#303037}.exercise-card .plan-icon{background:#22223b;color:#8589ff}
+.progress-track{background:#303039}.progress-track i{background:#777bff}.number,.progress-number,.success{color:#8589ff}
+.secondary{border-color:#383843;background:#1c1c22;color:#c2c2ce}.instruction{border-color:#303037;background:#19191e}
+footer{color:#777783}footer span{color:#8589ff}
+@media(max-width:760px){
+ .shell{display:block;min-height:100vh}
+ .sidebar{position:fixed;z-index:20;left:0;right:0;bottom:0;width:100%;height:78px;padding:7px 10px calc(7px + env(safe-area-inset-bottom));border-right:0;border-top:1px solid #303037;background:rgba(17,17,20,.97);backdrop-filter:blur(12px);display:block}
+ .sidebar .brand,.sidebar .side-caption,.sidebar .side-bottom{display:none}
+ .sidebar nav{height:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+ .sidebar .nav{height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;padding:5px 2px;border-radius:15px;font-size:10px;line-height:1.1;text-align:center;color:#9b9ba8;white-space:normal}
+ .sidebar .nav svg{width:21px;height:21px;flex-shrink:0}
+ .sidebar .nav.active{background:#292941;color:#8589ff}
+ .main{width:100%;max-width:none;margin:0;padding:24px 15px calc(100px + env(safe-area-inset-bottom))}
+ .header h1{font-size:24px}
+ .date-chip{border-radius:50%;width:43px;height:43px;justify-content:center;font-size:0;padding:0}
+ .date-chip svg{width:19px;height:19px}
+ .hero-grid{grid-template-columns:1fr}
+ .hero,.streak{border-radius:22px;padding:20px;min-height:230px}
+ .panel{border-radius:22px;padding:18px}
+ .exercise-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .exercise-card{min-height:140px}
+ .plan-row{border-radius:16px;padding:13px}
+ .section-title{margin-top:25px}
+}
