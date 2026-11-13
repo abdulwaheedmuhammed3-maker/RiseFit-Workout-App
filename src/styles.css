@@ -133,3 +133,12 @@ footer{color:#777783}footer span{color:#8589ff}
  .stats-v2-muscle-item{font-size:10px;gap:6px;padding:8px 0}
  .stats-v2-muscle-item small{font-size:8px}
 }
+
+
+/* Camera-verified workout tracking */
+.verification-workout{margin:12px 0 18px;min-width:0}
+.verification-workout h2{font:600 22px 'Space Grotesk';margin:8px 0}
+.verification-workout .counter{padding:14px 0 8px}
+.verification-workout .number{margin:12px 0 10px}
+.verification-workout .count-track{margin-bottom:8px}
+.verification-workout .muted{line-height:1.7}
