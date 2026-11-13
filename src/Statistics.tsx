@@ -1,27 +1,147 @@
-import { useState } from 'react';
-import { Dumbbell, Clock3, Weight, Info, ArrowLeftRight, Activity } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import {
+  Activity, Award, BarChart3, CalendarDays, ChevronRight, Clock3,
+  Dumbbell, Flame, Info, TrendingUp, Weight
+} from 'lucide-react';
 
 type Period = 'Week' | 'Month' | 'Year' | 'All';
+
+function MuscleFigure({ back = false }: { back?: boolean }) {
+  return (
+    <svg className="anatomy-figure" viewBox="0 0 180 390" role="img" aria-label={back ? 'Back muscle anatomy' : 'Front muscle anatomy'}>
+      <defs>
+        <linearGradient id={back ? 'muscleBack' : 'muscleFront'} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#b8a5ff" />
+          <stop offset=".52" stopColor="#8065f5" />
+          <stop offset="1" stopColor="#4735a9" />
+        </linearGradient>
+        <linearGradient id={back ? 'bodyBack' : 'bodyFront'} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="#555867" />
+          <stop offset=".5" stopColor="#d2d3dc" />
+          <stop offset="1" stopColor="#505362" />
+        </linearGradient>
+      </defs>
+      <g fill="#171923" stroke="url(#bodyFront)" strokeWidth="2.2" strokeLinejoin="round">
+        <ellipse cx="90" cy="25" rx="18" ry="22" />
+        <path d="M76 49 Q62 50 52 62 L35 75 24 119 13 164 Q10 177 22 182 L35 151 43 123 42 190 Q40 218 49 244 L39 305 27 358 Q25 370 39 373 L54 334 70 277 79 244 90 264 101 244 110 277 126 334 141 373 Q155 370 153 358 L141 305 131 244 Q140 218 138 190 L137 123 145 151 158 182 Q170 177 167 164 L156 119 145 75 128 62 Q118 50 104 49Z" />
+        <path d="M76 48 Q90 58 104 48 L111 62 105 92 90 105 75 92 69 62Z" />
+      </g>
+      <g fill={`url(#${back ? 'muscleBack' : 'muscleFront'})`} stroke="#c8baff" strokeWidth="1.1" strokeLinejoin="round">
+        {back ? <>
+          <path d="M71 63 Q54 60 45 76 L58 103 78 119 87 103 87 72Z" />
+          <path d="M109 63 Q126 60 135 76 L122 103 102 119 93 103 93 72Z" />
+          <path d="M86 72 L94 72 99 135 90 160 81 135Z" />
+          <path d="M55 111 Q70 119 87 126 L83 184 66 202 51 168Z" />
+          <path d="M125 111 Q110 119 93 126 L97 184 114 202 129 168Z" />
+          <path d="M70 190 Q90 200 110 190 L105 229 90 242 75 229Z" />
+          <path d="M53 245 Q69 250 82 245 L72 300 57 329 45 302Z" />
+          <path d="M127 245 Q111 250 98 245 L108 300 123 329 135 302Z" />
+        </> : <>
+          <path d="M57 70 Q70 61 86 70 L86 104 Q73 112 58 100 L48 81Z" />
+          <path d="M123 70 Q110 61 94 70 L94 104 Q107 112 122 100 L132 81Z" />
+          <path d="M87 112 L93 112 96 180 90 194 84 180Z" />
+          <path d="M83 116 Q70 110 57 118 L62 163 80 174 87 160Z" />
+          <path d="M97 116 Q110 110 123 118 L118 163 100 174 93 160Z" />
+          <path d="M84 182 Q90 178 96 182 L101 218 90 230 79 218Z" />
+          <path d="M48 194 Q62 190 77 199 L70 248 55 276 42 247Z" />
+          <path d="M132 194 Q118 190 103 199 L110 248 125 276 138 247Z" />
+          <path d="M55 282 L72 282 59 337 47 355 39 345Z" />
+          <path d="M125 282 L108 282 121 337 133 355 141 345Z" />
+        </>}
+      </g>
+      <g fill="none" stroke="#d9d9e4" strokeOpacity=".35" strokeWidth="1">
+        <path d="M90 60 L90 242" />
+        <path d="M45 82 Q65 93 82 105 M135 82 Q115 93 98 105" />
+        <path d="M55 204 Q67 213 80 215 M125 204 Q113 213 100 215" />
+      </g>
+    </svg>
+  );
+}
+
 export default function Statistics({ sessions = 0 }: { sessions?: number }) {
- const [period, setPeriod] = useState<Period>('Month');
- const workouts = period === 'Week' ? sessions : period === 'Month' ? sessions : sessions;
- const minutes = workouts * 48;
- const weight = workouts * 120;
- return <section className="stats-screen">
-  <div className="stats-heading"><h2>Statistics</h2><div className="avatar"><Activity size={23}/></div></div>
-  <div className="stats-period">{(['Week','Month','Year','All'] as Period[]).map(p=><button key={p} className={period===p?'chosen':''} onClick={()=>setPeriod(p)}>{p}</button>)}</div>
-  <div className="stats-metrics">
-   <article className="stat-tile"><span className="stat-icon"><Dumbbell size={27}/></span><div><b>Workouts</b><strong>{workouts}</strong></div></article>
-   <article className="stat-tile"><span className="stat-icon"><Clock3 size={27}/></span><div><b>Time</b><strong>{minutes} min</strong></div></article>
-  </div>
-  <article className="stat-tile weight-tile"><span className="stat-icon"><Weight size={31}/></span><div><b>Total Weight</b><strong>{weight.toLocaleString()} kg</strong></div></article>
-  <article className="level-card"><div className="level-top"><div><span>Your Level</span><h3>Bronze</h3></div><div className="level-actions"><button><ArrowLeftRight size={20}/> Compare</button><button aria-label="Level information"><Info size={24}/></button></div></div>
-   <div className="muscle-illustrations">
-    <svg viewBox="0 0 130 260" role="img" aria-label="Front muscle group illustration"><g fill="#17191b" stroke="#85858b" strokeWidth="1.5"><circle cx="65" cy="21" r="16"/><path d="M48 42 Q30 48 25 70 L16 104 28 111 42 79 39 124 44 166 34 217 45 235 56 190 65 158 74 190 85 235 96 217 86 166 91 124 88 79 102 111 114 104 105 70 Q100 48 82 42Z"/></g><g fill="#d39b42" stroke="#efbd64" strokeWidth="1"><path d="M45 50 Q65 40 85 50 L79 75 65 83 51 75Z"/><path d="M51 88 L79 88 74 117 65 122 56 117Z"/><path d="M42 126 L58 126 54 157 43 177 36 159Z"/><path d="M72 126 L88 126 94 159 87 177 76 157Z"/><path d="M45 180 L58 180 48 217 38 211Z"/><path d="M72 180 L85 180 92 211 82 217Z"/></g><g fill="#e7c34b"><circle cx="28" cy="89" r="5"/><circle cx="102" cy="89" r="5"/></g></svg>
-    <svg viewBox="0 0 130 260" role="img" aria-label="Back muscle group illustration"><g fill="#17191b" stroke="#85858b" strokeWidth="1.5"><circle cx="65" cy="21" r="16"/><path d="M48 42 Q30 48 25 70 L16 104 28 111 42 79 39 124 44 166 34 217 45 235 56 190 65 158 74 190 85 235 96 217 86 166 91 124 88 79 102 111 114 104 105 70 Q100 48 82 42Z"/></g><g fill="#b47b38" stroke="#d5a054" strokeWidth="1"><path d="M46 49 L65 42 84 49 78 83 65 96 52 83Z"/><path d="M52 100 L78 100 73 140 65 149 57 140Z"/><path d="M39 147 L58 147 54 178 40 190 34 170Z"/><path d="M72 147 L91 147 96 170 90 190 76 178Z"/><path d="M45 190 L58 190 48 218 38 211Z"/><path d="M72 190 L85 190 92 211 82 218Z"/></g><g fill="#e7c34b"><circle cx="28" cy="89" r="5"/><circle cx="102" cy="89" r="5"/></g></svg>
-   </div>
-   <div className="level-badges"><span>🟡 Gold: 2</span><span>🟤 Bronze: 4</span><span>🟠 Wood: 8</span></div>
-  </article>
-  <div className="stats-bottom-nav"><button><Dumbbell/>Training</button><button>▤<span>Exercises</span></button><button>★<span>Challenges</span></button><button>◴<span>History</span></button><button className="current">▥<span>Statistics</span></button></div>
- </section>;
+  const [period, setPeriod] = useState<Period>('Week');
+  // Date-specific workout history is not yet stored, so the current session total
+  // is shown consistently for every period rather than inventing period breakdowns.
+  const workouts = sessions;
+  const minutes = workouts * 48;
+  const volume = workouts * 120;
+  const levelProgress = Math.min(workouts * 10, 100);
+  const nextLevel = workouts >= 10 ? 'Silver' : 'Silver';
+  const muscleGroups = useMemo(() => ['Chest', 'Back', 'Shoulders', 'Arms', 'Core', 'Legs'], []);
+
+  return (
+    <section className="stats-screen-v2">
+      <div className="stats-v2-heading">
+        <div>
+          <span className="stats-eyebrow">YOUR TRAINING OVERVIEW</span>
+          <h2>Statistics</h2>
+          <p>See your consistency, celebrate progress, and keep building.</p>
+        </div>
+        <span className="stats-v2-avatar"><Activity size={22} /></span>
+      </div>
+
+      <div className="stats-v2-period" aria-label="Statistics period">
+        {(['Week', 'Month', 'Year', 'All'] as Period[]).map(item => (
+          <button key={item} className={period === item ? 'active' : ''} onClick={() => setPeriod(item)}>{item}</button>
+        ))}
+      </div>
+
+      <div className="stats-v2-metrics">
+        <article className="stats-v2-card">
+          <span className="stats-v2-icon"><Dumbbell /></span>
+          <div><span>Workouts</span><strong>{workouts}</strong><small><TrendingUp size={13} /> Sessions completed</small></div>
+        </article>
+        <article className="stats-v2-card">
+          <span className="stats-v2-icon"><Clock3 /></span>
+          <div><span>Time trained</span><strong>{minutes >= 60 ? `${Math.floor(minutes / 60)}h ${minutes % 60}m` : `${minutes} min`}</strong><small><CalendarDays size={13} /> Approx. 48 min / session</small></div>
+        </article>
+        <article className="stats-v2-card stats-v2-volume">
+          <span className="stats-v2-icon"><Weight /></span>
+          <div><span>Training volume</span><strong>{volume.toLocaleString()} kg</strong><small>Estimated session volume</small></div>
+        </article>
+      </div>
+
+      <article className="stats-v2-level">
+        <div className="stats-v2-medal"><Award size={43} /><span>BRONZE</span></div>
+        <div className="stats-v2-level-content">
+          <span className="stats-eyebrow">YOUR CURRENT LEVEL</span>
+          <h3>Bronze</h3>
+          <p>Every completed workout moves you forward.</p>
+          <div className="stats-v2-progress"><i style={{ width: `${levelProgress}%` }} /></div>
+          <div className="stats-v2-progress-label"><span>{workouts} / 10 sessions</span><b>Next: {nextLevel}</b></div>
+        </div>
+        <span className="stats-v2-level-percent">{levelProgress}%</span>
+      </article>
+
+      <article className="stats-v2-anatomy-card">
+        <div className="stats-v2-section-heading">
+          <div><span className="stats-eyebrow">TRAINING COVERAGE</span><h3>Muscle groups</h3></div>
+          <span className="stats-v2-info" title="Your current workout plans include full-body, strength and core movements."><Info size={18} /></span>
+        </div>
+        <div className="stats-v2-anatomy-layout">
+          <div className="stats-v2-figures">
+            <div><MuscleFigure /><span>FRONT</span></div>
+            <div><MuscleFigure back /><span>BACK</span></div>
+          </div>
+          <div className="stats-v2-muscle-list">
+            {muscleGroups.map((name, index) => (
+              <div className="stats-v2-muscle-item" key={name}>
+                <span className={`muscle-dot muscle-dot-${index}`} />
+                <span>{name}</span>
+                <small>{index === 0 || index === 1 || index === 4 ? 'Targeted' : 'Included'}</small>
+              </div>
+            ))}
+            <p>Illustration highlights common full-body training areas, not measured muscle activation.</p>
+          </div>
+        </div>
+      </article>
+
+      <div className="stats-v2-footer-card">
+        <span className="stats-v2-icon"><Flame /></span>
+        <div><span>Keep your momentum</span><strong>{workouts} {workouts === 1 ? 'workout' : 'workouts'} completed</strong><small>Finish another session to build your record.</small></div>
+        <BarChart3 className="stats-v2-trend-icon" size={28} />
+      </div>
+      <p className="stats-v2-disclaimer">Statistics are based on the workout sessions currently recorded on this device. Date-based history and measured muscle analytics are not yet available.</p>
+    </section>
+  );
 }
