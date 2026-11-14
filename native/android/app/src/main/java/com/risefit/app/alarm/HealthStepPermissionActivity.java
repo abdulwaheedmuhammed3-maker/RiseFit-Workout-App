@@ -16,9 +16,6 @@ import java.util.Set;
 public final class HealthStepPermissionActivity extends ComponentActivity {
     private static final String READ_STEPS_PERMISSION =
         "android.permission.health.READ_STEPS";
-    private static final String HEALTH_CONNECT_PROVIDER =
-        "com.google.android.apps.healthdata";
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,7 +33,7 @@ public final class HealthStepPermissionActivity extends ComponentActivity {
 
         ActivityResultLauncher<Set<String>> permissionLauncher =
             registerForActivityResult(
-                PermissionController.createRequestPermissionResultContract(HEALTH_CONNECT_PROVIDER),
+                PermissionController.createRequestPermissionResultContract(),
                 grantedPermissions -> {
                     // RiseFit re-reads the permission state when it returns to the foreground.
                     finish();
