@@ -48,6 +48,7 @@ const loadAlarms = (): WakeAlarm[] => {
   if (!raw) return DEFAULT_ALARMS;
   const value: unknown = JSON.parse(raw);
   if (!Array.isArray(value)) return DEFAULT_ALARMS;
+  if (value.length === 0) return [];
   const restored = value.filter((item): item is Record<string, unknown> =>
    isRecord(item) && typeof item.id === 'string' && typeof item.label === 'string' &&
    typeof item.enabled === 'boolean' && typeof item.time === 'string' &&
