@@ -138,13 +138,38 @@ public class NativeAlarmPlugin extends Plugin {
             call.reject("Automatic daily step reading requires Android 14 or later with Health Connect support.");
             return;
         }
+
+        Context context = getContext();
+        android.app.Activity activity = getActivity();
+        if (activity == null) {
+            call.reject("RiseFit could not open Android settings because its screen is not available. Return to RiseFit and try again.");
+            return;
+        }
+
+        Intent appPermissionsIntent = new Intent(HealthConnectManager.ACTION_MANAGE_HEALTH_PERMISSIONS);
+        appPermissionsIntent.putExtra(Intent.EXTRA_PACKAGE_NAME, context.getPackageName());
         try {
-            Intent intent = new Intent(HealthConnectManager.ACTION_MANAGE_HEALTH_PERMISSIONS);
-            intent.putExtra(Intent.EXTRA_PACKAGE_NAME, getContext().getPackageName());
-            getActivity().startActivity(intent);
+            activity.startActivity(appPermissionsIntent);
             call.resolve();
-        } catch (RuntimeException error) {
-            call.reject("Could not open Android Health Connect permissions.", null, error);
+            return;
+        } catch (RuntimeException directError) {
+            android.util.Log.w("RiseFitHealthConnect", "Could not open app-specific Health Connect permissions; trying Health Connect settings.", directError);
+        }
+
+        // Some Android builds expose the Health Connect settings screen but do not expose
+        // the app-specific permissions route. The settings fallback lets the user open
+        // App permissions, choose RiseFit, and enable Steps manually.
+        try {
+            Intent healthConnectSettings = new Intent("android.health.connect.action.HEALTH_HOME_SETTINGS");
+            activity.startActivity(healthConnectSettings);
+            call.resolve();
+        } catch (RuntimeException fallbackError) {
+            android.util.Log.e("RiseFitHealthConnect", "Could not open Health Connect settings.", fallbackError);
+            call.reject(
+                "Android could not open Health Connect automatically. Open your phone Settings, find Health Connect, then go to App permissions > RiseFit and allow Steps.",
+                null,
+                fallbackError
+            );
         }
     }
 
