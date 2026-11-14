@@ -2,18 +2,12 @@ package com.risefit.app.alarm;
 
 import android.app.AlarmManager;
 import android.app.NotificationManager;
-import android.health.connect.AggregateRecordsRequest;
-import android.health.connect.AggregateRecordsResponse;
-import android.health.connect.HealthConnectException;
-import android.health.connect.HealthConnectManager;
-import android.health.connect.TimeInstantRangeFilter;
-import android.health.connect.datatypes.StepsRecord;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
-import android.os.ext.SdkExtensions;
-import android.os.OutcomeReceiver;
 import android.provider.Settings;
 
 import java.time.Instant;
@@ -34,8 +28,8 @@ import com.getcapacitor.annotation.PermissionCallback;
     name = "NativeAlarm",
     permissions = {
         @Permission(
-            alias = "readSteps",
-            strings = { "android.permission.health.READ_STEPS" }
+            alias = "activityRecognition",
+            strings = { "android.permission.ACTIVITY_RECOGNITION" }
         )
     }
 )
@@ -141,144 +135,107 @@ public class NativeAlarmPlugin extends Plugin {
         call.resolve();
     }
 
-    private static final String READ_STEPS_PERMISSION = "android.permission.health.READ_STEPS";
-
     @PluginMethod
-    public void requestStepReadPermission(PluginCall call) {
-        if (Build.VERSION.SDK_INT < 34) {
-            call.reject("Automatic daily step reading requires Android 14 or later with Health Connect support.");
+    public void requestStepTrackingPermission(PluginCall call) {
+        SensorManager sensorManager = (SensorManager) getContext().getSystemService(Context.SENSOR_SERVICE);
+        Sensor sensor = sensorManager == null ? null : sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
+        if (sensor == null) {
+            call.reject("This phone does not provide a built-in hardware step counter.");
             return;
         }
 
-        // Request on Capacitor's main BridgeActivity instead of opening a
-        // separate transparent/blank Activity as a permission trampoline.
-        // Capacitor routes this through ActivityResultContracts.RequestMultiplePermissions,
-        // which is also the Android 14+ implementation used by Health Connect's
-        // official permission contract.
-        if (getPermissionState("readSteps") == PermissionState.GRANTED) {
-            call.resolve();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+            && getPermissionState("activityRecognition") != PermissionState.GRANTED) {
+            requestPermissionForAlias("activityRecognition", call, "stepTrackingPermissionCallback");
             return;
         }
-        requestPermissionForAlias("readSteps", call, "stepReadPermissionCallback");
+        enableStepTracking(call);
     }
 
     @PermissionCallback
-    private void stepReadPermissionCallback(PluginCall call) {
-        if (getPermissionState("readSteps") == PermissionState.GRANTED) {
-            call.resolve();
+    private void stepTrackingPermissionCallback(PluginCall call) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+            && getContext().checkSelfPermission("android.permission.ACTIVITY_RECOGNITION")
+                != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            call.reject("Physical activity access was not granted. Allow RiseFit to recognise physical activity to count your steps.");
             return;
         }
-        call.reject(
-            "Step access was not granted. Open Android Settings > Health Connect > App permissions > RiseFit and allow Steps, then return to RiseFit."
-        );
+        enableStepTracking(call);
+    }
+
+    private void enableStepTracking(PluginCall call) {
+        try {
+            StepCounterService.enable(getContext());
+            call.resolve();
+        } catch (RuntimeException error) {
+            call.reject("RiseFit could not start background step tracking. Check notification and battery settings, then try again.", null, error);
+        }
     }
 
     @PluginMethod
     public void getDailyStepStats(PluginCall call) {
-        if (Build.VERSION.SDK_INT < 34) {
-            JSObject result = new JSObject();
-            result.put("available", false);
-            result.put("permissionGranted", false);
-            result.put("stepsToday", 0);
-            result.put("days", new JSArray());
-            result.put("message", "Automatic daily steps require Android 14 or later with Health Connect support.");
-            call.resolve(result);
-            return;
-        }
-        if (SdkExtensions.getExtensionVersion(Build.VERSION_CODES.UPSIDE_DOWN_CAKE) < 20) {
-            JSObject result = new JSObject();
-            result.put("available", false);
-            result.put("permissionGranted", false);
-            result.put("stepsToday", 0);
-            result.put("days", new JSArray());
-            result.put("message", "This phone needs the Android 14 system update that enables automatic Health Connect step counting.");
-            call.resolve(result);
-            return;
-        }
-
         Context context = getContext();
-        HealthConnectManager manager = context.getSystemService(HealthConnectManager.class);
-        if (manager == null) {
+        SensorManager sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+        Sensor sensor = sensorManager == null ? null : sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
+        boolean available = sensor != null;
+        boolean activityPermissionGranted = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q
+            || context.checkSelfPermission("android.permission.ACTIVITY_RECOGNITION")
+                == android.content.pm.PackageManager.PERMISSION_GRANTED;
+
+        if (!available) {
             JSObject result = new JSObject();
             result.put("available", false);
             result.put("permissionGranted", false);
             result.put("stepsToday", 0);
             result.put("days", new JSArray());
-            result.put("message", "Android Health Connect is not available on this device.");
-            call.resolve(result);
-            return;
-        }
-
-        boolean permissionGranted = context.checkSelfPermission(READ_STEPS_PERMISSION)
-            == android.content.pm.PackageManager.PERMISSION_GRANTED;
-        if (!permissionGranted) {
-            JSObject result = new JSObject();
-            result.put("available", true);
-            result.put("permissionGranted", false);
-            result.put("stepsToday", 0);
-            result.put("days", new JSArray());
+            result.put("message", "This phone does not include a built-in hardware step counter. RiseFit cannot count steps automatically on this device.");
             result.put("lastUpdated", System.currentTimeMillis());
             call.resolve(result);
             return;
         }
 
-        queryStepDay(manager, call, LocalDate.now(ZoneId.systemDefault()), 0, new JSArray(), 0L);
-    }
-
-    private void queryStepDay(
-        HealthConnectManager manager,
-        PluginCall call,
-        LocalDate day,
-        int dayIndex,
-        JSArray days,
-        long todaySteps
-    ) {
-        ZoneId zone = ZoneId.systemDefault();
-        Instant start = day.atStartOfDay(zone).toInstant();
-        Instant end = day.plusDays(1).atStartOfDay(zone).toInstant();
-        if (day.equals(LocalDate.now(zone))) end = Instant.now();
-
-        TimeInstantRangeFilter range = new TimeInstantRangeFilter.Builder()
-            .setStartTime(start)
-            .setEndTime(end)
-            .build();
-        AggregateRecordsRequest<Long> request = new AggregateRecordsRequest.Builder<Long>(range)
-            .addAggregationType(StepsRecord.STEPS_COUNT_TOTAL)
-            .build();
-
-        manager.aggregate(request, getContext().getMainExecutor(),
-            new OutcomeReceiver<AggregateRecordsResponse<Long>, HealthConnectException>() {
-                @Override
-                public void onResult(AggregateRecordsResponse<Long> response) {
-                    Long value = response.get(StepsRecord.STEPS_COUNT_TOTAL);
-                    long count = value == null ? 0L : Math.max(0L, value);
-                    JSObject entry = new JSObject();
-                    entry.put("date", day.toString());
-                    entry.put("steps", count);
-                    days.put(entry);
-
-                    long nextTodaySteps = dayIndex == 0 ? count : todaySteps;
-                    if (dayIndex < 6) {
-                        queryStepDay(manager, call, day.minusDays(1), dayIndex + 1, days, nextTodaySteps);
-                        return;
-                    }
-
-                    JSObject result = new JSObject();
-                    result.put("available", true);
-                    result.put("permissionGranted", true);
-                    result.put("stepsToday", nextTodaySteps);
-                    result.put("days", days);
-                    result.put("lastUpdated", System.currentTimeMillis());
-                    result.put("source", "health_connect");
-                    call.resolve(result);
-                }
-
-                @Override
-                public void onError(HealthConnectException error) {
-                    call.reject("RiseFit could not read daily steps from Android Health Connect.", null, error);
-                }
-            }
+        android.content.SharedPreferences prefs = context.getSharedPreferences(
+            "risefit_native_steps", Context.MODE_PRIVATE
         );
+        boolean trackingEnabled = activityPermissionGranted
+            && prefs.getBoolean("tracking_enabled", false);
+        if (trackingEnabled) {
+            try {
+                StepCounterService.startIfEnabled(context);
+            } catch (RuntimeException error) {
+                call.reject("RiseFit could not restart its background step counter. Open RiseFit and try enabling automatic steps again.", null, error);
+                return;
+            }
+        }
+
+        LocalDate today = LocalDate.now(ZoneId.systemDefault());
+        JSArray days = new JSArray();
+        long stepsToday = 0L;
+        for (int index = 0; index < 7; index++) {
+            LocalDate date = today.minusDays(index);
+            long steps = Math.max(0L, prefs.getLong(StepCounterService.dayKey(date.toString()), 0L));
+            JSObject entry = new JSObject();
+            entry.put("date", date.toString());
+            entry.put("steps", steps);
+            days.put(entry);
+            if (index == 0) stepsToday = steps;
+        }
+
+        JSObject result = new JSObject();
+        result.put("available", true);
+        result.put("permissionGranted", trackingEnabled);
+        result.put("stepsToday", stepsToday);
+        result.put("days", days);
+        result.put("lastUpdated", prefs.getLong("last_updated", System.currentTimeMillis()));
+        result.put("source", "native_sensor");
+        if (!activityPermissionGranted) {
+            result.put("message", "Allow RiseFit to recognise physical activity so it can count steps automatically.");
+        } else if (!trackingEnabled) {
+            result.put("message", "Enable automatic step counting once. RiseFit will then keep counting while the app is closed.");
+        } else {
+            result.put("message", "Steps are counted directly from this phone, including while RiseFit is closed.");
+        }
+        call.resolve(result);
     }
 
     @PluginMethod
