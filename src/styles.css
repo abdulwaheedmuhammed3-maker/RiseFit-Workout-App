@@ -170,3 +170,191 @@ footer{color:#777783}footer span{color:#8589ff}
 .alarm-follow-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #33333d}
 .alarm-follow-row>div{display:grid;gap:5px}.alarm-follow-row small{color:#9b9ba8;font-size:10px}
 @media(max-width:520px){.alarm-exercise-config{grid-template-columns:1fr 1fr}.alarm-exercise-config label:first-child{grid-column:1/-1}.alarm-editor{flex-wrap:wrap}.alarm-editor-content{width:calc(100% - 42px);flex:auto}}
+
+
+/* Alarm editor polish — align controls with RiseFit's dark violet system */
+.alarm-editor{
+  display:grid;
+  grid-template-columns:36px minmax(0,1fr);
+  align-items:start;
+  gap:12px;
+  min-width:0;
+  padding:16px;
+  border:1px solid #343442;
+  border-radius:18px;
+  background:linear-gradient(145deg,#1b1b23,#151519);
+  color:#8b8eff;
+  overflow:hidden;
+}
+.alarm-editor-icon{
+  width:36px;
+  height:36px;
+  display:grid;
+  place-items:center;
+  border:1px solid #393955;
+  border-radius:12px;
+  background:#252540;
+  color:#898cff;
+}
+.alarm-editor-content{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  width:100%;
+  min-width:0;
+  flex:initial;
+}
+.alarm-editor-heading{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:10px;
+  min-width:0;
+}
+.alarm-title-field,.alarm-time-field{
+  display:flex;
+  flex:1;
+  flex-direction:column;
+  gap:6px;
+  min-width:0;
+  color:#9999aa;
+}
+.alarm-title-field>span,.alarm-time-field>span{
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:1.25px;
+  color:#9292a5;
+}
+.alarm-title-input,.alarm-time-input{
+  display:block;
+  width:100%;
+  min-width:0;
+  min-height:44px;
+  padding:10px 12px;
+  border:1px solid #3b3b4b;
+  border-radius:11px;
+  outline:none;
+  background:#101015;
+  color:#f3f3f8;
+  font-family:'DM Sans',sans-serif;
+  font-size:14px;
+  font-weight:500;
+  color-scheme:dark;
+  transition:border-color .15s ease,box-shadow .15s ease,background .15s ease;
+}
+.alarm-title-input:focus,.alarm-time-input:focus{
+  border-color:#777bff;
+  background:#13131b;
+  box-shadow:0 0 0 3px #777bff20;
+}
+.alarm-repeat-pill{
+  flex-shrink:0;
+  margin-bottom:2px;
+  padding:7px 10px;
+  border:1px solid #3b3b55;
+  border-radius:20px;
+  background:#24243a;
+  color:#aaaaff;
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:1px;
+}
+.alarm-time-input{
+  width:100%;
+  min-height:46px;
+  padding:9px 12px;
+  font-size:16px;
+  letter-spacing:.2px;
+}
+.alarm-challenge-editor{
+  width:100%;
+  min-width:0;
+  padding:13px;
+  border:1px solid #343444;
+  border-radius:13px;
+  background:#111117;
+  display:grid;
+  gap:10px;
+}
+.alarm-exercise-config{
+  min-width:0;
+}
+.alarm-exercise-config input,.alarm-exercise-config select{
+  min-height:38px;
+  background:#1b1b23;
+  color:#f3f3f7;
+  color-scheme:dark;
+}
+.alarm-editor-footer{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+}
+.alarm-editor-footer .save-alarm-btn{
+  flex:1;
+  min-width:0;
+  min-height:43px;
+  margin:0;
+  border-color:#5553a0;
+  background:#272641;
+  color:#c4c3ff;
+}
+.alarm-editor-actions{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-shrink:0;
+}
+.alarm-editor-actions .toggle{
+  flex-shrink:0;
+  margin:0;
+  width:43px;
+  height:25px;
+}
+.alarm-editor-actions .toggle i{
+  width:19px;
+  height:19px;
+}
+.alarm-editor-actions .toggle.on i{
+  transform:translateX(18px);
+}
+.alarm-delete-btn{
+  min-height:43px;
+  padding:10px 13px;
+  border-color:#41404b;
+  background:#211f28;
+  color:#c2bfce;
+}
+@media(max-width:520px){
+  .alarm-editor{
+    grid-template-columns:30px minmax(0,1fr);
+    gap:10px;
+    padding:13px;
+    border-radius:16px;
+  }
+  .alarm-editor-icon{
+    width:30px;
+    height:30px;
+    border-radius:10px;
+  }
+  .alarm-editor-icon svg{width:19px;height:19px}
+  .alarm-editor-content{gap:11px}
+  .alarm-editor-heading{align-items:flex-end}
+  .alarm-title-input{font-size:13px;padding:10px}
+  .alarm-time-input{font-size:15px}
+  .alarm-challenge-editor{padding:10px}
+  .alarm-editor-footer{gap:7px}
+  .alarm-editor-actions{gap:6px}
+  .alarm-delete-btn{padding:9px 10px}
+}
+
+
+/* Keep alarm editor internals out of the legacy generic alarm-card div rule. */
+.alarm-editor .alarm-editor-icon{display:grid;flex:none;flex-direction:row}
+.alarm-editor .alarm-editor-content{display:flex;flex:initial;flex-direction:column}
+.alarm-editor .alarm-editor-heading{display:flex;flex-direction:row}
+.alarm-editor .alarm-challenge-editor{display:grid;flex:initial;flex-direction:column}
+.alarm-editor .alarm-exercise-config{display:grid;flex:initial;flex-direction:row}
+.alarm-editor .alarm-editor-footer{display:flex;flex:initial;flex-direction:row}
+.alarm-editor .alarm-editor-actions{display:flex;flex:initial;flex-direction:row}
