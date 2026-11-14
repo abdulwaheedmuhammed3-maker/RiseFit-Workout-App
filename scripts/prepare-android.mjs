@@ -27,6 +27,28 @@ if (!appGradle.includes('androidx.health.connect:connect-client')) {
   appGradle = appGradle.replace(/dependencies\s*\{/, match => `${match}\n    ${healthConnectDependency}`);
   await writeFile(appGradlePath, appGradle);
 }
+
+// Health Connect Client 1.1.0 requires AGP 8.9.1+ and compile SDK 36.
+const projectGradlePath = join(generatedAndroid, 'build.gradle');
+let projectGradle = await readFile(projectGradlePath, 'utf8');
+if (projectGradle.includes('com.android.tools.build:gradle:8.7.2')) {
+  projectGradle = projectGradle.replace(
+    'com.android.tools.build:gradle:8.7.2',
+    'com.android.tools.build:gradle:8.9.2'
+  );
+  await writeFile(projectGradlePath, projectGradle);
+} else if (!/com.android.tools.build:gradle:8\\.(9|10|11|12|13|14)\\./.test(projectGradle)) {
+  throw new Error('Android Gradle Plugin must be 8.9.1 or newer for Health Connect Client 1.1.0.');
+}
+
+const variablesGradlePath = join(generatedAndroid, 'variables.gradle');
+let variablesGradle = await readFile(variablesGradlePath, 'utf8');
+if (/compileSdkVersion\\s*=\\s*35/.test(variablesGradle)) {
+  variablesGradle = variablesGradle.replace(/compileSdkVersion\\s*=\\s*35/, 'compileSdkVersion = 36');
+  await writeFile(variablesGradlePath, variablesGradle);
+} else if (!/compileSdkVersion\\s*=\\s*3[6-9]/.test(variablesGradle)) {
+  throw new Error('Android compile SDK must be 36 or newer for Health Connect Client 1.1.0.');
+}
 const manifestPath = join(generatedAndroid, 'app', 'src', 'main', 'AndroidManifest.xml');
 let manifest = await readFile(manifestPath, 'utf8');
 const permissions = [
