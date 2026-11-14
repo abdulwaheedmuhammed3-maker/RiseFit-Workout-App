@@ -133,6 +133,13 @@ export default function WorkoutVerification({
   const rightKneeRaisedRef = useRef(false);
   const highKneesInitializedRef = useRef(false);
   const [count, setCount] = useState(0);
+  const countRef = useRef(0);
+  const incrementCount = () => {
+    const next = Math.min(countRef.current + 1, target);
+    countRef.current = next;
+    setCount(next);
+    if (next >= target) setComplete(true);
+  };
   const [retryAttempt, setRetryAttempt] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -185,7 +192,7 @@ export default function WorkoutVerification({
                   const newLift = (leftRaised && !leftKneeRaisedRef.current) || (rightRaised && !rightKneeRaisedRef.current);
                   if (newLift && now - lastCountAtRef.current > 250) {
                     lastCountAtRef.current = now;
-                    setCount(value => { const next = Math.min(value + 1, target); if (next >= target) setComplete(true); return next; });
+                    incrementCount();
                   }
                   leftKneeRaisedRef.current = leftRaised;
                   rightKneeRaisedRef.current = rightRaised;
@@ -199,11 +206,7 @@ export default function WorkoutVerification({
                     : previous === 'closed' && movement.phase === 'open';
                   if (isCompletedCycle && now - lastCountAtRef.current > 650) {
                     lastCountAtRef.current = now;
-                    setCount(value => {
-                      const next = Math.min(value + 1, target);
-                      if (next >= target) setComplete(true);
-                      return next;
-                    });
+                    incrementCount();
                   }
                   phaseRef.current = movement.phase;
                 }
@@ -239,6 +242,7 @@ export default function WorkoutVerification({
         setError('');
         setPoseSeen(false);
         setCount(0);
+        countRef.current = 0;
         setComplete(false);
         phaseRef.current = 'ready';
         stableFramesRef.current = 0;
