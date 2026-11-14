@@ -36,7 +36,7 @@ const loadProfile = (): RiseFitProfile | null => {
   if (!raw) return null;
   const value: unknown = JSON.parse(raw);
   if (!isRecord(value) || typeof value.fullName !== 'string' || !value.fullName.trim() ||
-      typeof value.dateOfBirth !== 'string' || !/^\\d{4}-\\d{2}-\\d{2}$/.test(value.dateOfBirth)) return null;
+      typeof value.dateOfBirth !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value.dateOfBirth)) return null;
   const level = ['Beginner','Intermediate','Expert'].includes(String(value.level)) ? value.level as RiseFitProfile['level'] : 'Beginner';
   const goal = ['glutes','lower-body','core','full-body','upper-body'].includes(String(value.goal)) ? value.goal as RiseFitProfile['goal'] : 'full-body';
   return {fullName:value.fullName.trim(),dateOfBirth:value.dateOfBirth,level,goal};
@@ -51,7 +51,7 @@ const loadAlarms = (): WakeAlarm[] => {
   const restored = value.filter((item): item is Record<string, unknown> =>
    isRecord(item) && typeof item.id === 'string' && typeof item.label === 'string' &&
    typeof item.enabled === 'boolean' && typeof item.time === 'string' &&
-   /^(?:[01]\\d|2[0-3]):[0-5]\\d$/.test(item.time)
+   /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(item.time)
   ).map(item => {
    const challenge = Array.isArray(item.challenge) ? item.challenge.filter((entry): entry is AlarmExerciseConfig =>
     isRecord(entry) && typeof entry.exerciseId === 'string' && validExerciseIds.includes(entry.exerciseId as ExerciseId) &&
