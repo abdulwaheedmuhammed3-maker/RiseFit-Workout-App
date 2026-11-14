@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
+import type { DailyStepEntry } from './nativeAlarm';
 import {
   Activity, Award, BarChart3, Clock3,
-  Dumbbell, Flame, Info, TrendingUp, Weight
+  Dumbbell, Flame, Info, TrendingUp, Weight, Footprints
 } from 'lucide-react';
 
 type Period = 'Week' | 'Month' | 'Year' | 'All';
@@ -60,7 +61,7 @@ function MuscleFigure({ back = false }: { back?: boolean }) {
 
 type CompletedSession = { id: string; title: string; kind: 'plan' | 'alarm'; completedAt: string };
 
-export default function Statistics({ sessions = [] }: { sessions?: CompletedSession[] }) {
+export default function Statistics({ sessions = [], dailySteps = [] }: { sessions?: CompletedSession[]; dailySteps?: DailyStepEntry[] }) {
   const [period, setPeriod] = useState<Period>('Week');
   const filteredSessions = useMemo(() => {
     const now = new Date();
@@ -76,6 +77,7 @@ export default function Statistics({ sessions = [] }: { sessions?: CompletedSess
     }).sort((a, b) => b.completedAt.localeCompare(a.completedAt));
   }, [sessions, period]);
   const workouts = filteredSessions.length;
+  const stepsLastSevenDays = dailySteps.reduce((sum, day) => sum + day.steps, 0);
   const levelProgress = Math.min(workouts * 10, 100);
   const nextLevel = 'Silver';
   const muscleGroups = useMemo(() => ['Chest', 'Back', 'Shoulders', 'Arms', 'Core', 'Legs'], []);
@@ -109,6 +111,10 @@ export default function Statistics({ sessions = [] }: { sessions?: CompletedSess
         <article className="stats-v2-card stats-v2-volume">
           <span className="stats-v2-icon"><Weight /></span>
           <div><span>Training volume</span><strong>Not measured</strong><small>No weight-based data has been recorded</small></div>
+        </article>
+        <article className="stats-v2-card">
+          <span className="stats-v2-icon"><Footprints /></span>
+          <div><span>Steps · last 7 days</span><strong>{stepsLastSevenDays.toLocaleString()}</strong><small>Automatic daily phone count</small></div>
         </article>
       </div>
 
