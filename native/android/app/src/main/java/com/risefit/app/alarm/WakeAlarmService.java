@@ -9,7 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.AudioAttributes;
-import android.media.Ringtone;
+import android.media.MediaPlayer;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
@@ -23,7 +23,7 @@ public class WakeAlarmService extends Service {
     private static final int NOTIFICATION_ID = 6303;
     private static final String CHANNEL_DND = "risefit_alarm_bypass_dnd_v1";
     private static final String CHANNEL_NORMAL = "risefit_alarm_v1";
-    private Ringtone ringtone;
+    private MediaPlayer mediaPlayer;
     private android.os.PowerManager.WakeLock wakeLock;
 
     @Override
@@ -97,18 +97,29 @@ public class WakeAlarmService extends Service {
     }
 
     private void startRingtone() {
+        Uri alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
+        if (alarmSound == null) alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        if (alarmSound == null) return;
         try {
-            Uri alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
-            if (alarmSound == null) alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-            ringtone = RingtoneManager.getRingtone(getApplicationContext(), alarmSound);
-            if (ringtone == null) return;
-            ringtone.setAudioAttributes(new AudioAttributes.Builder()
+            mediaPlayer = new MediaPlayer();
+            mediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_ALARM)
                 .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                 .build());
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) ringtone.setLooping(true);
-            ringtone.play();
-        } catch (RuntimeException ignored) {
+            mediaPlayer.setDataSource(getApplicationContext(), alarmSound);
+            mediaPlayer.setLooping(true);
+            mediaPlayer.setOnPreparedListener(MediaPlayer::start);
+            mediaPlayer.setOnErrorListener((player, what, extra) -> {
+                player.release();
+                if (mediaPlayer == player) mediaPlayer = null;
+                return true;
+            });
+            mediaPlayer.prepareAsync();
+        } catch (Exception ignored) {
+            if (mediaPlayer != null) {
+                try { mediaPlayer.release(); } catch (RuntimeException ignoredRelease) {}
+                mediaPlayer = null;
+            }
             // The foreground notification remains available if the device has no playable alarm tone.
         }
     }
@@ -125,9 +136,10 @@ public class WakeAlarmService extends Service {
 
     @Override
     public void onDestroy() {
-        if (ringtone != null) {
-            try { ringtone.stop(); } catch (RuntimeException ignored) {}
-            ringtone = null;
+        if (mediaPlayer != null) {
+            try { if (mediaPlayer.isPlaying()) mediaPlayer.stop(); } catch (RuntimeException ignored) {}
+            try { mediaPlayer.release(); } catch (RuntimeException ignored) {}
+            mediaPlayer = null;
         }
         if (wakeLock != null && wakeLock.isHeld()) {
             try { wakeLock.release(); } catch (RuntimeException ignored) {}
