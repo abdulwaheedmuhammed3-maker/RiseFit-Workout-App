@@ -10,6 +10,14 @@ export interface NativeAlarmStatus {
   minute: number;
 }
 export interface NativeAlarmItem { id: string; hour: number; minute: number; enabled: boolean; }
+export interface StepTrackingStatus {
+  sensorAvailable: boolean;
+  sensorType: 'detector' | 'counter' | 'none';
+  permissionGranted: boolean;
+  tracking: boolean;
+  steps: number;
+  startedAt?: number;
+}
 interface NativeAlarmPlugin {
   getStatus(): Promise<NativeAlarmStatus>;
   requestExactAlarmAccess(): Promise<void>;
@@ -18,6 +26,9 @@ interface NativeAlarmPlugin {
   schedule(options: { id: string; hour: number; minute: number }): Promise<NativeAlarmStatus>;
   cancelAlarm(options: { id: string }): Promise<void>;
   stopRinging(): Promise<void>;
+  getStepTrackingStatus(): Promise<StepTrackingStatus>;
+  startStepTracking(): Promise<StepTrackingStatus>;
+  stopStepTracking(): Promise<StepTrackingStatus>;
   consumeAlarmLaunch(): Promise<{ openChallenge: boolean; alarmId?: string }>;
   addListener(eventName: 'alarmTriggered', listener: (event: { openChallenge: boolean; alarmId?: string }) => void): Promise<PluginListenerHandle>;
 }
