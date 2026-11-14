@@ -348,3 +348,13 @@ footer{color:#777783}footer span{color:#8589ff}
   .alarm-editor-actions{gap:6px}
   .alarm-delete-btn{padding:9px 10px}
 }
+
+
+/* Keep alarm editor internals out of the legacy generic alarm-card div rule. */
+.alarm-editor .alarm-editor-icon{display:grid;flex:none;flex-direction:row}
+.alarm-editor .alarm-editor-content{display:flex;flex:initial;flex-direction:column}
+.alarm-editor .alarm-editor-heading{display:flex;flex-direction:row}
+.alarm-editor .alarm-challenge-editor{display:grid;flex:initial;flex-direction:column}
+.alarm-editor .alarm-exercise-config{display:grid;flex:initial;flex-direction:row}
+.alarm-editor .alarm-editor-footer{display:flex;flex:initial;flex-direction:row}
+.alarm-editor .alarm-editor-actions{display:flex;flex:initial;flex-direction:row}
