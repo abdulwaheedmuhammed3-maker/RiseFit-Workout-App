@@ -15,6 +15,18 @@ if (!(await exists(join(generatedAndroid, 'app', 'src', 'main', 'AndroidManifest
 }
 
 await cp(sourceJava, targetJava, { recursive: true });
+
+// The permission request contract is part of AndroidX Health Connect Client.
+const appGradlePath = join(generatedAndroid, 'app', 'build.gradle');
+let appGradle = await readFile(appGradlePath, 'utf8');
+const healthConnectDependency = 'implementation "androidx.health.connect:connect-client:1.1.0"';
+if (!appGradle.includes('androidx.health.connect:connect-client')) {
+  if (!/dependencies\\s*\\{/.test(appGradle)) {
+    throw new Error('Could not find the Android app dependencies block to add Health Connect Client.');
+  }
+  appGradle = appGradle.replace(/dependencies\\s*\\{/, match => `${match}\\n    ${healthConnectDependency}`);
+  await writeFile(appGradlePath, appGradle);
+}
 const manifestPath = join(generatedAndroid, 'app', 'src', 'main', 'AndroidManifest.xml');
 let manifest = await readFile(manifestPath, 'utf8');
 const permissions = [
@@ -32,6 +44,13 @@ const missingPermissions = permissions
   .map(permission => `    <uses-permission android:name="${permission}" />`)
   .join('\n');
 if (missingPermissions) manifest = manifest.replace(/<application\b/, `${missingPermissions}\n\n    <application`);
+
+if (!manifest.includes('com.risefit.app.alarm.HealthStepPermissionActivity')) {
+  manifest = manifest.replace(
+    /<application\\b[^>]*>/,
+    match => `${match}\\n        <activity\\n            android:name="com.risefit.app.alarm.HealthStepPermissionActivity"\\n            android:exported="false"\\n            android:excludeFromRecents="true" />`
+  );
+}
 
 if (!manifest.includes('com.risefit.app.alarm.WakeAlarmService')) {
   const components = `
