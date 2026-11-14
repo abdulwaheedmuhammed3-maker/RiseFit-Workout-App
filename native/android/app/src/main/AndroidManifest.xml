@@ -6,8 +6,14 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH" />
 
     <application>
+        <service
+            android:name="com.risefit.app.alarm.StepTrackingService"
+            android:exported="false"
+            android:foregroundServiceType="health" />
         <service
             android:name="com.risefit.app.alarm.WakeAlarmService"
             android:exported="false"
