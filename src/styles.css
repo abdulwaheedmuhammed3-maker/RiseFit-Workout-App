@@ -39,7 +39,7 @@ footer{color:#777783}footer span{color:#8589ff}
  .sidebar .nav{height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;padding:5px 2px;border-radius:15px;font-size:10px;line-height:1.1;text-align:center;color:#9b9ba8;white-space:normal}
  .sidebar .nav svg{width:21px;height:21px;flex-shrink:0}
  .sidebar .nav.active{background:#292941;color:#8589ff}
- .main{width:100%;max-width:none;margin:0;padding:24px 15px calc(100px + env(safe-area-inset-bottom))}
+ .main{width:100%;max-width:none;margin:0;padding:calc(24px + env(safe-area-inset-top, 0px)) 15px calc(100px + env(safe-area-inset-bottom, 0px))}
  .header h1{font-size:24px}
  .date-chip{border-radius:50%;width:43px;height:43px;justify-content:center;font-size:0;padding:0}
  .date-chip svg{width:19px;height:19px}
