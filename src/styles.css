@@ -159,3 +159,14 @@ footer{color:#777783}footer span{color:#8589ff}
 .womens-goals{display:grid;gap:9px;margin-top:20px}.womens-goal-card{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px;border:1px solid #30303c;border-radius:13px;background:#15151b}
 .womens-goal-card>div{min-width:0}.womens-goal-card h3{font-size:14px;margin:0 0 5px}.womens-goal-card p{margin:0 0 5px}.womens-goal-card small{font-size:9px;color:#9998ab}
 @media(max-width:520px){.profile-setup-card{padding:22px 18px}.profile-setup-card h1{font-size:25px}.womens-goal-card{align-items:flex-start}.womens-goal-card .secondary{padding:9px}}
+
+/* Configurable alarm challenge editor */
+.alarm-editor{align-items:flex-start}.alarm-editor-content{display:flex;flex:1;min-width:0;flex-direction:column;gap:9px}
+.alarm-challenge-editor{width:100%;padding:13px;border:1px solid #343444;border-radius:13px;background:#111117;display:grid;gap:10px}
+.alarm-exercise-config{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(75px,.7fr) minmax(65px,.6fr);gap:8px;align-items:end}
+.alarm-exercise-config label{display:flex;flex-direction:column;gap:5px;font-size:10px;color:#aeadbd}
+.alarm-exercise-config input,.alarm-exercise-config select{width:100%;min-width:0;padding:9px 7px;border:1px solid #3b3b49;border-radius:8px;background:#1b1b23;color:#f3f3f7;font:inherit;font-size:11px}
+.alarm-exercise-config>button{grid-column:1/-1;justify-self:start}
+.alarm-follow-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #33333d}
+.alarm-follow-row>div{display:grid;gap:5px}.alarm-follow-row small{color:#9b9ba8;font-size:10px}
+@media(max-width:520px){.alarm-exercise-config{grid-template-columns:1fr 1fr}.alarm-exercise-config label:first-child{grid-column:1/-1}.alarm-editor{flex-wrap:wrap}.alarm-editor-content{width:calc(100% - 42px);flex:auto}}
