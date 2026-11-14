@@ -450,3 +450,23 @@ footer{color:#777783}footer span{color:#8589ff}
  .step-history-row>span{font-size:9px}
  .step-history-row>b{font-size:10px}
 }
+
+
+/* Saved alarm summary — keep settings hidden until the user chooses Edit. */
+.alarm-summary{display:grid;gap:12px;min-width:0;width:100%}
+.alarm-summary-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;min-width:0}
+.alarm-summary-top>div{display:grid;gap:5px;min-width:0}
+.alarm-summary-top h3{font:600 16px 'Space Grotesk';color:#f1f1f7;margin:1px 0;overflow-wrap:anywhere}
+.alarm-summary-top strong{font:700 24px 'Space Grotesk';color:#f4f4fa;letter-spacing:-.4px}
+.alarm-summary-challenge{margin:0;color:#a4a4b3;font-size:11px;line-height:1.65;overflow-wrap:anywhere}
+.alarm-active-pill{border-color:#48456f;background:#292743;color:#b6b2ff}
+.alarm-inactive-pill{border-color:#41414b;background:#25252c;color:#a2a2af}
+.alarm-summary .alarm-editor-footer{margin-top:2px}
+.alarm-summary .alarm-editor-footer>.secondary{min-height:40px;padding:9px 12px}
+@media(max-width:520px){
+ .alarm-summary-top h3{font-size:15px}
+ .alarm-summary-top strong{font-size:22px}
+ .alarm-summary .alarm-editor-footer{gap:8px}
+ .alarm-summary .alarm-editor-actions{gap:6px}
+ .alarm-summary .alarm-delete-btn{padding:8px 10px}
+}
