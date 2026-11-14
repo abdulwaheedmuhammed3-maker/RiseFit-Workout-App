@@ -18,6 +18,7 @@ await cp(sourceJava, targetJava, { recursive: true });
 const manifestPath = join(generatedAndroid, 'app', 'src', 'main', 'AndroidManifest.xml');
 let manifest = await readFile(manifestPath, 'utf8');
 const permissions = [
+  'android.permission.CAMERA',
   'android.permission.SCHEDULE_EXACT_ALARM',
   'android.permission.RECEIVE_BOOT_COMPLETED',
   'android.permission.FOREGROUND_SERVICE',
