@@ -8,6 +8,9 @@ import java.util.Map;
 
 public class BootAlarmReceiver extends BroadcastReceiver {
     @Override public void onReceive(Context context, Intent intent) {
+        // AlarmManager stores wall-clock trigger instants. Recalculate each
+        // recurring alarm after boot, manual clock changes, timezone changes,
+        // and app replacement so the user's saved local time remains correct.
         SharedPreferences prefs = context.getSharedPreferences(AlarmScheduler.PREFS, Context.MODE_PRIVATE);
         for (Map.Entry<String, ?> entry : prefs.getAll().entrySet()) {
             String key = entry.getKey();
