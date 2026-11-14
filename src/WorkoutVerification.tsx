@@ -295,7 +295,7 @@ export default function WorkoutVerification({
     <p className="muted">{config.instruction}</p>
     <div style={{position:'relative', overflow:'hidden', borderRadius:16, background:'#09090d', aspectRatio:'4/3', margin:'18px 0'}}>
       <video ref={videoRef} muted playsInline style={{width:'100%',height:'100%',objectFit:'cover',transform:'scaleX(-1)'}} />
-      {!poseSeen && !complete && <div style={{position:'absolute',inset:0,display:'grid',placeItems:'center',background:'#09090dcc',color:'#f4f4f7',textAlign:'center',padding:20}}><UserRound size={28}/><p>{loading ? 'Starting camera and pose detection…' : config.setup}</p></div>}
+      {loading && !complete && <div style={{position:'absolute',inset:0,display:'grid',placeItems:'center',background:'#09090dcc',color:'#f4f4f7',textAlign:'center',padding:20}}><Camera size={28}/><p>Starting camera and pose detection…</p></div>}{!loading && !poseSeen && !complete && <div style={{position:'absolute',left:12,right:12,bottom:12,padding:'10px 12px',borderRadius:10,background:'#09090dbb',color:'#f4f4f7',textAlign:'center',fontSize:12,pointerEvents:'none'}}>{config.setup}</div>}
       {complete && <div style={{position:'absolute',inset:0,display:'grid',placeItems:'center',background:'#10101dcc',color:'#9a91ff'}}><CheckCircle2 size={52}/><b>Target verified</b></div>}
     </div>
     <div className="counter">
