@@ -2,12 +2,24 @@ package com.risefit.app.alarm;
 
 import android.app.AlarmManager;
 import android.app.NotificationManager;
+import android.health.connect.AggregateRecordsRequest;
+import android.health.connect.AggregateRecordsResponse;
+import android.health.connect.HealthConnectException;
+import android.health.connect.HealthConnectManager;
+import android.health.connect.TimeInstantRangeFilter;
+import android.health.connect.datatypes.StepsRecord;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.os.OutcomeReceiver;
 import android.provider.Settings;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+
+import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -115,6 +127,122 @@ public class NativeAlarmPlugin extends Plugin {
         NotificationManager manager = (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
         if (manager != null) manager.cancel(6303);
         call.resolve();
+    }
+
+    private static final String READ_STEPS_PERMISSION = "android.permission.health.READ_STEPS";
+
+    @PluginMethod
+    public void requestStepReadPermission(PluginCall call) {
+        if (Build.VERSION.SDK_INT < 34) {
+            call.reject("Automatic daily step reading requires Android 14 or later with Health Connect support.");
+            return;
+        }
+        try {
+            Intent intent = new Intent(HealthConnectManager.ACTION_MANAGE_HEALTH_PERMISSIONS);
+            intent.putExtra(Intent.EXTRA_PACKAGE_NAME, getContext().getPackageName());
+            getActivity().startActivity(intent);
+            call.resolve();
+        } catch (RuntimeException error) {
+            call.reject("Could not open Android Health Connect permissions.", null, error);
+        }
+    }
+
+    @PluginMethod
+    public void getDailyStepStats(PluginCall call) {
+        if (Build.VERSION.SDK_INT < 34) {
+            JSObject result = new JSObject();
+            result.put("available", false);
+            result.put("permissionGranted", false);
+            result.put("stepsToday", 0);
+            result.put("days", new JSArray());
+            result.put("message", "Automatic daily steps require Android 14 or later with Health Connect support.");
+            call.resolve(result);
+            return;
+        }
+
+        Context context = getContext();
+        HealthConnectManager manager = context.getSystemService(HealthConnectManager.class);
+        if (manager == null) {
+            JSObject result = new JSObject();
+            result.put("available", false);
+            result.put("permissionGranted", false);
+            result.put("stepsToday", 0);
+            result.put("days", new JSArray());
+            result.put("message", "Android Health Connect is not available on this device.");
+            call.resolve(result);
+            return;
+        }
+
+        boolean permissionGranted = context.checkSelfPermission(READ_STEPS_PERMISSION)
+            == android.content.pm.PackageManager.PERMISSION_GRANTED;
+        if (!permissionGranted) {
+            JSObject result = new JSObject();
+            result.put("available", true);
+            result.put("permissionGranted", false);
+            result.put("stepsToday", 0);
+            result.put("days", new JSArray());
+            result.put("lastUpdated", System.currentTimeMillis());
+            call.resolve(result);
+            return;
+        }
+
+        queryStepDay(manager, call, LocalDate.now(ZoneId.systemDefault()), 0, new JSArray(), 0L);
+    }
+
+    private void queryStepDay(
+        HealthConnectManager manager,
+        PluginCall call,
+        LocalDate day,
+        int dayIndex,
+        JSArray days,
+        long todaySteps
+    ) {
+        ZoneId zone = ZoneId.systemDefault();
+        Instant start = day.atStartOfDay(zone).toInstant();
+        Instant end = day.plusDays(1).atStartOfDay(zone).toInstant();
+        if (day.equals(LocalDate.now(zone))) end = Instant.now();
+
+        TimeInstantRangeFilter range = new TimeInstantRangeFilter.Builder()
+            .setStartTime(start)
+            .setEndTime(end)
+            .build();
+        AggregateRecordsRequest<Long> request = new AggregateRecordsRequest.Builder<Long>(range)
+            .addAggregationType(StepsRecord.STEPS_COUNT_TOTAL)
+            .build();
+
+        manager.aggregate(request, getContext().getMainExecutor(),
+            new OutcomeReceiver<AggregateRecordsResponse<Long>, HealthConnectException>() {
+                @Override
+                public void onResult(AggregateRecordsResponse<Long> response) {
+                    Long value = response.get(StepsRecord.STEPS_COUNT_TOTAL);
+                    long count = value == null ? 0L : Math.max(0L, value);
+                    JSObject entry = new JSObject();
+                    entry.put("date", day.toString());
+                    entry.put("steps", count);
+                    days.put(entry);
+
+                    long nextTodaySteps = dayIndex == 0 ? count : todaySteps;
+                    if (dayIndex < 6) {
+                        queryStepDay(manager, call, day.minusDays(1), dayIndex + 1, days, nextTodaySteps);
+                        return;
+                    }
+
+                    JSObject result = new JSObject();
+                    result.put("available", true);
+                    result.put("permissionGranted", true);
+                    result.put("stepsToday", nextTodaySteps);
+                    result.put("days", days);
+                    result.put("lastUpdated", System.currentTimeMillis());
+                    result.put("source", "health_connect");
+                    call.resolve(result);
+                }
+
+                @Override
+                public void onError(HealthConnectException error) {
+                    call.reject("RiseFit could not read daily steps from Android Health Connect.", null, error);
+                }
+            }
+        );
     }
 
     @PluginMethod
