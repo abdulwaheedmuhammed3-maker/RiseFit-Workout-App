@@ -1,9 +1,13 @@
 package com.risefit.app.alarm;
 
+import android.Manifest;
 import android.app.AlarmManager;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
@@ -12,9 +16,14 @@ import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
+import com.getcapacitor.PermissionState;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import com.getcapacitor.annotation.Permission;
+import com.getcapacitor.annotation.PermissionCallback;
 
-@CapacitorPlugin(name = "NativeAlarm")
+@CapacitorPlugin(name = "NativeAlarm", permissions = {
+    @Permission(alias = "activityRecognition", strings = { Manifest.permission.ACTIVITY_RECOGNITION })
+})
 public class NativeAlarmPlugin extends Plugin {
     @PluginMethod
     public void getStatus(PluginCall call) {
@@ -115,6 +124,101 @@ public class NativeAlarmPlugin extends Plugin {
         NotificationManager manager = (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
         if (manager != null) manager.cancel(6303);
         call.resolve();
+    }
+
+    @PluginMethod
+    public void getStepTrackingStatus(PluginCall call) {
+        call.resolve(stepTrackingStatus());
+    }
+
+    @PluginMethod
+    public void startStepTracking(PluginCall call) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+            && getPermissionState("activityRecognition") != PermissionState.GRANTED) {
+            requestPermissionForAlias("activityRecognition", call, "activityRecognitionPermsCallback");
+            return;
+        }
+        startStepTrackingService(call);
+    }
+
+    @PermissionCallback
+    private void activityRecognitionPermsCallback(PluginCall call) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+            && getPermissionState("activityRecognition") != PermissionState.GRANTED) {
+            call.reject("Physical activity permission is needed to count walking steps.");
+            return;
+        }
+        startStepTrackingService(call);
+    }
+
+    private void startStepTrackingService(PluginCall call) {
+        Context context = getContext();
+        SensorManager sensors = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+        Sensor detector = sensors == null ? null : sensors.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR);
+        Sensor counter = sensors == null ? null : sensors.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
+        if (detector == null && counter == null) {
+            call.reject("This phone does not provide a compatible step-counting sensor.");
+            return;
+        }
+
+        android.content.SharedPreferences prefs = context.getSharedPreferences(
+            StepTrackingService.PREFS, Context.MODE_PRIVATE
+        );
+        if (prefs.getBoolean(StepTrackingService.KEY_TRACKING, false)) {
+            call.resolve(stepTrackingStatus());
+            return;
+        }
+        long startedAt = System.currentTimeMillis();
+        prefs.edit()
+            .putBoolean(StepTrackingService.KEY_TRACKING, true)
+            .putLong(StepTrackingService.KEY_STARTED_AT, startedAt)
+            .putLong(StepTrackingService.KEY_BASELINE_RAW, -1L)
+            .putLong(StepTrackingService.KEY_SEGMENT_OFFSET, 0L)
+            .putLong(StepTrackingService.KEY_STEPS, 0L)
+            .apply();
+
+        Intent service = new Intent(context, StepTrackingService.class)
+            .setAction(StepTrackingService.ACTION_START);
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(service);
+            else context.startService(service);
+            call.resolve(stepTrackingStatus());
+        } catch (RuntimeException error) {
+            prefs.edit().putBoolean(StepTrackingService.KEY_TRACKING, false).apply();
+            call.reject("RiseFit could not start step tracking.", null, error);
+        }
+    }
+
+    @PluginMethod
+    public void stopStepTracking(PluginCall call) {
+        Context context = getContext();
+        android.content.SharedPreferences prefs = context.getSharedPreferences(
+            StepTrackingService.PREFS, Context.MODE_PRIVATE
+        );
+        prefs.edit().putBoolean(StepTrackingService.KEY_TRACKING, false).apply();
+        context.stopService(new Intent(context, StepTrackingService.class));
+        call.resolve(stepTrackingStatus());
+    }
+
+    private JSObject stepTrackingStatus() {
+        Context context = getContext();
+        SensorManager sensors = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+        Sensor detector = sensors == null ? null : sensors.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR);
+        Sensor counter = sensors == null ? null : sensors.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
+        boolean permission = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q
+            || context.checkSelfPermission(Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED;
+        android.content.SharedPreferences prefs = context.getSharedPreferences(
+            StepTrackingService.PREFS, Context.MODE_PRIVATE
+        );
+        JSObject result = new JSObject();
+        result.put("sensorAvailable", detector != null || counter != null);
+        result.put("sensorType", detector != null ? "detector" : counter != null ? "counter" : "none");
+        result.put("permissionGranted", permission);
+        result.put("tracking", prefs.getBoolean(StepTrackingService.KEY_TRACKING, false));
+        result.put("steps", prefs.getLong(StepTrackingService.KEY_STEPS, 0L));
+        long startedAt = prefs.getLong(StepTrackingService.KEY_STARTED_AT, 0L);
+        if (startedAt > 0) result.put("startedAt", startedAt);
+        return result;
     }
 
     @PluginMethod
