@@ -25,6 +25,8 @@ const permissions = [
   'android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK',
   'android.permission.WAKE_LOCK',
   'android.permission.USE_FULL_SCREEN_INTENT',
+  'android.permission.ACTIVITY_RECOGNITION',
+  'android.permission.FOREGROUND_SERVICE_HEALTH',
 ];
 const missingPermissions = permissions
   .filter(permission => !manifest.includes(permission))
@@ -51,6 +53,12 @@ if (!manifest.includes('com.risefit.app.alarm.WakeAlarmService')) {
         </receiver>
 `;
   manifest = manifest.replace(/<application\b[^>]*>/, match => `${match}\n${components}`);
+}
+if (!manifest.includes('com.risefit.app.alarm.StepTrackingService')) {
+  manifest = manifest.replace(
+    /<application\\b[^>]*>/,
+    match => match + '\n        <service\n            android:name="com.risefit.app.alarm.StepTrackingService"\n            android:exported="false"\n            android:foregroundServiceType="health" />'
+  );
 }
 await writeFile(manifestPath, manifest);
 
