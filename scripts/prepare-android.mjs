@@ -1,4 +1,4 @@
-import { cp, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
+import { cp, readFile, readdir, writeFile } from 'node:fs/promises';
 import { dirname, join, relative } from 'node:path';
 
 const root = process.cwd();
@@ -6,8 +6,6 @@ const generatedAndroid = join(root, 'android');
 const nativeRoot = join(root, 'native', 'android', 'app', 'src', 'main');
 const sourceJava = join(nativeRoot, 'java', 'com', 'risefit', 'app', 'alarm');
 const targetJava = join(generatedAndroid, 'app', 'src', 'main', 'java', 'com', 'risefit', 'app', 'alarm');
-const rationaleSource = join(nativeRoot, 'java', 'com', 'risefit', 'app', 'PermissionsRationaleActivity.java');
-const rationaleTarget = join(generatedAndroid, 'app', 'src', 'main', 'java', 'com', 'risefit', 'app', 'PermissionsRationaleActivity.java');
 
 async function exists(path) {
   try { await readFile(path); return true; } catch { return false; }
@@ -17,8 +15,6 @@ if (!(await exists(join(generatedAndroid, 'app', 'src', 'main', 'AndroidManifest
 }
 
 await cp(sourceJava, targetJava, { recursive: true });
-await mkdir(dirname(rationaleTarget), { recursive: true });
-await cp(rationaleSource, rationaleTarget);
 
 const manifestPath = join(generatedAndroid, 'app', 'src', 'main', 'AndroidManifest.xml');
 let manifest = await readFile(manifestPath, 'utf8');
@@ -30,7 +26,8 @@ const permissions = [
   'android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK',
   'android.permission.WAKE_LOCK',
   'android.permission.USE_FULL_SCREEN_INTENT',
-  'android.permission.health.READ_STEPS',
+  'android.permission.ACTIVITY_RECOGNITION',
+  'android.permission.FOREGROUND_SERVICE_HEALTH',
 ];
 const missingPermissions = permissions
   .filter(permission => !manifest.includes(permission))
@@ -63,27 +60,16 @@ if (!manifest.includes('com.risefit.app.alarm.WakeAlarmService')) {
   manifest = manifest.replace(/<application\b[^>]*>/, match => `${match}\n${components}`);
 }
 
-if (!manifest.includes('com.risefit.app.PermissionsRationaleActivity')) {
-  const rationaleComponents = `
-        <activity
-            android:name="com.risefit.app.PermissionsRationaleActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
-            </intent-filter>
-        </activity>
-        <activity-alias
-            android:name="com.risefit.app.ViewPermissionUsageActivity"
-            android:exported="true"
-            android:targetActivity="com.risefit.app.PermissionsRationaleActivity"
-            android:permission="android.permission.START_VIEW_PERMISSION_USAGE">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />
-                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
-            </intent-filter>
-        </activity-alias>
+
+
+if (!manifest.includes('com.risefit.app.alarm.StepCounterService')) {
+  const stepCounterService = `
+        <service
+            android:name="com.risefit.app.alarm.StepCounterService"
+            android:exported="false"
+            android:foregroundServiceType="health" />
 `;
-  manifest = manifest.replace(/<application\b[^>]*>/, match => `${match}\n${rationaleComponents}`);
+  manifest = manifest.replace(/<application\\b[^>]*>/, match => `${match}\\n${stepCounterService}`);
 }
 
 // Keep the receiver current when android:prepare is rerun against an already
