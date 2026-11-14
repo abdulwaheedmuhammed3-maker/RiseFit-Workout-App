@@ -74,13 +74,6 @@ const missingPermissions = permissions
   .join('\n');
 if (missingPermissions) manifest = manifest.replace(/<application\b/, `${missingPermissions}\n\n    <application`);
 
-if (!manifest.includes('com.risefit.app.alarm.HealthStepPermissionActivity')) {
-  manifest = manifest.replace(
-    /<application\b[^>]*>/,
-    match => `${match}\n        <activity\n            android:name="com.risefit.app.alarm.HealthStepPermissionActivity"\n            android:exported="false"\n            android:excludeFromRecents="true" />`
-  );
-}
-
 if (!manifest.includes('com.risefit.app.alarm.WakeAlarmService')) {
   const components = `
         <service
