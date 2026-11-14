@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import {
   Activity, Award, BarChart3, Clock3,
-  Dumbbell, Flame, Info, TrendingUp, Weight
+  Dumbbell, Flame, Info, TrendingUp, Weight, Footprints
 } from 'lucide-react';
 
 type Period = 'Week' | 'Month' | 'Year' | 'All';
@@ -58,7 +58,7 @@ function MuscleFigure({ back = false }: { back?: boolean }) {
   );
 }
 
-type CompletedSession = { id: string; title: string; kind: 'plan' | 'alarm'; completedAt: string };
+type CompletedSession = { id: string; title: string; kind: 'plan' | 'alarm' | 'walk'; completedAt: string; steps?: number; durationSeconds?: number };
 
 export default function Statistics({ sessions = [] }: { sessions?: CompletedSession[] }) {
   const [period, setPeriod] = useState<Period>('Week');
@@ -75,7 +75,10 @@ export default function Statistics({ sessions = [] }: { sessions?: CompletedSess
       return !Number.isNaN(date.getTime()) && date <= now && (!start || date >= start);
     }).sort((a, b) => b.completedAt.localeCompare(a.completedAt));
   }, [sessions, period]);
-  const workouts = filteredSessions.length;
+  const walkingSessions = filteredSessions.filter(session => session.kind === 'walk');
+  const walkingSteps = walkingSessions.reduce((sum, session) => sum + (session.steps ?? 0), 0);
+  const walkingDuration = walkingSessions.reduce((sum, session) => sum + (session.durationSeconds ?? 0), 0);
+  const workouts = filteredSessions.filter(session => session.kind !== 'walk').length;
   const levelProgress = Math.min(workouts * 10, 100);
   const nextLevel = 'Silver';
   const muscleGroups = useMemo(() => ['Chest', 'Back', 'Shoulders', 'Arms', 'Core', 'Legs'], []);
@@ -110,6 +113,10 @@ export default function Statistics({ sessions = [] }: { sessions?: CompletedSess
           <span className="stats-v2-icon"><Weight /></span>
           <div><span>Training volume</span><strong>Not measured</strong><small>No weight-based data has been recorded</small></div>
         </article>
+        <article className="stats-v2-card">
+          <span className="stats-v2-icon"><Footprints /></span>
+          <div><span>Walking steps</span><strong>{walkingSteps.toLocaleString()}</strong><small>{walkingSessions.length} walks recorded</small></div>
+        </article>
       </div>
 
       <article className="stats-v2-level">
@@ -127,14 +134,14 @@ export default function Statistics({ sessions = [] }: { sessions?: CompletedSess
       <article className="stats-v2-anatomy-card" style={{marginBottom:20}}>
         <div className="stats-v2-section-heading">
           <div><span className="stats-eyebrow">YOUR RECORD</span><h3>Recent sessions</h3></div>
-          <span className="stats-eyebrow">{workouts} IN PERIOD</span>
+          <span className="stats-eyebrow">{filteredSessions.length} IN PERIOD</span>
         </div>
         {filteredSessions.length === 0
-          ? <p className="muted">No completed sessions recorded for this period yet. Finish a workout plan or alarm challenge and it will appear here.</p>
+          ? <p className="muted">No completed sessions recorded for this period yet. Finish a workout, alarm challenge, or walking session and it will appear here.</p>
           : <div style={{display:'grid',gap:12}}>
               {filteredSessions.slice(0,10).map(session => (
                 <div key={session.id} style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'center',padding:'10px 0',borderBottom:'1px solid #34343d'}}>
-                  <div><strong>{session.title}</strong><div className="muted" style={{fontSize:12}}>{session.kind === 'alarm' ? 'Alarm challenge' : 'Workout plan'}</div></div>
+                  <div><strong>{session.title}</strong><div className="muted" style={{fontSize:12}}>{session.kind === 'walk' ? 'Walking session' : session.kind === 'alarm' ? 'Alarm challenge' : 'Workout plan'}</div>{session.kind === 'walk' && <div className="muted" style={{fontSize:12}}>{(session.steps ?? 0).toLocaleString()} steps · {Math.floor((session.durationSeconds ?? 0) / 60)} min</div>}</div>
                   <time className="muted" style={{fontSize:12,textAlign:'right'}}>{new Date(session.completedAt).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</time>
                 </div>
               ))}
@@ -166,10 +173,10 @@ export default function Statistics({ sessions = [] }: { sessions?: CompletedSess
 
       <div className="stats-v2-footer-card">
         <span className="stats-v2-icon"><Flame /></span>
-        <div><span>Keep your momentum</span><strong>{workouts} {workouts === 1 ? 'workout' : 'workouts'} completed</strong><small>Finish another session to build your record.</small></div>
+        <div><span>Keep your momentum</span><strong>{workouts} {workouts === 1 ? 'workout' : 'workouts'} · {walkingSteps.toLocaleString()} steps</strong><small>{walkingSessions.length} walks · {Math.floor(walkingDuration / 60)} walking minutes recorded</small></div>
         <BarChart3 className="stats-v2-trend-icon" size={28} />
       </div>
-      <p className="stats-v2-disclaimer">Completed sessions are saved on this device. Time trained and training volume remain unreported until RiseFit measures them.</p>
+      <p className="stats-v2-disclaimer">Workout and walking sessions are saved on this device. Walking steps and duration are measured by your phone's step sensor; workout duration and training volume are not yet measured.</p>
     </section>
   );
 }
