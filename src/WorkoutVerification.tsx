@@ -154,7 +154,6 @@ export default function WorkoutVerification({
         if (video.readyState >= 2 && video.currentTime !== lastVideoTimeRef.current) {
           try {
             lastVideoTimeRef.current = video.currentTime;
-          try {
             const now = performance.now();
             const result = landmarkerRef.current.detectForVideo(video, now);
             const pose = result.landmarks?.[0] as Landmark[] | undefined;
