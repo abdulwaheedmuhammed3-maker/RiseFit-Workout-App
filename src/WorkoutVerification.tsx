@@ -274,7 +274,22 @@ export default function WorkoutVerification({
         if (!alive) { stream.getTracks().forEach(track => track.stop()); return; }
         streamRef.current = stream;
         stream.getVideoTracks().forEach(track => {
-          track.onended = () => { if (alive) setError('Camera stream ended. Reopen camera setup to continue.'); };
+          track.onended = () => {
+            if (!alive) return;
+            // Stop the animation loop and release the pose model immediately.
+            // A lost camera track otherwise leaves requestAnimationFrame polling
+            // a video element that can no longer produce frames.
+            cancelAnimationFrame(rafRef.current);
+            processingFailedRef.current = true;
+            landmarkerRef.current?.close();
+            landmarkerRef.current = null;
+            lastFrameAtRef.current = 0;
+            if (poseSeenRef.current) {
+              poseSeenRef.current = false;
+              setPoseSeen(false);
+            }
+            setError('Camera stream ended. Reopen camera setup to continue.');
+          };
         });
 
         stage = 'preview';
