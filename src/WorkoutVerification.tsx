@@ -200,6 +200,7 @@ export default function WorkoutVerification({
     };
 
     const start = async () => {
+      let stage: 'camera' | 'preview' | 'pose-model' = 'camera';
       try {
         setLoading(true);
         setError('');
@@ -213,18 +214,37 @@ export default function WorkoutVerification({
         lastFrameAtRef.current = 0;
 
         if (!navigator.mediaDevices?.getUserMedia) {
-          throw new Error('Camera access is unavailable. Open RiseFit in its Android app or a secure browser context.');
+          throw new Error('This Android WebView does not expose camera capture (getUserMedia). Update Android System WebView and Google Chrome, then reopen RiseFit.');
         }
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 24, max: 30 } },
+
+        const constraints: MediaStreamConstraints = {
+          video: { facingMode: { ideal: 'user' }, width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 24, max: 30 } },
           audio: false,
-        });
+        };
+        let stream: MediaStream;
+        try {
+          stream = await navigator.mediaDevices.getUserMedia(constraints);
+        } catch {
+          // Some Android camera providers reject ideal facing/size constraints.
+          stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        }
         if (!alive) { stream.getTracks().forEach(track => track.stop()); return; }
         streamRef.current = stream;
-        if (!videoRef.current) throw new Error('Camera preview could not be initialized.');
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
 
+        stage = 'preview';
+        const video = videoRef.current;
+        if (!video) throw new Error('Camera stream opened, but the preview element is not available.');
+        video.muted = true;
+        video.autoplay = true;
+        video.playsInline = true;
+        video.setAttribute('playsinline', 'true');
+        video.srcObject = stream;
+        await video.play();
+        if (!alive) return;
+        // Keep the live camera visible even if downloading the pose model fails.
+        setLoading(false);
+
+        stage = 'pose-model';
         const files = await FilesetResolver.forVisionTasks(
           'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/wasm'
         );
@@ -238,14 +258,22 @@ export default function WorkoutVerification({
         });
         if (!alive) { model.close(); return; }
         landmarkerRef.current = model;
-        setLoading(false);
+        setError('');
         startLoop();
       } catch (e) {
         if (alive) {
-          streamRef.current?.getTracks().forEach(track => track.stop());
-          streamRef.current = null;
           setLoading(false);
-          setError(e instanceof Error && e.name === 'NotAllowedError' ? 'Camera permission was denied. Allow RiseFit camera access in Android Settings > Apps > RiseFit > Permissions, then retry.' : e instanceof Error ? e.message : 'Camera or pose model could not start. Allow camera access and retry.');
+          const errorName = e instanceof Error ? e.name : 'UnknownError';
+          const detail = e instanceof Error ? e.message : String(e);
+          if (stage === 'camera') {
+            setError(errorName === 'NotAllowedError'
+              ? 'Android reported that camera access was denied to the WebView, despite the app permission being enabled. This points to an Android WebView permission hand-off issue.'
+              : `Camera could not start (${errorName}): ${detail}`);
+          } else if (stage === 'preview') {
+            setError(`The camera stream opened but Android could not display it (${errorName}): ${detail}`);
+          } else {
+            setError(`Camera is on, but the pose model could not load (${errorName}): ${detail}. Check internet access and retry; the live preview should remain visible.`);
+          }
         }
       }
     };
