@@ -34,7 +34,13 @@ public class WakeAlarmService extends Service {
         }
 
         SharedPreferences prefs = getSharedPreferences(AlarmScheduler.PREFS, Context.MODE_PRIVATE);
-        prefs.edit().putBoolean("ringing", true).apply();
+        String alarmId = intent == null ? null : intent.getStringExtra(AlarmScheduler.EXTRA_ALARM_ID);
+        // A sticky service restart without its original alarm intent must never start ringing again.
+        if (alarmId == null || !prefs.getBoolean(AlarmScheduler.enabledKey(alarmId), false)) {
+            stopSelf();
+            return START_NOT_STICKY;
+        }
+        prefs.edit().putBoolean("ringing", true).putString("active_alarm_id", alarmId).apply();
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         String channelId = createAlarmChannel(manager);
 
