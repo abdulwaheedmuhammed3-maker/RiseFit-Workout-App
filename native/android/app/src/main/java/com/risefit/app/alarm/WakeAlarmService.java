@@ -48,10 +48,7 @@ public class WakeAlarmService extends Service {
         if (openIntent == null) openIntent = new Intent(this, com.risefit.app.MainActivity.class);
         openIntent.setAction(getPackageName() + ".OPEN_WAKE_ALARM");
         openIntent.putExtra(AlarmScheduler.EXTRA_OPEN_CHALLENGE, true);
-        if (intent != null) {
-            String alarmId = intent.getStringExtra(AlarmScheduler.EXTRA_ALARM_ID);
-            if (alarmId != null) openIntent.putExtra(AlarmScheduler.EXTRA_ALARM_ID, alarmId);
-        }
+        openIntent.putExtra(AlarmScheduler.EXTRA_ALARM_ID, alarmId);
         openIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent openPendingIntent = PendingIntent.getActivity(
             this, 6302, openIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
