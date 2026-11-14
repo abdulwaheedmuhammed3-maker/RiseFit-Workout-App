@@ -214,7 +214,7 @@ export default function WorkoutVerification({
                 stableFramesRef.current = 0;
               }
             } else {
-              setPoseSeen(false);
+              if (poseSeenRef.current) { poseSeenRef.current = false; setPoseSeen(false); }
               stableFramesRef.current = 0;
               phaseRef.current = 'ready';
               lastFrameAtRef.current = 0;
@@ -324,6 +324,7 @@ export default function WorkoutVerification({
       if (document.hidden) {
         cancelAnimationFrame(rafRef.current);
         lastFrameAtRef.current = 0;
+        lastVideoTimeRef.current = -1;
         streamRef.current?.getVideoTracks().forEach(track => { track.enabled = false; });
       } else if (alive) {
         streamRef.current?.getVideoTracks().forEach(track => { track.enabled = true; });
