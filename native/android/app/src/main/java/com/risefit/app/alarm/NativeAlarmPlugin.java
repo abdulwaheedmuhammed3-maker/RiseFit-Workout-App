@@ -79,56 +79,56 @@ public class NativeAlarmPlugin extends Plugin {
 
     @PluginMethod
     public void schedule(PluginCall call) {
+        String id = call.getString("id");
         Integer hour = call.getInt("hour");
         Integer minute = call.getInt("minute");
-        if (hour == null || minute == null || hour < 0 || hour > 23 || minute < 0 || minute > 59) {
-            call.reject("Choose a valid alarm time.");
-            return;
+        if (id == null || id.trim().isEmpty() || id.length() > 80 || hour == null || minute == null || hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+            call.reject("Choose a valid alarm and time."); return;
         }
-        AlarmManager alarmManager = (AlarmManager) getContext().getSystemService(Context.ALARM_SERVICE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-            && alarmManager != null && !alarmManager.canScheduleExactAlarms()) {
-            call.reject("Allow RiseFit to set exact alarms, then save the alarm again.");
-            return;
+        AlarmManager manager = (AlarmManager) getContext().getSystemService(Context.ALARM_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && manager != null && !manager.canScheduleExactAlarms()) {
+            call.reject("Allow RiseFit to set exact alarms, then save the alarm again."); return;
         }
-
-        getContext().getSharedPreferences(AlarmScheduler.PREFS, Context.MODE_PRIVATE).edit()
-            .putBoolean("enabled", true)
-            .putBoolean("ringing", false)
-            .putInt("hour", hour)
-            .putInt("minute", minute)
-            .apply();
-        try {
-            AlarmScheduler.scheduleNext(getContext(), hour, minute);
-            call.resolve(status());
-        } catch (Exception error) {
-            getContext().getSharedPreferences(AlarmScheduler.PREFS, Context.MODE_PRIVATE)
-                .edit().putBoolean("enabled", false).apply();
+        android.content.SharedPreferences prefs = getContext().getSharedPreferences(AlarmScheduler.PREFS, Context.MODE_PRIVATE);
+        prefs.edit().putBoolean(AlarmScheduler.enabledKey(id), true)
+            .putInt(AlarmScheduler.hourKey(id), hour).putInt(AlarmScheduler.minuteKey(id), minute).apply();
+        try { AlarmScheduler.scheduleNext(getContext(), id, hour, minute); call.resolve(status()); }
+        catch (Exception error) {
+            prefs.edit().putBoolean(AlarmScheduler.enabledKey(id), false).apply();
             call.reject("RiseFit could not schedule this alarm.", null, error);
         }
     }
 
     @PluginMethod
-    public void cancel(PluginCall call) {
+    public void cancelAlarm(PluginCall call) {
+        String id = call.getString("id");
+        if (id == null || id.trim().isEmpty()) { call.reject("Alarm ID is required."); return; }
         getContext().getSharedPreferences(AlarmScheduler.PREFS, Context.MODE_PRIVATE).edit()
-            .putBoolean("enabled", false).apply();
-        AlarmScheduler.cancel(getContext());
-        getContext().stopService(new Intent(getContext(), WakeAlarmService.class));
+            .putBoolean(AlarmScheduler.enabledKey(id), false).apply();
+        AlarmScheduler.cancel(getContext(), id);
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void stopRinging(PluginCall call) {
+        getContext().stopService(new Intent(getContext(), WakeAlarmService.class).setAction(WakeAlarmService.ACTION_STOP));
         NotificationManager manager = (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
         if (manager != null) manager.cancel(6303);
-        call.resolve(status());
+        call.resolve();
     }
 
     @PluginMethod
     public void consumeAlarmLaunch(PluginCall call) {
         Intent intent = getActivity().getIntent();
         boolean openChallenge = intent != null && intent.getBooleanExtra(AlarmScheduler.EXTRA_OPEN_CHALLENGE, false);
+        String alarmId = intent == null ? null : intent.getStringExtra(AlarmScheduler.EXTRA_ALARM_ID);
         if (openChallenge) {
             intent.removeExtra(AlarmScheduler.EXTRA_OPEN_CHALLENGE);
             getActivity().setIntent(intent);
         }
         JSObject result = new JSObject();
         result.put("openChallenge", openChallenge);
+        if (alarmId != null) result.put("alarmId", alarmId);
         call.resolve(result);
     }
 
@@ -138,6 +138,8 @@ public class NativeAlarmPlugin extends Plugin {
         if (intent != null && intent.getBooleanExtra(AlarmScheduler.EXTRA_OPEN_CHALLENGE, false)) {
             JSObject event = new JSObject();
             event.put("openChallenge", true);
+            String alarmId = intent.getStringExtra(AlarmScheduler.EXTRA_ALARM_ID);
+            if (alarmId != null) event.put("alarmId", alarmId);
             notifyListeners("alarmTriggered", event, true);
         }
     }
@@ -158,10 +160,21 @@ public class NativeAlarmPlugin extends Plugin {
         result.put("canScheduleExactAlarms", exact);
         result.put("canBypassDnd", dnd);
         result.put("canUseFullScreenIntent", fullScreen);
-        result.put("scheduled", prefs.getBoolean("enabled", false));
+        boolean anyScheduled = false;
+        int hour = 6, minute = 30;
+        for (String key : prefs.getAll().keySet()) {
+            if (key.startsWith("alarm_") && key.endsWith("_enabled") && prefs.getBoolean(key, false)) {
+                anyScheduled = true;
+                String id = key.substring(6, key.length() - 8);
+                hour = prefs.getInt(AlarmScheduler.hourKey(id), 6);
+                minute = prefs.getInt(AlarmScheduler.minuteKey(id), 30);
+                break;
+            }
+        }
+        result.put("scheduled", anyScheduled);
         result.put("ringing", prefs.getBoolean("ringing", false));
-        result.put("hour", prefs.getInt("hour", 6));
-        result.put("minute", prefs.getInt("minute", 30));
+        result.put("hour", hour);
+        result.put("minute", minute);
         return result;
     }
 }

@@ -9,19 +9,16 @@ export interface NativeAlarmStatus {
   hour: number;
   minute: number;
 }
-
+export interface NativeAlarmItem { id: string; hour: number; minute: number; enabled: boolean; }
 interface NativeAlarmPlugin {
   getStatus(): Promise<NativeAlarmStatus>;
   requestExactAlarmAccess(): Promise<void>;
   requestDndAccess(): Promise<{ manualSetupRequired: boolean }>;
   requestFullScreenAccess(): Promise<void>;
-  schedule(options: { hour: number; minute: number }): Promise<NativeAlarmStatus>;
-  cancel(): Promise<NativeAlarmStatus>;
-  consumeAlarmLaunch(): Promise<{ openChallenge: boolean }>;
-  addListener(
-    eventName: 'alarmTriggered',
-    listener: (event: { openChallenge: boolean }) => void,
-  ): Promise<PluginListenerHandle>;
+  schedule(options: { id: string; hour: number; minute: number }): Promise<NativeAlarmStatus>;
+  cancelAlarm(options: { id: string }): Promise<void>;
+  stopRinging(): Promise<void>;
+  consumeAlarmLaunch(): Promise<{ openChallenge: boolean; alarmId?: string }>;
+  addListener(eventName: 'alarmTriggered', listener: (event: { openChallenge: boolean; alarmId?: string }) => void): Promise<PluginListenerHandle>;
 }
-
 export const NativeAlarm = registerPlugin<NativeAlarmPlugin>('NativeAlarm');
