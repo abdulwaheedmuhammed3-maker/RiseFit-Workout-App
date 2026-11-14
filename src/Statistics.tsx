@@ -59,7 +59,7 @@ function MuscleFigure({ back = false }: { back?: boolean }) {
   );
 }
 
-type CompletedSession = { id: string; title: string; kind: 'plan' | 'alarm'; completedAt: string };
+type CompletedSession = { id: string; title: string; kind: 'plan' | 'alarm' | 'exercise'; completedAt: string };
 
 export default function Statistics({ sessions = [], dailySteps = [], stepsPermissionGranted = false }: { sessions?: CompletedSession[]; dailySteps?: DailyStepEntry[]; stepsPermissionGranted?: boolean }) {
   const [period, setPeriod] = useState<Period>('Week');
@@ -140,7 +140,7 @@ export default function Statistics({ sessions = [], dailySteps = [], stepsPermis
           : <div style={{display:'grid',gap:12}}>
               {filteredSessions.slice(0,10).map(session => (
                 <div key={session.id} style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'center',padding:'10px 0',borderBottom:'1px solid #34343d'}}>
-                  <div><strong>{session.title}</strong><div className="muted" style={{fontSize:12}}>{session.kind === 'alarm' ? 'Alarm challenge' : 'Workout plan'}</div></div>
+                  <div><strong>{session.title}</strong><div className="muted" style={{fontSize:12}}>{session.kind === 'alarm' ? 'Alarm challenge' : session.kind === 'exercise' ? 'Exercise library' : 'Workout plan'}</div></div>
                   <time className="muted" style={{fontSize:12,textAlign:'right'}}>{new Date(session.completedAt).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</time>
                 </div>
               ))}
