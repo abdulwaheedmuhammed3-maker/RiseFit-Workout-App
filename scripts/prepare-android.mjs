@@ -82,7 +82,19 @@ if (!manifest.includes('com.risefit.app.PermissionsRationaleActivity')) {
             </intent-filter>
         </activity-alias>
 `;
-  manifest = manifest.replace(/<application\\b[^>]*>/, match => `${match}\\n${rationaleComponents}`);
+  manifest = manifest.replace(/<application\b[^>]*>/, match => `${match}\n${rationaleComponents}`);
+}
+
+// Keep the receiver current when android:prepare is rerun against an already
+// generated Android project (where the native components may already exist).
+if (!manifest.includes('android.intent.action.TIMEZONE_CHANGED')) {
+  manifest = manifest.replace(
+    '<action android:name="android.intent.action.BOOT_COMPLETED" />',
+    `<action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />`
+  );
 }
 await writeFile(manifestPath, manifest);
 
