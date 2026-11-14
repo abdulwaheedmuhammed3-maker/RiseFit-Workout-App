@@ -6,13 +6,18 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
-    <uses-permission android:name="android.permission.health.READ_STEPS" />
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH" />
 
     <application>
         <service
             android:name="com.risefit.app.alarm.WakeAlarmService"
             android:exported="false"
             android:foregroundServiceType="mediaPlayback" />
+        <service
+            android:name="com.risefit.app.alarm.StepCounterService"
+            android:exported="false"
+            android:foregroundServiceType="health" />
         <receiver
             android:name="com.risefit.app.alarm.WakeAlarmReceiver"
             android:exported="false" />
@@ -28,22 +33,5 @@
                 <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
             </intent-filter>
         </receiver>
-        <activity
-            android:name="com.risefit.app.PermissionsRationaleActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
-            </intent-filter>
-        </activity>
-        <activity-alias
-            android:name="com.risefit.app.ViewPermissionUsageActivity"
-            android:exported="true"
-            android:targetActivity="com.risefit.app.PermissionsRationaleActivity"
-            android:permission="android.permission.START_VIEW_PERMISSION_USAGE">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />
-                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
-            </intent-filter>
-        </activity-alias>
     </application>
 </manifest>
