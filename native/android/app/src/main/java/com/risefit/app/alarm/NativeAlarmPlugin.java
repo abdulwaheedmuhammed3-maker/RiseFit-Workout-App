@@ -23,11 +23,22 @@ import java.time.ZoneId;
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
+import com.getcapacitor.PermissionState;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import com.getcapacitor.annotation.Permission;
+import com.getcapacitor.annotation.PermissionCallback;
 
-@CapacitorPlugin(name = "NativeAlarm")
+@CapacitorPlugin(
+    name = "NativeAlarm",
+    permissions = {
+        @Permission(
+            alias = "readSteps",
+            strings = { "android.permission.health.READ_STEPS" }
+        )
+    }
+)
 public class NativeAlarmPlugin extends Plugin {
     @PluginMethod
     public void getStatus(PluginCall call) {
@@ -139,23 +150,27 @@ public class NativeAlarmPlugin extends Plugin {
             return;
         }
 
-        android.app.Activity activity = getActivity();
-        if (activity == null) {
-            call.reject("RiseFit could not open the step permission request because its screen is not available. Return to RiseFit and try again.");
+        // Request on Capacitor's main BridgeActivity instead of opening a
+        // separate transparent/blank Activity as a permission trampoline.
+        // Capacitor routes this through ActivityResultContracts.RequestMultiplePermissions,
+        // which is also the Android 14+ implementation used by Health Connect's
+        // official permission contract.
+        if (getPermissionState("readSteps") == PermissionState.GRANTED) {
+            call.resolve();
             return;
         }
+        requestPermissionForAlias("readSteps", call, "stepReadPermissionCallback");
+    }
 
-        try {
-            // Launch the official Health Connect permission request contract.
-            // ACTION_MANAGE_HEALTH_PERMISSIONS only opens the management/settings
-            // page; it does not initiate a first-time permission request.
-            Intent intent = new Intent(activity, HealthStepPermissionActivity.class);
-            activity.startActivity(intent);
+    @PermissionCallback
+    private void stepReadPermissionCallback(PluginCall call) {
+        if (getPermissionState("readSteps") == PermissionState.GRANTED) {
             call.resolve();
-        } catch (RuntimeException error) {
-            android.util.Log.e("RiseFitHealthConnect", "Could not start Health Connect step permission request.", error);
-            call.reject("RiseFit could not start the Health Connect permission request. Please try again.", null, error);
+            return;
         }
+        call.reject(
+            "Step access was not granted. Open Android Settings > Health Connect > App permissions > RiseFit and allow Steps, then return to RiseFit."
+        );
     }
 
     @PluginMethod
