@@ -288,7 +288,7 @@ export default function WorkoutVerification({
 
         stage = 'pose-model';
         const files = await FilesetResolver.forVisionTasks(
-          'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/wasm'
+          '/mediapipe/wasm'
         );
         const model = await PoseLandmarker.createFromOptions(files, {
           baseOptions: { modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/pose_landmarker_lite/float16/1/pose_landmarker_lite.task' },
