@@ -142,3 +142,20 @@ footer{color:#777783}footer span{color:#8589ff}
 .verification-workout .number{margin:12px 0 10px}
 .verification-workout .count-track{margin-bottom:8px}
 .verification-workout .muted{line-height:1.7}
+
+/* Profile onboarding and Women's Fitness */
+.profile-setup-shell{min-height:100vh;display:grid;place-items:center;padding:24px;background:#080809}
+.profile-setup-card{width:min(100%,520px);padding:30px;border:1px solid #30303c;border-radius:22px;background:#171719;display:flex;flex-direction:column;gap:15px}
+.profile-setup-card h1{font:700 30px 'Space Grotesk';margin:0}
+.profile-setup-card>label{display:flex;flex-direction:column;gap:7px;color:#c9c9d3;font-size:12px;font-weight:600}
+.profile-setup-card input,.profile-setup-card select{width:100%;padding:13px;border-radius:10px;border:1px solid #393945;background:#101014;color:#f5f5fa;font:inherit}
+.profile-setup-card fieldset{border:0;padding:0;margin:0}.profile-setup-card legend{font-size:12px;font-weight:600;color:#c9c9d3;margin-bottom:9px}
+.profile-choice-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.profile-choice-grid button{padding:12px 6px;border:1px solid #393945;border-radius:10px;background:#101014;color:#b8b8c5;font-size:11px}.profile-choice-grid button.chosen{border-color:#777bff;background:#252541;color:#aaaaff}
+.profile-error{color:#ff9b9b;font-size:11px}.profile-privacy{color:#858593;font-size:10px;line-height:1.6;text-align:center;margin-top:5px}
+.womens-hero{padding:22px;border-radius:17px;background:linear-gradient(125deg,#25213b,#17171f);border:1px solid #45405f}.womens-icon{width:42px;height:42px;display:grid;place-items:center;border-radius:13px;background:#393258;color:#b8aaff;margin-bottom:15px}
+.womens-hero h2{font:700 26px 'Space Grotesk';margin:8px 0}.womens-hero p,.womens-recommend p,.womens-goal-card p{font-size:11px;line-height:1.7;color:#aaaab8}
+.womens-recommend{margin:17px 0;padding:19px;border:1px solid #38364e;border-radius:15px;background:#1b1b25}.womens-recommend h3,.womens-goal-card h3{font:600 17px 'Space Grotesk';margin:9px 0}
+.womens-moves{display:flex;flex-wrap:wrap;gap:7px;margin:13px 0}.womens-moves span{padding:7px 10px;border-radius:20px;background:#29283b;color:#c4bdff;font-size:10px}
+.womens-goals{display:grid;gap:9px;margin-top:20px}.womens-goal-card{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px;border:1px solid #30303c;border-radius:13px;background:#15151b}
+.womens-goal-card>div{min-width:0}.womens-goal-card h3{font-size:14px;margin:0 0 5px}.womens-goal-card p{margin:0 0 5px}.womens-goal-card small{font-size:9px;color:#9998ab}
+@media(max-width:520px){.profile-setup-card{padding:22px 18px}.profile-setup-card h1{font-size:25px}.womens-goal-card{align-items:flex-start}.womens-goal-card .secondary{padding:9px}}
