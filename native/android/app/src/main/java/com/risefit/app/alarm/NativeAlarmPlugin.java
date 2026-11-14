@@ -12,6 +12,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.os.ext.SdkExtensions;
 import android.os.OutcomeReceiver;
 import android.provider.Settings;
 
@@ -156,6 +157,16 @@ public class NativeAlarmPlugin extends Plugin {
             result.put("stepsToday", 0);
             result.put("days", new JSArray());
             result.put("message", "Automatic daily steps require Android 14 or later with Health Connect support.");
+            call.resolve(result);
+            return;
+        }
+        if (SdkExtensions.getExtensionVersion(Build.VERSION_CODES.UPSIDE_DOWN_CAKE) < 20) {
+            JSObject result = new JSObject();
+            result.put("available", false);
+            result.put("permissionGranted", false);
+            result.put("stepsToday", 0);
+            result.put("days", new JSArray());
+            result.put("message", "This phone needs the Android 14 system update that enables automatic Health Connect step counting.");
             call.resolve(result);
             return;
         }
