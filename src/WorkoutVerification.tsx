@@ -151,7 +151,9 @@ export default function WorkoutVerification({
       const loop = () => {
         if (!alive || !videoRef.current || !landmarkerRef.current || document.hidden || processingFailedRef.current) return;
         const video = videoRef.current;
-        if (video.readyState >= 2) {
+        if (video.readyState >= 2 && video.currentTime !== lastVideoTimeRef.current) {
+          try {
+            lastVideoTimeRef.current = video.currentTime;
           try {
             const now = performance.now();
             const result = landmarkerRef.current.detectForVideo(video, now);
@@ -218,8 +220,11 @@ export default function WorkoutVerification({
               phaseRef.current = 'ready';
               lastFrameAtRef.current = 0;
             }
-          } catch {
-            setError('Pose tracking paused. Reposition your phone and retry if detection does not resume.');
+          } catch (trackingError) {
+            processingFailedRef.current = true;
+            cancelAnimationFrame(rafRef.current);
+            const detail = trackingError instanceof Error ? trackingError.message : String(trackingError);
+            setError('Live pose tracking stopped: ' + detail + '. Tap retry to restart detection.');
           }
         }
         if (alive && !document.hidden) rafRef.current = requestAnimationFrame(loop);
@@ -241,6 +246,12 @@ export default function WorkoutVerification({
         lastCountAtRef.current = 0;
         activeDurationRef.current = 0;
         lastFrameAtRef.current = 0;
+        lastVideoTimeRef.current = -1;
+        processingFailedRef.current = false;
+        poseSeenRef.current = false;
+        highKneesInitializedRef.current = false;
+        leftKneeRaisedRef.current = false;
+        rightKneeRaisedRef.current = false;
 
         if (!navigator.mediaDevices?.getUserMedia) {
           throw new Error('This Android WebView does not expose camera capture (getUserMedia). Update Android System WebView and Google Chrome, then reopen RiseFit.');
@@ -259,6 +270,9 @@ export default function WorkoutVerification({
         }
         if (!alive) { stream.getTracks().forEach(track => track.stop()); return; }
         streamRef.current = stream;
+        stream.getVideoTracks().forEach(track => {
+          track.onended = () => { if (alive) setError('Camera stream ended. Reopen camera setup to continue.'); };
+        });
 
         stage = 'preview';
         const video = videoRef.current;
@@ -288,7 +302,7 @@ export default function WorkoutVerification({
         if (!alive) { model.close(); return; }
         landmarkerRef.current = model;
         setError('');
-        startLoop();
+        if (!document.hidden) startLoop();
       } catch (e) {
         if (alive) {
           setLoading(false);
@@ -312,9 +326,9 @@ export default function WorkoutVerification({
         cancelAnimationFrame(rafRef.current);
         lastFrameAtRef.current = 0;
         streamRef.current?.getVideoTracks().forEach(track => { track.enabled = false; });
-      } else if (alive && landmarkerRef.current) {
+      } else if (alive) {
         streamRef.current?.getVideoTracks().forEach(track => { track.enabled = true; });
-        startLoop();
+        if (landmarkerRef.current) startLoop();
       }
     };
     document.addEventListener('visibilitychange', visibilityHandler);
