@@ -125,7 +125,13 @@ export default function WorkoutVerification({
   const lastCountAtRef = useRef(0);
   const stableFramesRef = useRef(0);
   const activeDurationRef = useRef(0);
-  const lastFrameAtRef = useRef(0);\n  const lastVideoTimeRef = useRef(-1);\n  const processingFailedRef = useRef(false);\n  const poseSeenRef = useRef(false);\n  const leftKneeRaisedRef = useRef(false);\n  const rightKneeRaisedRef = useRef(false);\n  const highKneesInitializedRef = useRef(false);
+  const lastFrameAtRef = useRef(0);
+  const lastVideoTimeRef = useRef(-1);
+  const processingFailedRef = useRef(false);
+  const poseSeenRef = useRef(false);
+  const leftKneeRaisedRef = useRef(false);
+  const rightKneeRaisedRef = useRef(false);
+  const highKneesInitializedRef = useRef(false);
   const [count, setCount] = useState(0);
   const [retryAttempt, setRetryAttempt] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -167,7 +173,23 @@ export default function WorkoutVerification({
                   phaseRef.current = 'ready';
                   stableFramesRef.current = 0;
                 }
-              } else if (exercise === 'highknees' && movement.valid) {\n                const leftRaised = pose[25].y < pose[23].y - 0.1;\n                const rightRaised = pose[26].y < pose[24].y - 0.1;\n                if (!highKneesInitializedRef.current) {\n                  leftKneeRaisedRef.current = leftRaised;\n                  rightKneeRaisedRef.current = rightRaised;\n                  highKneesInitializedRef.current = true;\n                } else {\n                  const newLift = (leftRaised && !leftKneeRaisedRef.current) || (rightRaised && !rightKneeRaisedRef.current);\n                  if (newLift && now - lastCountAtRef.current > 250) {\n                    lastCountAtRef.current = now;\n                    setCount(value => { const next = Math.min(value + 1, target); if (next >= target) setComplete(true); return next; });\n                  }\n                  leftKneeRaisedRef.current = leftRaised;\n                  rightKneeRaisedRef.current = rightRaised;\n                }\n              } else if (movement.valid && movement.phase !== 'ready') {
+              } else if (exercise === 'highknees' && movement.valid) {
+                const leftRaised = pose[25].y < pose[23].y - 0.1;
+                const rightRaised = pose[26].y < pose[24].y - 0.1;
+                if (!highKneesInitializedRef.current) {
+                  leftKneeRaisedRef.current = leftRaised;
+                  rightKneeRaisedRef.current = rightRaised;
+                  highKneesInitializedRef.current = true;
+                } else {
+                  const newLift = (leftRaised && !leftKneeRaisedRef.current) || (rightRaised && !rightKneeRaisedRef.current);
+                  if (newLift && now - lastCountAtRef.current > 250) {
+                    lastCountAtRef.current = now;
+                    setCount(value => { const next = Math.min(value + 1, target); if (next >= target) setComplete(true); return next; });
+                  }
+                  leftKneeRaisedRef.current = leftRaised;
+                  rightKneeRaisedRef.current = rightRaised;
+                }
+              } else if (movement.valid && movement.phase !== 'ready') {
                 stableFramesRef.current += 1;
                 if (stableFramesRef.current >= 2) {
                   const previous = phaseRef.current;
