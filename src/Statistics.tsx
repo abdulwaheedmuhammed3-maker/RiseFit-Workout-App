@@ -107,7 +107,7 @@ export default function Statistics({ sessions = [] }: { sessions?: CompletedSess
         </article>
         <article className="stats-v2-card">
           <span className="stats-v2-icon"><Clock3 /></span>
-          <div><span>Time trained</span><strong>Not tracked</strong><small>Session duration is not recorded yet</small></div>
+          <div><span>Walking time</span><strong>{Math.floor(walkingDuration / 60)} min</strong><small>From recorded walk sessions</small></div>
         </article>
         <article className="stats-v2-card stats-v2-volume">
           <span className="stats-v2-icon"><Weight /></span>
