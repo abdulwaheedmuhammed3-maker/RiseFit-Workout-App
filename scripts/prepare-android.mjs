@@ -56,7 +56,7 @@ if (!manifest.includes('com.risefit.app.alarm.WakeAlarmService')) {
 }
 if (!manifest.includes('com.risefit.app.alarm.StepTrackingService')) {
   manifest = manifest.replace(
-    /<application\\b[^>]*>/,
+    /<application[^>]*>/,
     match => match + '\n        <service\n            android:name="com.risefit.app.alarm.StepTrackingService"\n            android:exported="false"\n            android:foregroundServiceType="health" />'
   );
 }
