@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import {
-  Activity, Award, BarChart3, CalendarDays, ChevronRight, Clock3,
+  Activity, Award, BarChart3, Clock3,
   Dumbbell, Flame, Info, TrendingUp, Weight
 } from 'lucide-react';
 
@@ -72,7 +72,7 @@ export default function Statistics({ sessions = [] }: { sessions?: CompletedSess
     const start = period === 'Week' ? week : period === 'Month' ? month : period === 'Year' ? year : null;
     return sessions.filter(session => {
       const date = new Date(session.completedAt);
-      return !Number.isNaN(date.getTime()) && (!start || (date >= start && date <= now));
+      return !Number.isNaN(date.getTime()) && date <= now && (!start || date >= start);
     }).sort((a, b) => b.completedAt.localeCompare(a.completedAt));
   }, [sessions, period]);
   const workouts = filteredSessions.length;
