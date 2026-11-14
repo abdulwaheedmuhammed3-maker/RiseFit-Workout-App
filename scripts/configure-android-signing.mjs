@@ -11,7 +11,7 @@ const requiredEnv = [
   'RISEFIT_KEY_PASSWORD',
 ];
 for (const name of requiredEnv) {
-  if (!process.env[name]) throw new Error(\`Missing required signing environment variable: \${name}\`);
+  if (!process.env[name]) throw new Error('Missing required signing environment variable: ' + name);
 }
 try {
   const details = await stat(keystorePath);
@@ -26,27 +26,28 @@ if (!/buildTypes\s*\{\s*release\s*\{/.test(gradle)) {
   throw new Error('Could not find the generated Android release build type.');
 }
 if (!gradle.includes('signingConfigs.release')) {
-  const signing = \`
-    signingConfigs {
-        release {
-            storeFile file(System.getenv('RISEFIT_KEYSTORE_PATH'))
-            storePassword System.getenv('RISEFIT_KEYSTORE_PASSWORD')
-            keyAlias System.getenv('RISEFIT_KEY_ALIAS')
-            keyPassword System.getenv('RISEFIT_KEY_PASSWORD')
-        }
-    }
-\`;
-  gradle = gradle.replace(/(android\s*\{)/, \`$1\${signing}\`);
+  const signing = [
+    '    signingConfigs {',
+    '        release {',
+    "            storeFile file(System.getenv('RISEFIT_KEYSTORE_PATH'))",
+    "            storePassword System.getenv('RISEFIT_KEYSTORE_PASSWORD')",
+    "            keyAlias System.getenv('RISEFIT_KEY_ALIAS')",
+    "            keyPassword System.getenv('RISEFIT_KEY_PASSWORD')",
+    '        }',
+    '    }',
+    ''
+  ].join('\n');
+  gradle = gradle.replace(/(android\s*\{)/, '$1\n' + signing);
   gradle = gradle.replace(
     /(buildTypes\s*\{\s*release\s*\{)/,
-    '$1\\n            signingConfig signingConfigs.release'
+    '$1\n            signingConfig signingConfigs.release'
   );
 }
 
 const packageJson = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
 const version = String(packageJson.version || '0.2.0');
 const match = version.match(/^(\d+)\.(\d+)\.(\d+)(?:[-+].*)?$/);
-if (!match) throw new Error(\`package.json version must be semantic (x.y.z); got \${version}\`);
+if (!match) throw new Error('package.json version must be semantic (x.y.z); got ' + version);
 const [, major, minor, patch] = match;
 const versionCode = Number(major) * 1_000_000 + Number(minor) * 1_000 + Number(patch) + 1;
 if (!Number.isSafeInteger(versionCode) || versionCode > 2_100_000_000) {
@@ -56,16 +57,16 @@ const defaultConfig = gradle.match(/defaultConfig\s*\{[\s\S]*?\n\s*\}/);
 if (!defaultConfig) throw new Error('Could not locate Android defaultConfig.');
 let configured = defaultConfig[0];
 if (/versionCode\s+[^\r\n]+/.test(configured)) {
-  configured = configured.replace(/versionCode\s+[^\r\n]+/, \`versionCode \${versionCode}\`);
+  configured = configured.replace(/versionCode\s+[^\r\n]+/, 'versionCode ' + versionCode);
 } else {
-  configured = configured.replace(/(defaultConfig\s*\{)/, \`$1\\n        versionCode \${versionCode}\`);
+  configured = configured.replace(/(defaultConfig\s*\{)/, '$1\n        versionCode ' + versionCode);
 }
 if (/versionName\s+[^\r\n]+/.test(configured)) {
-  configured = configured.replace(/versionName\s+[^\r\n]+/, \`versionName "\${version}"\`);
+  configured = configured.replace(/versionName\s+[^\r\n]+/, 'versionName "' + version + '"');
 } else {
-  configured = configured.replace(/(defaultConfig\s*\{)/, \`$1\\n        versionName "\${version}"\`);
+  configured = configured.replace(/(defaultConfig\s*\{)/, '$1\n        versionName "' + version + '"');
 }
 gradle = gradle.replace(defaultConfig[0], configured);
 
 await writeFile(gradlePath, gradle);
-console.log(\`Configured signed RiseFit release (version \${version}, versionCode \${versionCode}).\`);
+console.log('Configured signed RiseFit release (version ' + version + ', versionCode ' + versionCode + ').');
