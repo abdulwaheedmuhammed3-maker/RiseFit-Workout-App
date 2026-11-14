@@ -16,46 +16,6 @@ if (!(await exists(join(generatedAndroid, 'app', 'src', 'main', 'AndroidManifest
 
 await cp(sourceJava, targetJava, { recursive: true });
 
-// Health Connect's stable client provides the official permission request contract.
-// Its 1.1.0 release requires compileSdk 36, AGP 8.9.1+ and minSdk 26.
-const appGradlePath = join(generatedAndroid, 'app', 'build.gradle');
-let appGradle = await readFile(appGradlePath, 'utf8');
-const healthConnectDependency = 'implementation "androidx.health.connect:connect-client:1.1.0"';
-if (!appGradle.includes('androidx.health.connect:connect-client')) {
-  if (!/dependencies\s*\{/.test(appGradle)) {
-    throw new Error('Could not find the Android app dependencies block to add Health Connect Client.');
-  }
-  appGradle = appGradle.replace(/dependencies\s*\{/, match => `${match}\n    ${healthConnectDependency}`);
-  await writeFile(appGradlePath, appGradle);
-}
-
-const projectGradlePath = join(generatedAndroid, 'build.gradle');
-let projectGradle = await readFile(projectGradlePath, 'utf8');
-if (/com\.android\.tools\.build:gradle:8\.7\.2/.test(projectGradle)) {
-  projectGradle = projectGradle.replace(
-    'com.android.tools.build:gradle:8.7.2',
-    'com.android.tools.build:gradle:8.9.2'
-  );
-  await writeFile(projectGradlePath, projectGradle);
-} else if (!/com\.android\.tools\.build:gradle:8\.(9|10|11|12|13|14)\./.test(projectGradle)) {
-  throw new Error('Health Connect Client 1.1.0 requires Android Gradle Plugin 8.9.1 or newer.');
-}
-
-const variablesGradlePath = join(generatedAndroid, 'variables.gradle');
-let variablesGradle = await readFile(variablesGradlePath, 'utf8');
-if (/compileSdkVersion\s*=\s*35/.test(variablesGradle)) {
-  variablesGradle = variablesGradle.replace(/compileSdkVersion\s*=\s*35/, 'compileSdkVersion = 36');
-} else if (!/compileSdkVersion\s*=\s*3[6-9]/.test(variablesGradle)) {
-  throw new Error('Health Connect Client 1.1.0 requires compileSdk 36 or newer.');
-}
-if (/minSdkVersion\s*=\s*23/.test(variablesGradle)) {
-  variablesGradle = variablesGradle.replace(/minSdkVersion\s*=\s*23/, 'minSdkVersion = 26');
-} else if (!/minSdkVersion\s*=\s*2[6-9]/.test(variablesGradle)) {
-  throw new Error('RiseFit now requires minSdk 26 (Android 8.0) for Health Connect Client.');
-}
-await writeFile(variablesGradlePath, variablesGradle);
-
-
 const manifestPath = join(generatedAndroid, 'app', 'src', 'main', 'AndroidManifest.xml');
 let manifest = await readFile(manifestPath, 'utf8');
 const permissions = [
