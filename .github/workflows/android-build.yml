@@ -42,7 +42,7 @@ jobs:
 
       - name: Check release signing secrets
         id: signing
-        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
         env:
           RISEFIT_KEYSTORE_BASE64: ${{ secrets.RISEFIT_KEYSTORE_BASE64 }}
           RISEFIT_KEYSTORE_PASSWORD: ${{ secrets.RISEFIT_KEYSTORE_PASSWORD }}
@@ -72,7 +72,7 @@ jobs:
           ./gradlew assembleRelease
 
       - name: Explain missing release signing secrets
-        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && steps.signing.outputs.configured != 'true'
+        if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && steps.signing.outputs.configured != 'true'
         run: |
           echo "Release APK was not built because the permanent RiseFit signing secrets are not configured." >> "$GITHUB_STEP_SUMMARY"
           echo "Add the four RISEFIT_* repository Actions secrets, then run this workflow again." >> "$GITHUB_STEP_SUMMARY"
