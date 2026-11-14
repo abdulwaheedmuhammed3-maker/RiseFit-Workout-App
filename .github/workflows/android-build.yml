@@ -5,6 +5,7 @@ on:
     branches: [main, 'feat/**']
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -31,10 +32,54 @@ jobs:
         run: npx cap sync android
       - name: Add native alarm support
         run: npm run android:prepare
-      - name: Build debug APK
+      - name: Build debug APK (CI testing only)
         run: cd android && chmod +x gradlew && ./gradlew assembleDebug
       - uses: actions/upload-artifact@v4
         with:
           name: RiseFit-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+
+      - name: Check release signing secrets
+        id: signing
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        env:
+          RISEFIT_KEYSTORE_BASE64: ${{ secrets.RISEFIT_KEYSTORE_BASE64 }}
+          RISEFIT_KEYSTORE_PASSWORD: ${{ secrets.RISEFIT_KEYSTORE_PASSWORD }}
+          RISEFIT_KEY_ALIAS: ${{ secrets.RISEFIT_KEY_ALIAS }}
+          RISEFIT_KEY_PASSWORD: ${{ secrets.RISEFIT_KEY_PASSWORD }}
+        run: |
+          if [ -n "$RISEFIT_KEYSTORE_BASE64" ] && [ -n "$RISEFIT_KEYSTORE_PASSWORD" ] && [ -n "$RISEFIT_KEY_ALIAS" ] && [ -n "$RISEFIT_KEY_PASSWORD" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build permanently signed release APK
+        if: steps.signing.outputs.configured == 'true'
+        env:
+          RISEFIT_KEYSTORE_BASE64: ${{ secrets.RISEFIT_KEYSTORE_BASE64 }}
+          RISEFIT_KEYSTORE_PASSWORD: ${{ secrets.RISEFIT_KEYSTORE_PASSWORD }}
+          RISEFIT_KEY_ALIAS: ${{ secrets.RISEFIT_KEY_ALIAS }}
+          RISEFIT_KEY_PASSWORD: ${{ secrets.RISEFIT_KEY_PASSWORD }}
+          RISEFIT_KEYSTORE_PATH: ${{ runner.temp }}/risefit-release.jks
+        run: |
+          set -euo pipefail
+          printf '%s' "$RISEFIT_KEYSTORE_BASE64" | base64 --decode > "$RISEFIT_KEYSTORE_PATH"
+          chmod 600 "$RISEFIT_KEYSTORE_PATH"
+          node scripts/configure-android-signing.mjs
+          cd android
+          ./gradlew assembleRelease
+
+      - name: Explain missing release signing secrets
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && steps.signing.outputs.configured != 'true'
+        run: |
+          echo "Release APK was not built because the permanent RiseFit signing secrets are not configured." >> "$GITHUB_STEP_SUMMARY"
+          echo "Add the four RISEFIT_* repository Actions secrets, then run this workflow again." >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: steps.signing.outputs.configured == 'true'
+        with:
+          name: RiseFit-release-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
