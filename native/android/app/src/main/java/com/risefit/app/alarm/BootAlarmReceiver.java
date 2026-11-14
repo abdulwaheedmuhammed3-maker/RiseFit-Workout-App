@@ -34,5 +34,13 @@ public class BootAlarmReceiver extends BroadcastReceiver {
                 // permission-granted broadcast later and the alarm can recover.
             }
         }
+        // Restore the continuous step listener after a reboot or app update.
+        // Android allows the health foreground-service type to be started here
+        // when ACTIVITY_RECOGNITION has already been granted.
+        try {
+            StepCounterService.startIfEnabled(context);
+        } catch (RuntimeException ignored) {
+            // RiseFit will retry when the user next opens the app.
+        }
     }
 }
