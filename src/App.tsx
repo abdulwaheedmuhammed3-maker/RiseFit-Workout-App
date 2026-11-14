@@ -51,8 +51,10 @@ export default function App(){
  };
  const requestStepReadAccess=async()=>{
   setStepStatsError('');
-  try{await NativeAlarm.requestStepReadPermission();}
-  catch(error){setStepStatsError(error instanceof Error?error.message:'Could not open Health Connect step permissions.');}
+  try{
+   await NativeAlarm.requestStepReadPermission();
+   await refreshDailySteps();
+  }catch(error){setStepStatsError(error instanceof Error?error.message:'Could not open Health Connect step permissions.');}
  };
  useEffect(()=>{
   let disposed=false;
