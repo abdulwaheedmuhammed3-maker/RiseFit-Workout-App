@@ -4,17 +4,13 @@ import android.os.Bundle;
 
 import androidx.activity.ComponentActivity;
 import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContract;
-import androidx.health.connect.client.PermissionController;
-
-import java.util.Collections;
-import java.util.Set;
+import androidx.activity.result.contract.ActivityResultContracts;
 
 /**
- * Hosts the official Health Connect permission contract.
+ * Requests the platform READ_STEPS runtime permission.
  *
- * This is separate from the settings/management screen: launching the contract
- * explicitly asks the user to grant the declared READ_STEPS permission.
+ * On Android 14 and later, Android routes this Health permission through
+ * the system Health Connect consent UI.
  */
 public final class HealthStepPermissionActivity extends ComponentActivity {
     private static final String READ_STEPS_PERMISSION =
@@ -24,15 +20,13 @@ public final class HealthStepPermissionActivity extends ComponentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        ActivityResultContract<Set<String>, Set<String>> contract =
-            PermissionController.createRequestPermissionResultContract();
+        ActivityResultLauncher<String[]> permissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(),
+                result -> {
+                    // RiseFit refreshes permission state when the app returns to foreground.
+                    finish();
+                });
 
-        ActivityResultLauncher<Set<String>> permissionLauncher =
-            registerForActivityResult(contract, grantedPermissions -> {
-                // RiseFit refreshes permission state when the app returns to foreground.
-                finish();
-            });
-
-        permissionLauncher.launch(Collections.singleton(READ_STEPS_PERMISSION));
+        permissionLauncher.launch(new String[]{READ_STEPS_PERMISSION});
     }
 }
