@@ -62,7 +62,9 @@ function getMovementPhase(pose: Landmark[], exercise: ExerciseType): { phase: Ph
   }
   if (exercise === 'pushup') {
     const arm = side([11,13,15], [12,14,16]);
-    if (!arm || !visible([23,24])) return { phase: 'ready', valid: false };
+    if (!arm) return { phase: 'ready', valid: false };
+    const matchingHip = arm[0] === 11 ? 23 : 24;
+    if (!visible([matchingHip])) return { phase: 'ready', valid: false };
     const elbow = angle(point(arm[0]), point(arm[1]), point(arm[2]));
     return { phase: elbow < 95 ? 'down' : elbow > 150 ? 'up' : 'ready', valid: true };
   }
