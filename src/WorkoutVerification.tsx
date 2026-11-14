@@ -39,29 +39,35 @@ function angle(a: Landmark, b: Landmark, c: Landmark) {
 
 function getMovementPhase(pose: Landmark[], exercise: ExerciseType): { phase: Phase; valid: boolean } {
   const point = (index: number) => pose[index];
-  const required = exercise === 'squat' ? [11,12,23,24,25,26,27,28]
-    : exercise === 'pushup' ? [11,12,13,14,15,16,23,24]
-    : exercise === 'jumping-jack' ? [11,12,15,16,27,28]
-    : exercise === 'situp' ? [11,12,23,24,25,26]
-    : exercise === 'plank' ? [11,23,27]
-    : exercise === 'lunge' ? [11,12,23,24,25,26,27,28]
-    : exercise === 'highknees' ? [23,24,25,26]
-    : exercise === 'deadbug' ? [11,12,23,24,25,26]
-    : [11,12,23,24,25,26];
+  const visible = (indices: number[]) => indices.every(index =>
+    point(index) && (point(index).visibility ?? 1) > 0.55
+  );
+  const side = (left: number[], right: number[]) => {
+    const leftVisible = visible(left);
+    const rightVisible = visible(right);
+    if (!leftVisible && !rightVisible) return null;
+    if (leftVisible && rightVisible) {
+      const score = (indices: number[]) => indices.reduce((sum, index) => sum + (point(index).visibility ?? 1), 0);
+      return score(left) >= score(right) ? left : right;
+    }
+    return leftVisible ? left : right;
+  };
 
-  if (!required.every(index => point(index) && (point(index).visibility ?? 1) > 0.55)) {
-    return { phase: 'ready', valid: false };
-  }
-
-  if (exercise === 'squat') {
-    const knee = (angle(point(23), point(25), point(27)) + angle(point(24), point(26), point(28))) / 2;
-    return { phase: knee < 105 ? 'down' : knee > 155 ? 'up' : 'ready', valid: true };
+  if (exercise === 'squat' || exercise === 'lunge') {
+    const leg = side([23,25,27], [24,26,28]);
+    if (!leg) return { phase: 'ready', valid: false };
+    const knee = angle(point(leg[0]), point(leg[1]), point(leg[2]));
+    if (exercise === 'squat') return { phase: knee < 105 ? 'down' : knee > 155 ? 'up' : 'ready', valid: true };
+    return { phase: knee < 112 ? 'down' : knee > 150 ? 'up' : 'ready', valid: true };
   }
   if (exercise === 'pushup') {
-    const elbow = (angle(point(11), point(13), point(15)) + angle(point(12), point(14), point(16))) / 2;
+    const arm = side([11,13,15], [12,14,16]);
+    if (!arm || !visible([23,24])) return { phase: 'ready', valid: false };
+    const elbow = angle(point(arm[0]), point(arm[1]), point(arm[2]));
     return { phase: elbow < 95 ? 'down' : elbow > 150 ? 'up' : 'ready', valid: true };
   }
   if (exercise === 'jumping-jack') {
+    if (!visible([11,12,15,16,27,28])) return { phase: 'ready', valid: false };
     const wristY = (point(15).y + point(16).y) / 2;
     const shoulderY = (point(11).y + point(12).y) / 2;
     const feetGap = Math.abs(point(27).x - point(28).x);
@@ -71,34 +77,33 @@ function getMovementPhase(pose: Landmark[], exercise: ExerciseType): { phase: Ph
     return { phase: open ? 'open' : closed ? 'closed' : 'ready', valid: true };
   }
   if (exercise === 'situp') {
-    const hip = (angle(point(11), point(23), point(25)) + angle(point(12), point(24), point(26))) / 2;
+    const torso = side([11,23,25], [12,24,26]);
+    if (!torso) return { phase: 'ready', valid: false };
+    const hip = angle(point(torso[0]), point(torso[1]), point(torso[2]));
     return { phase: hip < 115 ? 'up' : hip > 145 ? 'down' : 'ready', valid: true };
   }
   if (exercise === 'plank') {
-    const bodyAngle = angle(point(11), point(23), point(27));
-    const bodyLevel = Math.abs(point(11).y - point(27).y) < 0.22;
-    const bodyExtended = Math.abs(point(11).x - point(27).x) > 0.18;
+    const body = side([11,23,27], [12,24,28]);
+    if (!body) return { phase: 'hold', valid: false };
+    const bodyAngle = angle(point(body[0]), point(body[1]), point(body[2]));
+    const bodyLevel = Math.abs(point(body[0]).y - point(body[2]).y) < 0.22;
+    const bodyExtended = Math.abs(point(body[0]).x - point(body[2]).x) > 0.18;
     return { phase: 'hold', valid: bodyAngle > 150 && bodyLevel && bodyExtended };
   }
-  if (exercise === 'lunge') {
-    const leftKnee = angle(point(23), point(25), point(27));
-    const rightKnee = angle(point(24), point(26), point(28));
-    const deepestKnee = Math.min(leftKnee, rightKnee);
-    const standing = Math.min(leftKnee, rightKnee) > 150;
-    return { phase: deepestKnee < 112 ? 'down' : standing ? 'up' : 'ready', valid: true };
-  }
   if (exercise === 'highknees') {
+    if (!visible([23,24,25,26])) return { phase: 'ready', valid: false };
     const raised = point(25).y < point(23).y - 0.1 || point(26).y < point(24).y - 0.1;
     return { phase: raised ? 'open' : 'closed', valid: true };
   }
   if (exercise === 'deadbug') {
-    const hipExtension = Math.max(
-      angle(point(11), point(23), point(25)),
-      angle(point(12), point(24), point(26))
-    );
+    const leg = side([11,23,25], [12,24,26]);
+    if (!leg) return { phase: 'ready', valid: false };
+    const hipExtension = angle(point(leg[0]), point(leg[1]), point(leg[2]));
     return { phase: hipExtension > 148 ? 'up' : hipExtension < 125 ? 'down' : 'ready', valid: true };
   }
-  const hipAngle = (angle(point(11), point(23), point(25)) + angle(point(12), point(24), point(26))) / 2;
+  const torso = side([11,23,25], [12,24,26]);
+  if (!torso) return { phase: 'ready', valid: false };
+  const hipAngle = angle(point(torso[0]), point(torso[1]), point(torso[2]));
   return { phase: hipAngle < 130 ? 'down' : hipAngle > 155 ? 'up' : 'ready', valid: true };
 }
 
@@ -118,7 +123,7 @@ export default function WorkoutVerification({
   const lastCountAtRef = useRef(0);
   const stableFramesRef = useRef(0);
   const activeDurationRef = useRef(0);
-  const lastFrameAtRef = useRef(0);
+  const lastFrameAtRef = useRef(0);\n  const lastVideoTimeRef = useRef(-1);\n  const processingFailedRef = useRef(false);\n  const poseSeenRef = useRef(false);\n  const leftKneeRaisedRef = useRef(false);\n  const rightKneeRaisedRef = useRef(false);\n  const highKneesInitializedRef = useRef(false);
   const [count, setCount] = useState(0);
   const [retryAttempt, setRetryAttempt] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -136,7 +141,7 @@ export default function WorkoutVerification({
     };
     const startLoop = () => {
       const loop = () => {
-        if (!alive || !videoRef.current || !landmarkerRef.current || document.hidden) return;
+        if (!alive || !videoRef.current || !landmarkerRef.current || document.hidden || processingFailedRef.current) return;
         const video = videoRef.current;
         if (video.readyState >= 2) {
           try {
@@ -145,7 +150,7 @@ export default function WorkoutVerification({
             const pose = result.landmarks?.[0] as Landmark[] | undefined;
             if (pose) {
               const movement = getMovementPhase(pose, exercise);
-              setPoseSeen(movement.valid);
+              if (poseSeenRef.current !== movement.valid) { poseSeenRef.current = movement.valid; setPoseSeen(movement.valid); }
 
               if (unit === 'sec') {
                 if (movement.valid) {
@@ -160,7 +165,7 @@ export default function WorkoutVerification({
                   phaseRef.current = 'ready';
                   stableFramesRef.current = 0;
                 }
-              } else if (movement.valid && movement.phase !== 'ready') {
+              } else if (exercise === 'highknees' && movement.valid) {\n                const leftRaised = pose[25].y < pose[23].y - 0.1;\n                const rightRaised = pose[26].y < pose[24].y - 0.1;\n                if (!highKneesInitializedRef.current) {\n                  leftKneeRaisedRef.current = leftRaised;\n                  rightKneeRaisedRef.current = rightRaised;\n                  highKneesInitializedRef.current = true;\n                } else {\n                  const newLift = (leftRaised && !leftKneeRaisedRef.current) || (rightRaised && !rightKneeRaisedRef.current);\n                  if (newLift && now - lastCountAtRef.current > 250) {\n                    lastCountAtRef.current = now;\n                    setCount(value => { const next = Math.min(value + 1, target); if (next >= target) setComplete(true); return next; });\n                  }\n                  leftKneeRaisedRef.current = leftRaised;\n                  rightKneeRaisedRef.current = rightRaised;\n                }\n              } else if (movement.valid && movement.phase !== 'ready') {
                 stableFramesRef.current += 1;
                 if (stableFramesRef.current >= 2) {
                   const previous = phaseRef.current;
