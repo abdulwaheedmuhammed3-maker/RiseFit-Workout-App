@@ -25,6 +25,7 @@ const permissions = [
   'android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK',
   'android.permission.WAKE_LOCK',
   'android.permission.USE_FULL_SCREEN_INTENT',
+  'android.permission.health.READ_STEPS',
 ];
 const missingPermissions = permissions
   .filter(permission => !manifest.includes(permission))
