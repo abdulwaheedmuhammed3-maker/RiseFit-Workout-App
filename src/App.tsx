@@ -6,7 +6,8 @@ import { Activity, AlarmClock, Home, Dumbbell, Flame, Settings, Play, ChevronRig
 import WorkoutVerification, { type ExerciseType } from './WorkoutVerification';
 import Statistics from './Statistics';
 
-type WakeAlarm = { id: string; time: string; enabled: boolean; label: string };\ntype CompletedSession = { id: string; title: string; kind: 'plan' | 'alarm'; completedAt: string };
+type WakeAlarm = { id: string; time: string; enabled: boolean; label: string };
+type CompletedSession = { id: string; title: string; kind: 'plan' | 'alarm'; completedAt: string };
 type ExerciseId = 'squat'|'pushup'|'jack'|'situp'|'plank'|'lunge'|'highknees'|'deadbug'|'bridge';
 type Exercise = { id:ExerciseId; name:string; category:string; target:number; unit:'reps'|'sec'; rounds:number; cues:string[]; easier:string };
 const poseExerciseById:Record<ExerciseId,ExerciseType>={squat:'squat',pushup:'pushup',jack:'jumping-jack',situp:'situp',plank:'plank',lunge:'lunge',highknees:'highknees',deadbug:'deadbug',bridge:'bridge'};
@@ -46,7 +47,10 @@ export default function App(){
   return()=>{disposed=true;document.removeEventListener('visibilitychange',onVisibility);void listener?.remove();};
  },[]);
 
- useEffect(()=>{localStorage.setItem('risefit-alarms-v2',JSON.stringify(alarms));setAlarmOn(alarms.some(a=>a.enabled));},[alarms]);\n useEffect(()=>{localStorage.setItem('risefit-workout-history-v1',JSON.stringify(history));},[history]);\n const recordSession=(title:string,kind:CompletedSession['kind'])=>setHistory(items=>[...items,{id:`${Date.now()}-${items.length}`,title,kind,completedAt:new Date().toISOString()}]);\n const sessions=history.length;
+ useEffect(()=>{localStorage.setItem('risefit-alarms-v2',JSON.stringify(alarms));setAlarmOn(alarms.some(a=>a.enabled));},[alarms]);
+ useEffect(()=>{localStorage.setItem('risefit-workout-history-v1',JSON.stringify(history));},[history]);
+ const recordSession=(title:string,kind:CompletedSession['kind'])=>setHistory(items=>[...items,{id:`${Date.now()}-${items.length}`,title,kind,completedAt:new Date().toISOString()}]);
+ const sessions=history.length;
  const updateAlarm=(id:string,patch:Partial<WakeAlarm>)=>setAlarms(items=>items.map(a=>a.id===id?{...a,...patch}:a));
  const addAlarm=()=>setAlarms(items=>[...items,{id:`alarm-${Date.now()}`,time:'07:00',enabled:false,label:`Alarm ${items.length+1}`}]);
  const scheduleWakeAlarm=async(alarm:WakeAlarm)=>{
