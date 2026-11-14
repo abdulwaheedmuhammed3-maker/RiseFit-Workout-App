@@ -29,6 +29,8 @@ jobs:
         run: npx cap add android
       - name: Sync Capacitor Android
         run: npx cap sync android
+      - name: Add native alarm support
+        run: npm run android:prepare
       - name: Build debug APK
         run: cd android && chmod +x gradlew && ./gradlew assembleDebug
       - uses: actions/upload-artifact@v4
