@@ -14,7 +14,6 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
-import android.media.AudioManager;
 import android.content.pm.ServiceInfo;
 
 public class WakeAlarmService extends Service {
@@ -104,31 +103,54 @@ public class WakeAlarmService extends Service {
     }
 
     private void startRingtone() {
+        // A service can receive another start command while it is already ringing.
+        // Always release the previous player before creating a replacement.
+        stopRingtone();
+
         Uri alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
         if (alarmSound == null) alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         if (alarmSound == null) return;
         try {
-            mediaPlayer = new MediaPlayer();
-            mediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
+            MediaPlayer player = new MediaPlayer();
+            mediaPlayer = player;
+            player.setAudioAttributes(new AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_ALARM)
                 .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                 .build());
-            mediaPlayer.setDataSource(getApplicationContext(), alarmSound);
-            mediaPlayer.setLooping(true);
-            mediaPlayer.setOnPreparedListener(MediaPlayer::start);
-            mediaPlayer.setOnErrorListener((player, what, extra) -> {
-                player.release();
-                if (mediaPlayer == player) mediaPlayer = null;
+            player.setDataSource(getApplicationContext(), alarmSound);
+            player.setLooping(true);
+            player.setOnPreparedListener(prepared -> {
+                // Ignore a delayed prepare callback if this player has already been replaced.
+                if (mediaPlayer != prepared) {
+                    try { prepared.release(); } catch (RuntimeException ignoredRelease) {}
+                    return;
+                }
+                try {
+                    prepared.start();
+                } catch (RuntimeException startError) {
+                    stopRingtone();
+                }
+            });
+            player.setOnErrorListener((failedPlayer, what, extra) -> {
+                if (mediaPlayer == failedPlayer) mediaPlayer = null;
+                try { failedPlayer.release(); } catch (RuntimeException ignoredRelease) {}
                 return true;
             });
-            mediaPlayer.prepareAsync();
+            player.prepareAsync();
         } catch (Exception ignored) {
-            if (mediaPlayer != null) {
-                try { mediaPlayer.release(); } catch (RuntimeException ignoredRelease) {}
-                mediaPlayer = null;
-            }
+            stopRingtone();
             // The foreground notification remains available if the device has no playable alarm tone.
         }
+    }
+
+    private void stopRingtone() {
+        MediaPlayer current = mediaPlayer;
+        mediaPlayer = null;
+        if (current == null) return;
+        try { current.setOnPreparedListener(null); } catch (RuntimeException ignored) {}
+        try { current.setOnErrorListener(null); } catch (RuntimeException ignored) {}
+        try { if (current.isPlaying()) current.stop(); } catch (RuntimeException ignored) {}
+        try { current.release(); } catch (RuntimeException ignored) {}
     }
 
     private void acquireWakeLock() {
@@ -143,11 +165,7 @@ public class WakeAlarmService extends Service {
 
     @Override
     public void onDestroy() {
-        if (mediaPlayer != null) {
-            try { if (mediaPlayer.isPlaying()) mediaPlayer.stop(); } catch (RuntimeException ignored) {}
-            try { mediaPlayer.release(); } catch (RuntimeException ignored) {}
-            mediaPlayer = null;
-        }
+        stopRingtone();
         if (wakeLock != null && wakeLock.isHeld()) {
             try { wakeLock.release(); } catch (RuntimeException ignored) {}
             wakeLock = null;
