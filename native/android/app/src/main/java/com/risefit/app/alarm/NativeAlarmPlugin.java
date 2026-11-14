@@ -335,7 +335,7 @@ public class NativeAlarmPlugin extends Plugin {
                 break;
             }
         }
-        result.put("scheduled", anyScheduled);
+        result.put("scheduled", anyScheduled && exact);
         result.put("ringing", prefs.getBoolean("ringing", false));
         result.put("hour", hour);
         result.put("minute", minute);
