@@ -4,29 +4,45 @@ import android.os.Bundle;
 
 import androidx.activity.ComponentActivity;
 import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.health.connect.client.PermissionController;
+
+import java.util.Collections;
+import java.util.Set;
 
 /**
- * Requests the platform READ_STEPS runtime permission.
- *
- * On Android 14 and later, Android routes this Health permission through
- * the system Health Connect consent UI.
+ * Requests READ_STEPS through Health Connect's official permission contract.
+ * The Activity is declared in the generated Android manifest by prepare-android.mjs.
  */
 public final class HealthStepPermissionActivity extends ComponentActivity {
     private static final String READ_STEPS_PERMISSION =
         "android.permission.health.READ_STEPS";
+    private static final String HEALTH_CONNECT_PROVIDER =
+        "com.google.android.apps.healthdata";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        ActivityResultLauncher<String[]> permissionLauncher =
-            registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(),
-                result -> {
-                    // RiseFit refreshes permission state when the app returns to foreground.
-                    finish();
-                });
+        if (android.os.Build.VERSION.SDK_INT < 34) {
+            finish();
+            return;
+        }
 
-        permissionLauncher.launch(new String[]{READ_STEPS_PERMISSION});
+        if (checkSelfPermission(READ_STEPS_PERMISSION)
+            == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            finish();
+            return;
+        }
+
+        ActivityResultLauncher<Set<String>> permissionLauncher =
+            registerForActivityResult(
+                PermissionController.createRequestPermissionResultContract(HEALTH_CONNECT_PROVIDER),
+                grantedPermissions -> {
+                    // RiseFit re-reads the permission state when it returns to the foreground.
+                    finish();
+                }
+            );
+
+        permissionLauncher.launch(Collections.singleton(READ_STEPS_PERMISSION));
     }
 }
