@@ -291,7 +291,7 @@ export default function WorkoutVerification({
           '/mediapipe/wasm'
         );
         const model = await PoseLandmarker.createFromOptions(files, {
-          baseOptions: { modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/pose_landmarker_lite/float16/1/pose_landmarker_lite.task' },
+          baseOptions: { modelAssetPath: '/mediapipe/pose_landmarker_lite.task' },
           runningMode: 'VIDEO',
           numPoses: 1,
           minPoseDetectionConfidence: 0.65,
