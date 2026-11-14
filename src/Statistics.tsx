@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import {
-  Activity, Award, BarChart3, CalendarDays, ChevronRight, Clock3,
+  Activity, Award, BarChart3, Clock3,
   Dumbbell, Flame, Info, TrendingUp, Weight
 } from 'lucide-react';
 
@@ -58,15 +58,26 @@ function MuscleFigure({ back = false }: { back?: boolean }) {
   );
 }
 
-export default function Statistics({ sessions = 0 }: { sessions?: number }) {
+type CompletedSession = { id: string; title: string; kind: 'plan' | 'alarm'; completedAt: string };
+
+export default function Statistics({ sessions = [] }: { sessions?: CompletedSession[] }) {
   const [period, setPeriod] = useState<Period>('Week');
-  // Date-specific workout history is not yet stored, so the current session total
-  // is shown consistently for every period rather than inventing period breakdowns.
-  const workouts = sessions;
-  const minutes = workouts * 48;
-  const volume = workouts * 120;
+  const filteredSessions = useMemo(() => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const week = new Date(today);
+    week.setDate(week.getDate() - ((week.getDay() + 6) % 7));
+    const month = new Date(now.getFullYear(), now.getMonth(), 1);
+    const year = new Date(now.getFullYear(), 0, 1);
+    const start = period === 'Week' ? week : period === 'Month' ? month : period === 'Year' ? year : null;
+    return sessions.filter(session => {
+      const date = new Date(session.completedAt);
+      return !Number.isNaN(date.getTime()) && date <= now && (!start || date >= start);
+    }).sort((a, b) => b.completedAt.localeCompare(a.completedAt));
+  }, [sessions, period]);
+  const workouts = filteredSessions.length;
   const levelProgress = Math.min(workouts * 10, 100);
-  const nextLevel = workouts >= 10 ? 'Silver' : 'Silver';
+  const nextLevel = 'Silver';
   const muscleGroups = useMemo(() => ['Chest', 'Back', 'Shoulders', 'Arms', 'Core', 'Legs'], []);
 
   return (
@@ -93,11 +104,11 @@ export default function Statistics({ sessions = 0 }: { sessions?: number }) {
         </article>
         <article className="stats-v2-card">
           <span className="stats-v2-icon"><Clock3 /></span>
-          <div><span>Time trained</span><strong>{minutes >= 60 ? `${Math.floor(minutes / 60)}h ${minutes % 60}m` : `${minutes} min`}</strong><small><CalendarDays size={13} /> Approx. 48 min / session</small></div>
+          <div><span>Time trained</span><strong>Not tracked</strong><small>Session duration is not recorded yet</small></div>
         </article>
         <article className="stats-v2-card stats-v2-volume">
           <span className="stats-v2-icon"><Weight /></span>
-          <div><span>Training volume</span><strong>{volume.toLocaleString()} kg</strong><small>Estimated session volume</small></div>
+          <div><span>Training volume</span><strong>Not measured</strong><small>No weight-based data has been recorded</small></div>
         </article>
       </div>
 
@@ -111,6 +122,23 @@ export default function Statistics({ sessions = 0 }: { sessions?: number }) {
           <div className="stats-v2-progress-label"><span>{workouts} / 10 sessions</span><b>Next: {nextLevel}</b></div>
         </div>
         <span className="stats-v2-level-percent">{levelProgress}%</span>
+      </article>
+
+      <article className="stats-v2-anatomy-card" style={{marginBottom:20}}>
+        <div className="stats-v2-section-heading">
+          <div><span className="stats-eyebrow">YOUR RECORD</span><h3>Recent sessions</h3></div>
+          <span className="stats-eyebrow">{workouts} IN PERIOD</span>
+        </div>
+        {filteredSessions.length === 0
+          ? <p className="muted">No completed sessions recorded for this period yet. Finish a workout plan or alarm challenge and it will appear here.</p>
+          : <div style={{display:'grid',gap:12}}>
+              {filteredSessions.slice(0,10).map(session => (
+                <div key={session.id} style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'center',padding:'10px 0',borderBottom:'1px solid #34343d'}}>
+                  <div><strong>{session.title}</strong><div className="muted" style={{fontSize:12}}>{session.kind === 'alarm' ? 'Alarm challenge' : 'Workout plan'}</div></div>
+                  <time className="muted" style={{fontSize:12,textAlign:'right'}}>{new Date(session.completedAt).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</time>
+                </div>
+              ))}
+            </div>}
       </article>
 
       <article className="stats-v2-anatomy-card">
@@ -141,7 +169,7 @@ export default function Statistics({ sessions = 0 }: { sessions?: number }) {
         <div><span>Keep your momentum</span><strong>{workouts} {workouts === 1 ? 'workout' : 'workouts'} completed</strong><small>Finish another session to build your record.</small></div>
         <BarChart3 className="stats-v2-trend-icon" size={28} />
       </div>
-      <p className="stats-v2-disclaimer">Statistics are based on the workout sessions currently recorded on this device. Date-based history and measured muscle analytics are not yet available.</p>
+      <p className="stats-v2-disclaimer">Completed sessions are saved on this device. Time trained and training volume remain unreported until RiseFit measures them.</p>
     </section>
   );
 }
