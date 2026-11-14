@@ -450,3 +450,68 @@ footer{color:#777783}footer span{color:#8589ff}
  .step-history-row>span{font-size:9px}
  .step-history-row>b{font-size:10px}
 }
+
+
+/* Saved alarm cards: compact by default; expand only when the user edits. */
+.alarm-summary{
+  display:grid;
+  grid-template-columns:36px minmax(0,1fr);
+  align-items:start;
+  gap:12px;
+  min-width:0;
+  padding:16px;
+  border:1px solid #343442;
+  border-radius:18px;
+  background:linear-gradient(145deg,#1b1b23,#151519);
+  overflow:hidden;
+}
+.alarm-summary-content{display:flex;flex-direction:column;gap:13px;min-width:0}
+.alarm-summary-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0}
+.alarm-summary-heading>div{display:flex;flex-direction:column;gap:6px;min-width:0}
+.alarm-summary-heading>div>b{font-size:14px;color:#f2f2f7;overflow-wrap:anywhere}
+.alarm-summary-heading>div>span{font-size:12px;color:#a2a2b1;letter-spacing:.4px}
+.alarm-summary-status{flex-shrink:0;padding:7px 10px;border:1px solid #3b3b55;border-radius:20px;font-size:9px;font-weight:800;letter-spacing:1px}
+.alarm-summary-status.active{background:#24243a;color:#aaaaff;border-color:#4a4974}
+.alarm-summary-status.inactive{background:#202025;color:#9a9aa7;border-color:#393942}
+.alarm-summary-challenge{display:flex;flex-wrap:wrap;gap:7px}
+.alarm-summary-challenge>span{padding:7px 9px;border:1px solid #353545;border-radius:9px;background:#111117;color:#b7b7c6;font-size:10px;line-height:1.4}
+.alarm-summary-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0}
+.alarm-edit-btn{min-height:40px;padding:9px 12px;color:#bcbaff;border-color:#45436c;background:#22213a}
+.alarm-summary .alarm-editor-actions{display:flex;align-items:center;gap:8px}
+@media(max-width:520px){
+  .alarm-summary{grid-template-columns:30px minmax(0,1fr);gap:10px;padding:13px;border-radius:16px}
+  .alarm-summary .alarm-editor-icon{width:30px;height:30px}
+  .alarm-summary-footer{gap:7px}
+  .alarm-summary .alarm-editor-actions{gap:6px}
+  .alarm-summary .alarm-delete-btn{padding:8px 9px}
+  .alarm-edit-btn{padding:8px 9px;font-size:10px}
+  .alarm-summary-challenge>span{font-size:9px}
+}
+
+/* Exercise library camera-verification states. */
+.exercise-camera-start{
+  margin-top:18px;
+  padding:16px;
+  border:1px solid #3b3958;
+  border-radius:14px;
+  background:#1a1a25;
+}
+.exercise-camera-start .muted{margin:0 0 9px;font-size:11px}
+.exercise-camera-start .primary{min-height:46px;font-size:12px}
+.exercise-verification-stage{margin-top:20px;padding-top:15px;border-top:1px solid #30303c}
+.exercise-verification-stage .session-top{margin:0 0 12px}
+.exercise-verified-state{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:9px;
+  margin-top:20px;
+  padding:24px 17px;
+  border:1px solid #45416f;
+  border-radius:16px;
+  background:linear-gradient(145deg,#24223a,#17171f);
+  color:#9b94ff;
+  text-align:center;
+}
+.exercise-verified-state h3{margin:0;color:#f3f3f8;font:600 19px 'Space Grotesk'}
+.exercise-verified-state .muted{margin:0;max-width:440px}
