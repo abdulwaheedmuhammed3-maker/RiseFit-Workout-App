@@ -72,7 +72,8 @@ export default function App(){
   void refresh();
   const timer=window.setInterval(()=>void refresh(),60_000);
   document.addEventListener('visibilitychange',refresh);
-  return()=>{disposed=true;window.clearInterval(timer);document.removeEventListener('visibilitychange',refresh);};
+  window.addEventListener('focus',refresh);
+  return()=>{disposed=true;window.clearInterval(timer);document.removeEventListener('visibilitychange',refresh);window.removeEventListener('focus',refresh);};
  },[]);
  const refreshAlarmStatus=async()=>{
   if(Capacitor.getPlatform()!=='android')return;
@@ -156,7 +157,7 @@ export default function App(){
     return <div key={key} title={hasActivity?`${count} completed session(s), ${stepCount.toLocaleString()} steps`:''} style={{minHeight:48,borderRadius:10,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:3,background:hasActivity?'rgba(119,123,255,.16)':'rgba(255,255,255,.03)',border:today?'1px solid var(--lime, #c5f36a)':'1px solid transparent',fontWeight:today?700:500}}><span>{day}</span>{hasActivity&&<span style={{width:5,height:5,borderRadius:'50%',background:'#8589ff'}}/>}</div>;
    })}
   </div>
-  <div className="notice" style={{marginTop:18}}><CheckCircle2 size={17}/><span>Marked days show completed workout sessions saved on this device. Earlier sessions that were never saved cannot be displayed.</span></div>
+  <div className="notice" style={{marginTop:18}}><CheckCircle2 size={17}/><span>Marked days show completed workouts and days with recorded steps. Step totals are read from Android Health Connect; older workout sessions not saved on this device cannot be displayed.</span></div>
   <h3 style={{marginTop:22}}>Daily steps · recent records</h3>
   {dailyStepStats?.permissionGranted?<div className="plan-list">{dailyStepStats.days.filter(item=>item.date.startsWith(`${calendarMonth.getFullYear()}-${String(calendarMonth.getMonth()+1).padStart(2,'0')}`)).map(item=><div className="plan-row" key={item.date}><span className="plan-icon tone0"><Footprints size={18}/></span><div className="plan-info"><b>{new Date(item.date+'T12:00:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}</b><span>{item.steps.toLocaleString()} steps</span></div></div>)}</div>:<p className="muted">Connect automatic step counting from the Steps tab to see daily step totals here.</p>}
   <h3 style={{marginTop:22}}>Sessions this month</h3>
