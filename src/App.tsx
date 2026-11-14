@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { NativeAlarm, type DailyStepStats, type NativeAlarmStatus } from './nativeAlarm';
 import { LocalNotifications } from '@capacitor/local-notifications';
-import { Activity, AlarmClock, Home, Dumbbell, Flame, Settings, Play, ChevronRight, ChevronLeft, Timer, Plus, CheckCircle2, ArrowLeft, RotateCcw, CalendarDays, ShieldCheck, Footprints, Pencil } from 'lucide-react';
+import { Activity, AlarmClock, Home, Dumbbell, Flame, Settings, Play, ChevronRight, ChevronLeft, Timer, Plus, CheckCircle2, ArrowLeft, RotateCcw, CalendarDays, ShieldCheck, Footprints, Pencil, Camera } from 'lucide-react';
 import WorkoutVerification, { type ExerciseType } from './WorkoutVerification';
 import Statistics from './Statistics';
 import ProfileSetup, { type RiseFitProfile } from './Profile';
