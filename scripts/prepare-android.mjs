@@ -56,6 +56,7 @@ if (!manifest.includes('com.risefit.app.alarm.WakeAlarmService')) {
                 <action android:name="android.intent.action.TIME_SET" />
                 <action android:name="android.intent.action.TIMEZONE_CHANGED" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
             </intent-filter>
         </receiver>
 `;
@@ -94,6 +95,13 @@ if (!manifest.includes('android.intent.action.TIMEZONE_CHANGED')) {
                 <action android:name="android.intent.action.TIME_SET" />
                 <action android:name="android.intent.action.TIMEZONE_CHANGED" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />`
+  );
+}
+if (!manifest.includes('android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED')) {
+  manifest = manifest.replace(
+    '<action android:name="android.intent.action.MY_PACKAGE_REPLACED" />',
+    `<action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />`
   );
 }
 await writeFile(manifestPath, manifest);
