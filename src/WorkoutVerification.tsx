@@ -245,7 +245,7 @@ export default function WorkoutVerification({
           streamRef.current?.getTracks().forEach(track => track.stop());
           streamRef.current = null;
           setLoading(false);
-          setError(e instanceof Error ? e.message : 'Camera or pose model could not start. Allow camera access and retry.');
+          setError(e instanceof Error && e.name === 'NotAllowedError' ? 'Camera permission was denied. Allow RiseFit camera access in Android Settings > Apps > RiseFit > Permissions, then retry.' : e instanceof Error ? e.message : 'Camera or pose model could not start. Allow camera access and retry.');
         }
       }
     };

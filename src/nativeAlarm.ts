@@ -13,7 +13,7 @@ export interface NativeAlarmStatus {
 interface NativeAlarmPlugin {
   getStatus(): Promise<NativeAlarmStatus>;
   requestExactAlarmAccess(): Promise<void>;
-  requestDndAccess(): Promise<void>;
+  requestDndAccess(): Promise<{ manualSetupRequired: boolean }>;
   requestFullScreenAccess(): Promise<void>;
   schedule(options: { hour: number; minute: number }): Promise<NativeAlarmStatus>;
   cancel(): Promise<NativeAlarmStatus>;

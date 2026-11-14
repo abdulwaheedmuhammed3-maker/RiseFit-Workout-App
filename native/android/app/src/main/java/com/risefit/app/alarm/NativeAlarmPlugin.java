@@ -38,16 +38,26 @@ public class NativeAlarmPlugin extends Plugin {
     @PluginMethod
     public void requestDndAccess(PluginCall call) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            call.resolve();
+            JSObject result = new JSObject();
+            result.put("manualSetupRequired", false);
+            call.resolve(result);
             return;
         }
         try {
-            Intent intent = new Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
-                .setData(Uri.parse("package:" + getContext().getPackageName()));
-            getActivity().startActivity(intent);
-            call.resolve();
-        } catch (RuntimeException error) {
-            call.reject("Could not open Android Do Not Disturb access settings.", null, error);
+            // Android's DND access settings action takes no data URI.
+            getActivity().startActivity(new Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS));
+            JSObject result = new JSObject();
+            result.put("manualSetupRequired", false);
+            call.resolve(result);
+        } catch (RuntimeException directSettingsError) {
+            try {
+                getActivity().startActivity(new Intent(Settings.ACTION_SETTINGS));
+                JSObject result = new JSObject();
+                result.put("manualSetupRequired", true);
+                call.resolve(result);
+            } catch (RuntimeException fallbackError) {
+                call.reject("Could not open Android settings. Go to Settings > Special app access > Do Not Disturb access and allow RiseFit.", null, fallbackError);
+            }
         }
     }
 

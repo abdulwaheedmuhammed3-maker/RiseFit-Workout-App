@@ -52,14 +52,14 @@ export default function App(){
    if(permission.display!=='granted'){window.alert('Allow RiseFit notifications so Android can show the ringing alarm controls.');return;}
    const status=await NativeAlarm.getStatus();setAlarmStatus(status);
    if(!status.canScheduleExactAlarms){await NativeAlarm.requestExactAlarmAccess();window.alert('Allow RiseFit to set exact alarms in Android settings, then return and tap Save again.');return;}
-   if(!status.canBypassDnd){await NativeAlarm.requestDndAccess();window.alert('Allow RiseFit to manage Do Not Disturb access in Android settings, then return and tap Save again.');return;}
+   if(!status.canBypassDnd){const result=await NativeAlarm.requestDndAccess();window.alert(result.manualSetupRequired?'In Android Settings, open Special app access > Do Not Disturb access and allow RiseFit, then return and tap Save again.':'Allow RiseFit in the Do Not Disturb access screen, then return and tap Save again.');return;}
    const [hour,minute]=time.split(':').map(Number);
    const updated=await NativeAlarm.schedule({hour,minute});
    setAlarmStatus(updated);setAlarmOn(true);
   }catch(error){window.alert(error instanceof Error?error.message:'RiseFit could not schedule this alarm.');}
  };
  const requestExactAlarm=async()=>{try{await NativeAlarm.requestExactAlarmAccess();}catch(error){window.alert(error instanceof Error?error.message:'Could not open exact-alarm settings.');}};
- const requestDndAccess=async()=>{try{await NativeAlarm.requestDndAccess();}catch(error){window.alert(error instanceof Error?error.message:'Could not open Do Not Disturb settings.');}};
+ const requestDndAccess=async()=>{try{const result=await NativeAlarm.requestDndAccess();if(result.manualSetupRequired)window.alert('In Android Settings, open Special app access > Do Not Disturb access and allow RiseFit.');}catch(error){window.alert(error instanceof Error?error.message:'Could not open Do Not Disturb settings.');}};
  const requestFullScreenAccess=async()=>{try{await NativeAlarm.requestFullScreenAccess();}catch(error){window.alert(error instanceof Error?error.message:'Could not open full-screen alarm settings.');}};
  const disableWakeAlarm=async()=>{if(Capacitor.getPlatform()==='android'){await NativeAlarm.cancel();await refreshAlarmStatus();}setAlarmOn(false);};
  const currentPlan=plans.find(p=>p.id===planId); const sessionExercises=currentPlan?.ids.map(id=>exercises.find(e=>e.id===id)!).filter(Boolean)??[]; const current=sessionExercises[idx];
