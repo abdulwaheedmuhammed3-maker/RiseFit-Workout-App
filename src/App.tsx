@@ -26,6 +26,58 @@ const exercises:Exercise[]=[
  {id:'deadbug',name:'Dead Bug',category:'Core',target:10,unit:'reps',rounds:3,cues:['Lie on back with arms raised.','Extend opposite arm and leg slowly.','Return and alternate.'],easier:'Move one limb at a time.'},
  {id:'bridge',name:'Glute Bridge',category:'Strength',target:15,unit:'reps',rounds:3,cues:['Lie back with knees bent.','Press feet down and lift hips.','Pause, then lower slowly.'],easier:'Lift hips to a comfortable height.'},
 ];
+const DEFAULT_ALARMS: WakeAlarm[] = [{id:'default',time:'06:30',enabled:false,label:'Morning workout'}];
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+ value !== null && typeof value === 'object' && !Array.isArray(value);
+const validExerciseIds: ExerciseId[] = ['squat','pushup','jack','situp','plank','lunge','highknees','deadbug','bridge'];
+const loadProfile = (): RiseFitProfile | null => {
+ try {
+  const raw = localStorage.getItem('risefit-profile-v1');
+  if (!raw) return null;
+  const value: unknown = JSON.parse(raw);
+  if (!isRecord(value) || typeof value.fullName !== 'string' || !value.fullName.trim() ||
+      typeof value.dateOfBirth !== 'string' || !/^\\d{4}-\\d{2}-\\d{2}$/.test(value.dateOfBirth)) return null;
+  const level = ['Beginner','Intermediate','Expert'].includes(String(value.level)) ? value.level as RiseFitProfile['level'] : 'Beginner';
+  const goal = ['glutes','lower-body','core','full-body','upper-body'].includes(String(value.goal)) ? value.goal as RiseFitProfile['goal'] : 'full-body';
+  return {fullName:value.fullName.trim(),dateOfBirth:value.dateOfBirth,level,goal};
+ } catch { return null; }
+};
+const loadAlarms = (): WakeAlarm[] => {
+ try {
+  const raw = localStorage.getItem('risefit-alarms-v2');
+  if (!raw) return DEFAULT_ALARMS;
+  const value: unknown = JSON.parse(raw);
+  if (!Array.isArray(value)) return DEFAULT_ALARMS;
+  const restored = value.filter((item): item is Record<string, unknown> =>
+   isRecord(item) && typeof item.id === 'string' && typeof item.label === 'string' &&
+   typeof item.enabled === 'boolean' && typeof item.time === 'string' &&
+   /^(?:[01]\\d|2[0-3]):[0-5]\\d$/.test(item.time)
+  ).map(item => {
+   const challenge = Array.isArray(item.challenge) ? item.challenge.filter((entry): entry is AlarmExerciseConfig =>
+    isRecord(entry) && typeof entry.exerciseId === 'string' && validExerciseIds.includes(entry.exerciseId as ExerciseId) &&
+    Number.isInteger(entry.target) && Number(entry.target) >= 1 && Number(entry.target) <= 300 &&
+    Number.isInteger(entry.rounds) && Number(entry.rounds) >= 1 && Number(entry.rounds) <= 10
+   ) : undefined;
+   return {id:item.id as string,time:item.time as string,enabled:item.enabled as boolean,label:item.label as string,
+    ...(challenge?.length ? {challenge} : {})};
+  });
+  return restored.length ? restored : DEFAULT_ALARMS;
+ } catch { return DEFAULT_ALARMS; }
+};
+const loadHistory = (): CompletedSession[] => {
+ try {
+  const raw = localStorage.getItem('risefit-workout-history-v1');
+  if (!raw) return [];
+  const value: unknown = JSON.parse(raw);
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is CompletedSession =>
+   isRecord(item) && typeof item.id === 'string' && typeof item.title === 'string' &&
+   ['plan','alarm','exercise'].includes(String(item.kind)) &&
+   typeof item.completedAt === 'string' && !Number.isNaN(Date.parse(item.completedAt))
+  );
+ } catch { return []; }
+};
+
 const plans=[{id:'wake',title:'Full Body Wake-up',subtitle:'Balanced morning reset',duration:'8–10 min',ids:['squat','pushup','jack','plank']},{id:'core',title:'Core Ignition',subtitle:'Steady midsection',duration:'10–12 min',ids:['plank','situp','deadbug','bridge']},{id:'cardio',title:'Quick Cardio',subtitle:'Get your heart moving',duration:'8–10 min',ids:['jack','highknees','lunge']},{id:'glutes',title:'Glutes & Lower Body',subtitle:'Controlled lower-body strength',duration:'8–10 min',ids:['bridge','squat','lunge']}];
 const formatClockTime=(value:string)=>{const [hourText,minuteText]=value.split(':');const hour=Number(hourText);const period=hour>=12?'PM':'AM';const displayHour=hour%12||12;return `${displayHour}:${minuteText} ${period}`;};
 const getGreeting=(date:Date)=>{const hour=date.getHours();return hour<5?'Up late?':hour<12?'Good morning.':hour<17?'Good afternoon.':hour<22?'Good evening.':'Winding down?';};
@@ -33,7 +85,7 @@ type Tab='Overview'|'My alarms'|'Workouts'|'Statistics'|'Calendar'|'Alarm Challe
 export default function App(){
  const [now,setNow]=useState(()=>new Date()); const [calendarMonth,setCalendarMonth]=useState(()=>new Date(new Date().getFullYear(),new Date().getMonth(),1));
  useEffect(()=>{const update=()=>setNow(new Date());const timer=window.setInterval(update,60_000);document.addEventListener('visibilitychange',update);return()=>{window.clearInterval(timer);document.removeEventListener('visibilitychange',update);};},[]);
- const [tab,setTab]=useState<Tab>('Overview'); const [activeAlarmId,setActiveAlarmId]=useState<string|null>(null); const [alarmChallengeDone,setAlarmChallengeDone]=useState(false); const [followOnIndex,setFollowOnIndex]=useState<number|null>(null); const [alarmRound,setAlarmRound]=useState(1); const [profile,setProfile]=useState<RiseFitProfile|null>(()=>{try{return JSON.parse(localStorage.getItem('risefit-profile-v1')||'null') as RiseFitProfile|null;}catch{return null;}}); const [alarmOn,setAlarmOn]=useState(false); const [alarms,setAlarms]=useState<WakeAlarm[]>(()=>{try{const saved=localStorage.getItem('risefit-alarms-v2');return saved?JSON.parse(saved):[{id:'default',time:'06:30',enabled:false,label:'Morning workout'}];}catch{return [{id:'default',time:'06:30',enabled:false,label:'Morning workout'}];}}); const [filter,setFilter]=useState('All'); const [detail,setDetail]=useState<Exercise|null>(null); const [planId,setPlanId]=useState<string|null>(null); const [idx,setIdx]=useState(0); const [round,setRound]=useState(1); const [complete,setComplete]=useState(false); const [history,setHistory]=useState<CompletedSession[]>(()=>{try{const saved=JSON.parse(localStorage.getItem('risefit-workout-history-v1')||'[]');return Array.isArray(saved)?saved as CompletedSession[]:[];}catch{return [];}}); const [alarmStatus,setAlarmStatus]=useState<NativeAlarmStatus|null>(null); const [alarmSaveNotice,setAlarmSaveNotice]=useState<string|null>(null); const [editingAlarmId,setEditingAlarmId]=useState<string|null>(null); const [editingAlarmTime,setEditingAlarmTime]=useState<string|null>(null); const [exerciseRound,setExerciseRound]=useState(1); const [exerciseVerificationStarted,setExerciseVerificationStarted]=useState(false); const [exerciseCompleted,setExerciseCompleted]=useState(false); const [dailyStepStats,setDailyStepStats]=useState<DailyStepStats|null>(null); const [stepStatsLoading,setStepStatsLoading]=useState(true); const [stepStatsError,setStepStatsError]=useState('');
+ const [tab,setTab]=useState<Tab>('Overview'); const [activeAlarmId,setActiveAlarmId]=useState<string|null>(null); const [alarmChallengeDone,setAlarmChallengeDone]=useState(false); const [followOnIndex,setFollowOnIndex]=useState<number|null>(null); const [alarmRound,setAlarmRound]=useState(1); const [profile,setProfile]=useState<RiseFitProfile|null>(loadProfile); const [alarmOn,setAlarmOn]=useState(false); const [alarms,setAlarms]=useState<WakeAlarm[]>(loadAlarms); const [filter,setFilter]=useState('All'); const [detail,setDetail]=useState<Exercise|null>(null); const [planId,setPlanId]=useState<string|null>(null); const [idx,setIdx]=useState(0); const [round,setRound]=useState(1); const [complete,setComplete]=useState(false); const [history,setHistory]=useState<CompletedSession[]>(loadHistory); const [alarmStatus,setAlarmStatus]=useState<NativeAlarmStatus|null>(null); const [alarmSaveNotice,setAlarmSaveNotice]=useState<string|null>(null); const [editingAlarmId,setEditingAlarmId]=useState<string|null>(null); const [editingAlarmTime,setEditingAlarmTime]=useState<string|null>(null); const [exerciseRound,setExerciseRound]=useState(1); const [exerciseVerificationStarted,setExerciseVerificationStarted]=useState(false); const [exerciseCompleted,setExerciseCompleted]=useState(false); const [dailyStepStats,setDailyStepStats]=useState<DailyStepStats|null>(null); const [stepStatsLoading,setStepStatsLoading]=useState(true); const [stepStatsError,setStepStatsError]=useState('');
  const refreshDailySteps=async()=>{
   if(Capacitor.getPlatform()!=='android'){
    setDailyStepStats({available:false,permissionGranted:false,stepsToday:0,days:[],message:'Automatic daily step reading is available in the RiseFit Android app.'});
