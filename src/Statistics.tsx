@@ -61,7 +61,7 @@ function MuscleFigure({ back = false }: { back?: boolean }) {
 
 type CompletedSession = { id: string; title: string; kind: 'plan' | 'alarm'; completedAt: string };
 
-export default function Statistics({ sessions = [], dailySteps = [] }: { sessions?: CompletedSession[]; dailySteps?: DailyStepEntry[] }) {
+export default function Statistics({ sessions = [], dailySteps = [], stepsPermissionGranted = false }: { sessions?: CompletedSession[]; dailySteps?: DailyStepEntry[]; stepsPermissionGranted?: boolean }) {
   const [period, setPeriod] = useState<Period>('Week');
   const filteredSessions = useMemo(() => {
     const now = new Date();
@@ -114,7 +114,7 @@ export default function Statistics({ sessions = [], dailySteps = [] }: { session
         </article>
         <article className="stats-v2-card">
           <span className="stats-v2-icon"><Footprints /></span>
-          <div><span>Steps · last 7 days</span><strong>{stepsLastSevenDays.toLocaleString()}</strong><small>Automatic daily phone count</small></div>
+          <div><span>Steps · last 7 days</span><strong>{stepsPermissionGranted ? stepsLastSevenDays.toLocaleString() : "—"}</strong><small>{stepsPermissionGranted ? "Automatic daily phone count" : "Connect automatic steps to read this total"}</small></div>
         </article>
       </div>
 
