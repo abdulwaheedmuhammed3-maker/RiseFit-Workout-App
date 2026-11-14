@@ -47,7 +47,10 @@ public class WakeAlarmService extends Service {
             this, 6302, openIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
-        Notification notification = new Notification.Builder(this, channelId)
+        Notification.Builder notificationBuilder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+            ? new Notification.Builder(this, channelId)
+            : new Notification.Builder(this);
+        Notification notification = notificationBuilder
             .setSmallIcon(getApplicationInfo().icon)
             .setContentTitle("RiseFit alarm")
             .setContentText("Complete your workout to stop this alarm.")
