@@ -760,3 +760,34 @@ footer{color:#777783}footer span{color:#8589ff}
 .privacy-delete-button.danger{border-color:#624040;background:#2a1d21;color:#efc7c7}
 .data-privacy-footnote{font-size:9px;line-height:1.6;color:#7f7f8d;margin:0}
 @media(max-width:520px){.data-privacy{padding:14px;border-radius:15px}.data-privacy-heading h2{font-size:19px}.privacy-actions{display:grid;grid-template-columns:1fr 1fr}.privacy-actions button{font-size:10px;padding:9px 8px}}
+
+
+/* Battery and sensor health monitor */
+.device-health{display:grid;gap:13px;margin:18px 0;padding:18px;border:1px solid #30303c;border-radius:18px;background:linear-gradient(145deg,#1b1b24,#14141a)}
+.device-health-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.device-health-heading h2{font:700 19px 'Space Grotesk';margin:5px 0}
+.device-health-heading p{font-size:10px;line-height:1.5;color:#a2a2b1;margin:0}
+.device-health-refresh{width:36px;height:36px;display:grid;place-items:center;border:1px solid #41415a;border-radius:10px;background:#25253a;color:#c6c3ff;flex-shrink:0}
+.device-health-refresh:disabled{opacity:.5}
+.device-health-battery{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid #3a3a4a;border-radius:13px;background:#191922}
+.device-health-icon{width:43px;height:43px;display:grid;place-items:center;border-radius:12px;background:#282840;color:#b4adff;flex-shrink:0}
+.device-health-battery>div{display:grid;gap:3px;flex:1;min-width:0}
+.device-health-battery strong{font:700 25px 'Space Grotesk'}
+.device-health-battery small{font-size:10px;color:#9999a8}
+.device-health-power{display:flex;align-items:center;gap:4px;color:#e2c98b;font-size:9px;white-space:nowrap}
+.device-health-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.device-health-grid article{display:grid;grid-template-columns:30px minmax(0,1fr);gap:7px 9px;align-items:center;padding:11px;border:1px solid #30303b;border-radius:12px;background:#17171e;min-width:0}
+.device-health-mini-icon{width:30px;height:30px;display:grid;place-items:center;border-radius:9px;background:#282840;color:#aaa3ff}
+.device-health-grid article>div{display:grid;gap:3px;min-width:0}
+.device-health-grid article strong{font-size:10px;color:#eeeef5}
+.device-health-grid article small{font-size:9px;line-height:1.45;color:#a1a1af;overflow-wrap:anywhere}
+.device-health-state{grid-column:2;font-size:8px;letter-spacing:.9px;font-weight:800}
+.device-health-state.good{color:#9bd6b2}
+.device-health-state.warn{color:#e0bd82}
+.device-health-power-status{display:flex;align-items:flex-start;gap:8px;padding:11px;border-radius:10px;background:#242230;border:1px solid #39364b;color:#aaa4ee}
+.device-health-power-status svg{flex-shrink:0}
+.device-health-power-status span{font-size:10px;line-height:1.55;color:#c0bfd1}
+.device-health .secondary.full{display:flex;align-items:center;justify-content:center;gap:7px;min-height:40px}
+.device-health-footnote{font-size:9px;line-height:1.55;color:#858593;margin:0}
+.device-health-checked{font-size:9px;color:#838392;text-align:right}
+@media(max-width:520px){.device-health{padding:14px;border-radius:15px}.device-health-grid{grid-template-columns:1fr}.device-health-battery{flex-wrap:wrap}.device-health-power{margin-left:auto}}

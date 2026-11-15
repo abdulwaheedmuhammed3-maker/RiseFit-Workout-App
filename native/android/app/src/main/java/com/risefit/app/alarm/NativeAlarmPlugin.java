@@ -8,6 +8,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.os.BatteryManager;
+import android.os.PowerManager;
+import android.content.IntentFilter;
 import android.provider.Settings;
 
 import java.time.Instant;
@@ -236,6 +239,72 @@ public class NativeAlarmPlugin extends Plugin {
             result.put("message", "Steps are counted directly from this phone, including while RiseFit is closed.");
         }
         call.resolve(result);
+    }
+
+    @PluginMethod
+    public void getDeviceHealth(PluginCall call) {
+        Context context = getContext();
+        SensorManager sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+        Sensor sensor = sensorManager == null ? null : sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
+        boolean permissionGranted = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q
+            || context.checkSelfPermission("android.permission.ACTIVITY_RECOGNITION")
+                == android.content.pm.PackageManager.PERMISSION_GRANTED;
+        android.content.SharedPreferences stepPrefs = context.getSharedPreferences(
+            "risefit_native_steps", Context.MODE_PRIVATE
+        );
+        boolean trackingEnabled = permissionGranted && stepPrefs.getBoolean("tracking_enabled", false);
+
+        Intent battery = context.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        int batteryPercent = -1;
+        boolean charging = false;
+        String batteryStatus = "unknown";
+        if (battery != null) {
+            int level = battery.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+            int scale = battery.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+            if (level >= 0 && scale > 0) batteryPercent = Math.round((level * 100f) / scale);
+            int status = battery.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
+            charging = status == BatteryManager.BATTERY_STATUS_CHARGING
+                || status == BatteryManager.BATTERY_STATUS_FULL;
+            if (status == BatteryManager.BATTERY_STATUS_CHARGING) batteryStatus = "charging";
+            else if (status == BatteryManager.BATTERY_STATUS_FULL) batteryStatus = "full";
+            else if (status == BatteryManager.BATTERY_STATUS_DISCHARGING) batteryStatus = "discharging";
+            else if (status == BatteryManager.BATTERY_STATUS_NOT_CHARGING) batteryStatus = "not_charging";
+        }
+
+        PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+        boolean batteryOptimizationExempt = Build.VERSION.SDK_INT < Build.VERSION_CODES.M
+            || (powerManager != null && powerManager.isIgnoringBatteryOptimizations(context.getPackageName()));
+        boolean powerSaveMode = powerManager != null && powerManager.isPowerSaveMode();
+
+        JSObject result = new JSObject();
+        result.put("batteryPercent", batteryPercent);
+        result.put("charging", charging);
+        result.put("batteryStatus", batteryStatus);
+        result.put("batteryOptimizationExempt", batteryOptimizationExempt);
+        result.put("powerSaveMode", powerSaveMode);
+        result.put("stepSensorAvailable", sensor != null);
+        result.put("stepSensorName", sensor == null ? "" : sensor.getName());
+        result.put("stepSensorVendor", sensor == null ? "" : sensor.getVendor());
+        result.put("activityPermissionGranted", permissionGranted);
+        result.put("trackingEnabled", trackingEnabled);
+        result.put("lastStepUpdate", stepPrefs.getLong("last_updated", 0L));
+        result.put("serviceStartedAt", stepPrefs.getLong("service_started_at", 0L));
+        result.put("checkedAt", System.currentTimeMillis());
+        call.resolve(result);
+    }
+
+    @PluginMethod
+    public void openBatterySettings(PluginCall call) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                getActivity().startActivity(new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS));
+            } else {
+                getActivity().startActivity(new Intent(Settings.ACTION_SETTINGS));
+            }
+            call.resolve();
+        } catch (RuntimeException error) {
+            call.reject("Could not open Android battery optimization settings. Open your phone's Settings and find Battery or App battery usage.", null, error);
+        }
     }
 
     @PluginMethod
