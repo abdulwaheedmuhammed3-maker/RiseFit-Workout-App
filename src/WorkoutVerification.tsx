@@ -116,10 +116,18 @@ function getMovementPhase(pose: Landmark[], exercise: ExerciseType): { phase: Ph
   if (exercise === 'plank') {
     const body = side([11,23,27], [12,24,28]);
     if (!body) return { phase: 'hold', valid: false };
+    const arm = body[0] === 11 ? [11,13,15] : [12,14,16];
+    if (!visible(arm)) return { phase: 'hold', valid: false };
     const bodyAngle = angle(point(body[0]), point(body[1]), point(body[2]));
     const bodyLevel = Math.abs(point(body[0]).y - point(body[2]).y) < 0.22;
     const bodyExtended = Math.abs(point(body[0]).x - point(body[2]).x) > 0.18;
-    return { phase: 'hold', valid: bodyAngle > 150 && bodyLevel && bodyExtended };
+    const elbowAngle = angle(point(arm[0]), point(arm[1]), point(arm[2]));
+    const elbowBent = elbowAngle > 60 && elbowAngle < 130;
+    const elbowUnderShoulder = Math.abs(point(arm[0]).x - point(arm[1]).x) < 0.2;
+    return {
+      phase: 'hold',
+      valid: bodyAngle > 150 && bodyLevel && bodyExtended && elbowBent && elbowUnderShoulder
+    };
   }
   if (exercise === 'highknees') {
     if (!visible([23,24,25,26])) return { phase: 'ready', valid: false };
@@ -173,8 +181,13 @@ function getCoachingCue(pose: Landmark[] | undefined, exercise: ExerciseType, ph
   if (exercise === 'plank') {
     const body = chooseSide([11,23,27], [12,24,28]);
     if (!body) return 'Keep your shoulders, hips and ankles visible.';
+    const arm = body[0] === 11 ? [11,13,15] : [12,14,16];
+    if (!visible(arm)) return 'Keep your shoulder, elbow and wrist visible from the side.';
     const lineAngle = angle(point(body[0]), point(body[1]), point(body[2]));
     const level = Math.abs(point(body[0]).y - point(body[2]).y);
+    const elbowAngle = angle(point(arm[0]), point(arm[1]), point(arm[2]));
+    if (Math.abs(point(arm[0]).x - point(arm[1]).x) >= 0.2) return 'Place your elbows directly beneath your shoulders.';
+    if (elbowAngle <= 60 || elbowAngle >= 130) return 'Bend your elbows and keep your forearms supported.';
     if (lineAngle < 150) return 'Straighten your line from shoulders through hips to ankles.';
     if (level >= 0.22) return 'Adjust your hips so your body stays more level.';
     return 'Hold steady and keep breathing.';
