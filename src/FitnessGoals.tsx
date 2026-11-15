@@ -89,7 +89,7 @@ export default function FitnessGoals({ dailySteps, stepsPermissionGranted, sessi
     let streakCursor = new Date(today);
     if (!activeDays.has(dayKey(streakCursor))) streakCursor.setDate(streakCursor.getDate() - 1);
     let currentStreak = 0;
-    while (currentStreak < 365 && activeDays.has(dayKey(streakCursor))) {
+    while (currentStreak < activeDays.size && activeDays.has(dayKey(streakCursor))) {
       currentStreak += 1;
       streakCursor.setDate(streakCursor.getDate() - 1);
     }
