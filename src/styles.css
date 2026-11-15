@@ -576,3 +576,49 @@ footer{color:#777783}footer span{color:#8589ff}
 .progress-record strong{font-size:14px;color:#f0f2ed}
 .progress-record small{font-size:10px;color:var(--muted,#899184)}
 @media(max-width:420px){.progress-insights{padding:13px}.progress-insights-metrics article{padding:9px 7px}.progress-insights-metrics strong{font-size:15px}.progress-week-value{font-size:8px}}
+
+
+/* Smart alarm routine builder and reliability centre */
+.alarm-builder-help{margin:0;color:#9b9ba8;font-size:11px;line-height:1.55}
+.alarm-routine-presets{display:flex;flex-wrap:wrap;gap:7px}
+.alarm-routine-presets .secondary{padding:8px 10px;font-size:10px}
+.alarm-settings-grid{display:grid;grid-template-columns:minmax(110px,.8fr) minmax(0,1.5fr);gap:10px;align-items:stretch}
+.alarm-settings-grid>label:first-child{display:flex;flex-direction:column;gap:6px;color:#b8b8c6;font-size:10px}
+.alarm-settings-grid select{width:100%;padding:10px;border:1px solid #3b3b49;border-radius:8px;background:#1b1b23;color:#f3f3f7;font:inherit;font-size:11px}
+.alarm-difficulty-help{font-size:9px;color:#858594;line-height:1.45}
+.alarm-required-toggle{display:flex;align-items:center;gap:9px;padding:10px;border:1px solid #39394a;border-radius:9px;background:#191922}
+.alarm-required-toggle input{width:17px;height:17px;accent-color:#c7f36b;flex-shrink:0}
+.alarm-required-toggle span{display:grid;gap:4px}
+.alarm-required-toggle b{font-size:10px;color:#f0f2ed}
+.alarm-required-toggle small{font-size:9px;color:#9999a8;line-height:1.4}
+.alarm-summary-meta{display:flex;flex-wrap:wrap;gap:7px}
+.alarm-summary-meta>span{padding:6px 8px;border:1px solid #3a394b;border-radius:8px;background:#1c1b28;color:#bcbaff;font-size:9px}
+.alarm-reliability{display:grid;gap:12px;margin:15px 0;padding:15px;border:1px solid #343444;border-radius:14px;background:linear-gradient(145deg,#191923,#121218)}
+.alarm-reliability-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.alarm-reliability-heading h3{margin:4px 0;font:600 15px 'Space Grotesk',sans-serif;color:#f1f1f6}
+.alarm-reliability-heading p{margin:0;color:#9999a8;font-size:10px;line-height:1.45}
+.alarm-reliability-badge{white-space:nowrap;padding:7px 9px;border-radius:20px;font-size:9px;font-weight:700}
+.alarm-reliability-badge.ready{background:#202a1a;color:#c7f36b}
+.alarm-reliability-badge.attention{background:#30231c;color:#f0b77e}
+.alarm-check-list{display:grid;gap:2px}
+.alarm-check-row{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid #2d2d39}
+.alarm-check-row:last-child{border-bottom:0}
+.alarm-check-icon{width:29px;height:29px;display:grid;place-items:center;border-radius:9px;background:#242432;color:#bcbaff;flex-shrink:0}
+.alarm-check-copy{display:grid;gap:3px;flex:1;min-width:0}
+.alarm-check-copy b{font-size:10px;color:#f1f1f5}
+.alarm-check-copy small{font-size:9px;color:#9999a8;line-height:1.4}
+.alarm-check-state{display:flex;align-items:center;gap:4px;white-space:nowrap;font-size:9px;font-weight:700}
+.alarm-check-state.ready{color:#c7f36b}
+.alarm-check-state.warning{color:#f0b77e}
+.alarm-check-state.optional,.alarm-check-state.checking{color:#9a9aaa}
+.alarm-reliability-actions{display:flex;gap:8px;flex-wrap:wrap}
+.alarm-reliability-actions button{display:flex;align-items:center;gap:6px;font-size:10px}
+.alarm-reliability-note{margin:0;color:#858594;font-size:9px;line-height:1.55}
+@media(max-width:520px){
+ .alarm-settings-grid{grid-template-columns:1fr}
+ .alarm-reliability{padding:12px}
+ .alarm-reliability-heading{flex-wrap:wrap}
+ .alarm-check-row{gap:7px}
+ .alarm-check-copy small{font-size:8px}
+ .alarm-check-state{font-size:8px}
+}
