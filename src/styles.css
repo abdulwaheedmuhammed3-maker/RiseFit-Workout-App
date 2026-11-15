@@ -622,3 +622,45 @@ footer{color:#777783}footer span{color:#8589ff}
  .alarm-check-copy small{font-size:8px}
  .alarm-check-state{font-size:8px}
 }
+
+/* Guided workout demonstrations */
+.exercise-demo{display:grid;gap:12px;margin:16px 0;padding:14px;border:1px solid var(--line,#292e25);border-radius:15px;background:linear-gradient(145deg,#151a12,#11140f)}
+.exercise-demo-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.exercise-demo-heading h3{margin:4px 0;font:600 15px 'Space Grotesk',sans-serif;color:#f0f2ed}
+.exercise-demo-label{padding:6px 9px;border:1px solid #37432c;border-radius:18px;color:var(--lime,#c7f36b);font-size:9px;font-weight:700}
+.exercise-demo-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.exercise-demo-step{display:grid;align-content:start;gap:8px;min-width:0;padding:10px;border:1px solid #2c3327;border-radius:12px;background:#11150f}
+.exercise-demo-visual{position:relative;display:grid;place-items:center;min-height:68px;border-radius:10px;background:#20291a;color:var(--lime,#c7f36b)}
+.exercise-demo-number{position:absolute;top:6px;left:7px;width:17px;height:17px;display:grid;place-items:center;border-radius:50%;background:#c7f36b;color:#11160c;font-size:9px;font-weight:800}
+.exercise-demo-step>b{font-size:10px;color:#f0f2ed}
+.exercise-demo-step>p{margin:0;color:#9ba392;font-size:9px;line-height:1.5}
+.exercise-demo-disclaimer{margin:0;color:#838d7c;font-size:9px;line-height:1.5}
+.live-coaching-card{display:grid;gap:8px;margin:13px 0;padding:13px 14px;border:1px solid #39452b;border-radius:13px;background:#1a2114}
+.live-coaching-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.live-coaching-card>p{margin:0;color:#f0f2ed;font-size:13px;font-weight:600;line-height:1.5}
+.live-coaching-card>small{color:#9ba392;font-size:9px;line-height:1.45}
+.voice-coach-toggle{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:7px 9px;border:1px solid #49583a;border-radius:9px;background:#252f1c;color:#c7f36b;font-size:10px;font-weight:700}
+.voice-coach-toggle:disabled{opacity:.55;cursor:not-allowed}
+.rest-timer-card{display:grid;justify-items:center;gap:13px;padding:20px 16px;border:1px solid #343d2c;border-radius:18px;background:radial-gradient(circle at 50% 25%,#242e1d 0,#171d13 45%,#11140f 100%);text-align:center}
+.rest-timer-card h2{margin:0;font:600 21px 'Space Grotesk',sans-serif;color:#f0f2ed}
+.rest-timer-card>.muted{max-width:300px;margin:0;font-size:11px;line-height:1.5}
+.rest-timer-icon{width:42px;height:42px;display:grid;place-items:center;border:1px solid #435436;border-radius:14px;background:#25311c;color:var(--lime,#c7f36b)}
+.rest-timer-ring{--rest-progress:100%;position:relative;width:166px;height:166px;display:grid;align-content:center;justify-items:center;gap:4px;margin:5px 0;border-radius:50%;background:conic-gradient(var(--lime,#c7f36b) var(--rest-progress),#353d2e 0);box-shadow:0 0 0 7px rgba(199,243,107,.04)}
+.rest-timer-ring:before{content:'';position:absolute;inset:8px;border-radius:50%;background:#141911}
+.rest-timer-ring>strong,.rest-timer-ring>small{position:relative}
+.rest-timer-ring>strong{font:700 32px 'Space Grotesk',sans-serif;color:#f0f2ed;font-variant-numeric:tabular-nums}
+.rest-timer-ring>small{color:#a9b49b;font-size:9px;letter-spacing:1.4px;font-weight:700}
+.rest-next{display:grid;gap:5px;width:100%;padding:12px;border:1px solid #35402a;border-radius:12px;background:rgba(255,255,255,.025);text-align:left}
+.rest-next>b{color:#f0f2ed;font-size:12px}
+.rest-timer-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;width:100%}
+.rest-timer-actions>button{display:flex;align-items:center;justify-content:center;gap:6px;font-size:10px}
+@media(max-width:480px){
+ .exercise-demo{padding:11px}
+ .exercise-demo-steps{gap:6px}
+ .exercise-demo-step{padding:8px;gap:7px}
+ .exercise-demo-visual{min-height:58px}
+ .exercise-demo-step>b{font-size:9px}
+ .exercise-demo-step>p{font-size:8px}
+ .rest-timer-card{padding:17px 12px}
+ .rest-timer-ring{width:150px;height:150px}
+}
