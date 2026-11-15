@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { AlarmClock, Bell, CheckCircle2, Footprints, RefreshCw, ShieldAlert, Smartphone } from 'lucide-react';
 import type { NativeAlarmStatus } from './nativeAlarm';
 
@@ -10,7 +11,7 @@ type Props = {
   onReviewSetup: () => void;
 };
 
-type CheckRowProps = { label: string; detail: string; state: 'ready' | 'warning' | 'optional' | 'checking'; icon: React.ReactNode };
+type CheckRowProps = { label: string; detail: string; state: 'ready' | 'warning' | 'optional' | 'checking'; icon: ReactNode };
 
 function CheckRow({ label, detail, state, icon }: CheckRowProps) {
   return (
