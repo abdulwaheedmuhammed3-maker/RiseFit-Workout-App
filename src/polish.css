@@ -400,6 +400,15 @@ textarea {
   align-items: stretch;
 }
 
+.stats-v2-volume {
+  grid-column: auto;
+}
+
+.stats-v2-card small {
+  white-space: normal;
+  line-height: 1.4;
+}
+
 .stats-v2-card {
   min-width: 0;
   align-items: center;
