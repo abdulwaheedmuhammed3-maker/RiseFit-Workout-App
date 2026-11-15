@@ -378,6 +378,13 @@ export default function WorkoutVerification({
               } else if (!movement.valid) {
                 stableFramesRef.current = 0;
                 phaseRef.current = 'ready';
+                if (exercise === 'highknees') {
+                  // Do not count a knee lift that happened while the standing
+                  // pose or support leg was outside the verified camera frame.
+                  highKneesInitializedRef.current = false;
+                  leftKneeRaisedRef.current = false;
+                  rightKneeRaisedRef.current = false;
+                }
               } else {
                 stableFramesRef.current = 0;
               }
@@ -387,6 +394,11 @@ export default function WorkoutVerification({
               stableFramesRef.current = 0;
               phaseRef.current = 'ready';
               lastFrameAtRef.current = 0;
+              if (exercise === 'highknees') {
+                highKneesInitializedRef.current = false;
+                leftKneeRaisedRef.current = false;
+                rightKneeRaisedRef.current = false;
+              }
             }
           } catch (trackingError) {
             processingFailedRef.current = true;
