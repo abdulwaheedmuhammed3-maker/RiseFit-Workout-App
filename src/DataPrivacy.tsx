@@ -171,6 +171,11 @@ export default function DataPrivacy({
       if (outer.app !== 'RiseFit' || outer.version !== 1 || !outer.data || typeof outer.data !== 'object' || Array.isArray(outer.data)) {
         throw new Error('This backup is not a supported RiseFit backup file.');
       }
+      const exportedAt = typeof outer.exportedAt === 'string' ? new Date(outer.exportedAt) : null;
+      if (!exportedAt || Number.isNaN(exportedAt.getTime())) {
+        throw new Error('The backup does not contain a valid export date.');
+      }
+      const restoreTodayRestDay = getLocalDateKey(exportedAt) === todayKey();
       const data = outer.data as Record<string, unknown>;
       if (!validProfile(data.profile)) throw new Error('The backup profile is missing or invalid.');
       const goals = validateGoals(data.fitnessGoals);
@@ -190,7 +195,9 @@ export default function DataPrivacy({
       localStorage.setItem(HISTORY_KEY, JSON.stringify(data.completedSessions));
       localStorage.setItem(GOALS_KEY, JSON.stringify(goals));
       localStorage.setItem(LOW_IMPACT_KEY, data.lowImpactMode ? 'on' : 'off');
-      if (data.restDayEnabled) localStorage.setItem(REST_DAY_KEY, todayKey());
+      // A rest-day flag is valid for one local calendar day only. Do not
+      // turn an old backup's historical rest day into a rest day today.
+      if (data.restDayEnabled && restoreTodayRestDay) localStorage.setItem(REST_DAY_KEY, todayKey());
       else localStorage.removeItem(REST_DAY_KEY);
       setMessage('Backup restored. RiseFit will reload with your saved profile and workout data.');
       window.location.reload();
