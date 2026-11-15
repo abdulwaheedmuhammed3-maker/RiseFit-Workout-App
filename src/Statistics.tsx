@@ -113,6 +113,18 @@ export default function Statistics({ sessions = [], dailySteps = [], stepsPermis
         <span className="stats-v2-avatar"><Activity size={22} /></span>
       </div>
 
+      <article className="stats-v2-level">
+        <div className="stats-v2-medal"><Award size={43} /><span>{currentLevel.toUpperCase()}</span></div>
+        <div className="stats-v2-level-content">
+          <span className="stats-eyebrow">YOUR CURRENT LEVEL</span>
+          <h3>{currentLevel}</h3>
+          <p>{isSilver ? "You have reached Silver with ten completed sessions." : "Complete ten lifetime sessions to reach Silver."}</p>
+          <div className="stats-v2-progress"><i style={{ width: `${levelProgress}%` }} /></div>
+          <div className="stats-v2-progress-label"><span>{Math.min(lifetimeWorkouts, 10)} / 10 lifetime sessions</span><b>{nextLevel}</b></div>
+        </div>
+        <span className="stats-v2-level-percent">{levelProgress}%</span>
+      </article>
+
       <ProgressInsights dailySteps={dailySteps} sessions={sessions} />
 
       <div className="stats-v2-period" aria-label="Statistics period">
@@ -140,17 +152,7 @@ export default function Statistics({ sessions = [], dailySteps = [], stepsPermis
         </article>
       </div>
 
-      <article className="stats-v2-level">
-        <div className="stats-v2-medal"><Award size={43} /><span>{currentLevel.toUpperCase()}</span></div>
-        <div className="stats-v2-level-content">
-          <span className="stats-eyebrow">YOUR CURRENT LEVEL</span>
-          <h3>{currentLevel}</h3>
-          <p>{isSilver ? "You have reached Silver with ten completed sessions." : "Complete ten lifetime sessions to reach Silver."}</p>
-          <div className="stats-v2-progress"><i style={{ width: `${levelProgress}%` }} /></div>
-          <div className="stats-v2-progress-label"><span>{Math.min(lifetimeWorkouts, 10)} / 10 lifetime sessions</span><b>{nextLevel}</b></div>
-        </div>
-        <span className="stats-v2-level-percent">{levelProgress}%</span>
-      </article>
+
 
       <article className="stats-v2-anatomy-card" style={{marginBottom:20}}>
         <div className="stats-v2-section-heading">
