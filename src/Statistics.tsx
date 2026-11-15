@@ -78,12 +78,19 @@ export default function Statistics({ sessions = [], dailySteps = [], stepsPermis
     }).sort((a, b) => b.completedAt.localeCompare(a.completedAt));
   }, [sessions, period]);
   const workouts = filteredSessions.length;
+  const lifetimeWorkouts = sessions.filter(session => {
+    const completedAt = new Date(session.completedAt);
+    return !Number.isNaN(completedAt.getTime()) && completedAt <= new Date();
+  }).length;
+  const isSilver = lifetimeWorkouts >= 10;
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setHours(0, 0, 0, 0);
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
   const stepsLastSevenDays = dailySteps.filter(day => new Date(day.date + 'T12:00:00') >= sevenDaysAgo).reduce((sum, day) => sum + day.steps, 0);
-  const levelProgress = Math.min(workouts * 10, 100);
-  const nextLevel = 'Silver';
+  // Rank is based on lifetime completed sessions, not the currently selected chart period.
+  const levelProgress = Math.min(lifetimeWorkouts * 10, 100);
+  const currentLevel = isSilver ? 'Silver' : 'Bronze';
+  const nextLevel = isSilver ? 'Silver achieved' : 'Next: Silver';
   const muscleGroups = useMemo(() => ['Chest', 'Back', 'Shoulders', 'Arms', 'Core', 'Legs'], []);
 
   return (
@@ -125,13 +132,13 @@ export default function Statistics({ sessions = [], dailySteps = [], stepsPermis
       </div>
 
       <article className="stats-v2-level">
-        <div className="stats-v2-medal"><Award size={43} /><span>BRONZE</span></div>
+        <div className="stats-v2-medal"><Award size={43} /><span>{currentLevel.toUpperCase()}</span></div>
         <div className="stats-v2-level-content">
           <span className="stats-eyebrow">YOUR CURRENT LEVEL</span>
-          <h3>Bronze</h3>
-          <p>Every completed workout moves you forward.</p>
+          <h3>{currentLevel}</h3>
+          <p>{isSilver ? "You have reached Silver with ten completed sessions." : "Complete ten lifetime sessions to reach Silver."}</p>
           <div className="stats-v2-progress"><i style={{ width: `${levelProgress}%` }} /></div>
-          <div className="stats-v2-progress-label"><span>{workouts} / 10 sessions</span><b>Next: {nextLevel}</b></div>
+          <div className="stats-v2-progress-label"><span>{Math.min(lifetimeWorkouts, 10)} / 10 lifetime sessions</span><b>{nextLevel}</b></div>
         </div>
         <span className="stats-v2-level-percent">{levelProgress}%</span>
       </article>
