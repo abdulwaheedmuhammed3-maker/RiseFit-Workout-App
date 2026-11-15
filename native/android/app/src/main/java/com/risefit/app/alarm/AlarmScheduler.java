@@ -12,6 +12,7 @@ public final class AlarmScheduler {
     public static final String PREFS = "risefit_native_alarm";
     public static final String EXTRA_OPEN_CHALLENGE = "risefitAlarmChallenge";
     public static final String EXTRA_ALARM_ID = "risefitAlarmId";
+    public static final String EXTRA_OPEN_ALARM_SETTINGS = "risefitOpenAlarmSettings";
     public static final String EXTRA_ALARM_OCCURRENCE_AT = "risefitAlarmOccurrenceAt";
     private AlarmScheduler() {}
 
@@ -38,7 +39,9 @@ public final class AlarmScheduler {
         if (showIntent == null) showIntent = new Intent(context, com.risefit.app.MainActivity.class);
         showIntent.setAction(context.getPackageName() + ".OPEN_WAKE_ALARM." + id);
         showIntent.setData(Uri.parse("risefit://alarm/" + id));
-        showIntent.putExtra(EXTRA_OPEN_CHALLENGE, true);
+        // The system's alarm-clock show intent opens/edit scheduled alarm
+        // details; it must never be treated as an alarm occurrence.
+        showIntent.putExtra(EXTRA_OPEN_ALARM_SETTINGS, true);
         showIntent.putExtra(EXTRA_ALARM_ID, id);
         showIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent showPendingIntent = PendingIntent.getActivity(context, requestCode(id) + 1, showIntent,
