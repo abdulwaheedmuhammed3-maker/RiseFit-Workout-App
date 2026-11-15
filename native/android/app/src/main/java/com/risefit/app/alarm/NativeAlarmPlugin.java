@@ -39,6 +39,10 @@ import com.getcapacitor.annotation.PermissionCallback;
 public class NativeAlarmPlugin extends Plugin {
     @PluginMethod
     public void getStatus(PluginCall call) {
+        // Restore only alarms whose broadcast PendingIntent no longer exists.
+        // This recovers alarms cleared by Android without moving already-pending
+        // alarms to tomorrow when the user opens RiseFit near their ring time.
+        AlarmScheduler.restoreMissingAlarms(getContext());
         call.resolve(status());
     }
 
@@ -357,8 +361,9 @@ public class NativeAlarmPlugin extends Plugin {
         int hour = 6, minute = 30;
         for (String key : prefs.getAll().keySet()) {
             if (key.startsWith("alarm_") && key.endsWith("_enabled") && prefs.getBoolean(key, false)) {
-                anyScheduled = true;
                 String id = key.substring(6, key.length() - 8);
+                if (!AlarmScheduler.hasPendingAlarm(context, id)) continue;
+                anyScheduled = true;
                 hour = prefs.getInt(AlarmScheduler.hourKey(id), 6);
                 minute = prefs.getInt(AlarmScheduler.minuteKey(id), 30);
                 break;
