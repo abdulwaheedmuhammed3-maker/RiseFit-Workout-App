@@ -438,7 +438,7 @@ export default function App(){
     const stepCount=dailyStepStats?.days.find(item=>item.date===key)?.steps??0;
     const hasActivity=count>0||stepCount>0;
     const today=now.getFullYear()===calendarMonth.getFullYear()&&now.getMonth()===calendarMonth.getMonth()&&now.getDate()===day;
-    return <div key={key} title={hasActivity?`${count} completed session(s), ${stepCount.toLocaleString()} steps`:''} style={{minHeight:48,borderRadius:10,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:3,background:hasActivity?'rgba(199,243,107,.14)':'rgba(255,255,255,.03)',border:today?'1px solid var(--lime, #c5f36a)':'1px solid transparent',fontWeight:today?700:500}}><span>{day}</span>{hasActivity&&<span style={{width:5,height:5,borderRadius:'50%',background:'#c7f36b'}}/>}</div>;
+    return <div key={key} title={hasActivity?`${count} completed session(s), ${stepCount.toLocaleString()} steps`:''} style={{minHeight:48,borderRadius:10,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:3,background:hasActivity?'rgba(199,243,107,.14)':'rgba(255,255,255,.03)',border:today?'1px solid var(--lime, #c7f36b)':'1px solid transparent',fontWeight:today?700:500}}><span>{day}</span>{hasActivity&&<span style={{width:5,height:5,borderRadius:'50%',background:'#c7f36b'}}/>}</div>;
    })}
   </div>
   <div className="notice" style={{marginTop:18}}><CheckCircle2 size={17}/><span>Marked days show completed workouts and days with recorded steps. Step totals come from this phone's built-in step sensor and are stored locally; older workout sessions not saved on this device cannot be displayed.</span></div>
