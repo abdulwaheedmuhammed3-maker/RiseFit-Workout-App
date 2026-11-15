@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -25,5 +25,15 @@ jobs:
           name: risefit-generated-package-lock
           path: package-lock.json
           if-no-files-found: error
+      - name: Commit exact dependency lockfile to this feature branch
+        if: startsWith(github.ref, 'refs/heads/feat/')
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: lock resolved npm dependencies"
+            git push origin "HEAD:${GITHUB_REF#refs/heads/}"
+          fi
       - name: Type-check and build
         run: npm run build
