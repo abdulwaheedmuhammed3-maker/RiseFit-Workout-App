@@ -30,7 +30,13 @@ export default function ProgressInsights({ dailySteps, sessions }: Props) {
     const previousMonthSteps = dailySteps.filter(item => item.date >= dayKey(previousStart) && item.date <= dayKey(previousComparableEnd)).reduce((sum,item)=>sum+item.steps,0);
     const thisMonthSessions = sessions.filter(item => new Date(item.completedAt) >= monthStart && new Date(item.completedAt) <= new Date(today.getTime()+86400000)).length;
     const previousMonthSessions = sessions.filter(item => new Date(item.completedAt) >= previousStart && new Date(item.completedAt) < new Date(previousComparableEnd.getTime()+86400000)).length;
-    const bestDay = [...dailySteps].sort((a,b)=>b.steps-a.steps)[0];
+    const recentCutoff = new Date(today);
+    recentCutoff.setDate(today.getDate() - 29);
+    const cutoffKey = dayKey(recentCutoff);
+    const todayKey = dayKey(today);
+    const bestDay = dailySteps
+      .filter(item => item.date >= cutoffKey && item.date <= todayKey && Number.isFinite(item.steps) && item.steps >= 0)
+      .sort((a,b)=>b.steps-a.steps)[0];
     const score = Math.min(100, Math.round((activeDays/7)*70 + Math.min(weekSessions.length,3)*10));
     const message = activeDays === 7 ? 'A full week of movement. Protect that consistency.' : activeDays >= 4 ? 'You are building a strong routine. Keep your rhythm steady.' : activeDays >= 1 ? 'You have started moving. A little consistency will compound.' : 'Your next win is simple: take the first walk or complete one short workout.';
     return { week, weekSteps, activeDays, weekSessions: weekSessions.length, thisMonthSteps, previousMonthSteps, thisMonthSessions, previousMonthSessions, bestDay, score, message };
