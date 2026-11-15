@@ -46,6 +46,11 @@ public class WakeAlarmService extends Service {
             stopSelf();
             return START_NOT_STICKY;
         }
+        if (intent != null && ACTION_RING.equals(intent.getAction())) {
+            // A new explicit receiver delivery is a new daily ring occurrence.
+            // Keep this timestamp unchanged on a null-intent sticky restart.
+            prefs.edit().putLong("ring_started_at", System.currentTimeMillis()).apply();
+        }
         prefs.edit().putBoolean("ringing", true).putString("active_alarm_id", alarmId).apply();
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         String channelId = createAlarmChannel(manager);
@@ -55,6 +60,7 @@ public class WakeAlarmService extends Service {
         openIntent.setAction(getPackageName() + ".OPEN_WAKE_ALARM");
         openIntent.putExtra(AlarmScheduler.EXTRA_OPEN_CHALLENGE, true);
         openIntent.putExtra(AlarmScheduler.EXTRA_ALARM_ID, alarmId);
+        openIntent.putExtra(AlarmScheduler.EXTRA_ALARM_OCCURRENCE_AT, prefs.getLong("ring_started_at", 0L));
         openIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent openPendingIntent = PendingIntent.getActivity(
             this, 6302, openIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
