@@ -14,9 +14,13 @@ public class WakeAlarmReceiver extends BroadcastReceiver {
         if (!prefs.getBoolean(AlarmScheduler.enabledKey(id), false)) return;
         int hour = prefs.getInt(AlarmScheduler.hourKey(id), 6);
         int minute = prefs.getInt(AlarmScheduler.minuteKey(id), 30);
-        try { AlarmScheduler.scheduleNext(context, id, hour, minute); }
-        catch (SecurityException ignored) {
-            prefs.edit().putBoolean(AlarmScheduler.enabledKey(id), false).apply();
+        try {
+            AlarmScheduler.scheduleNext(context, id, hour, minute);
+        } catch (RuntimeException schedulingError) {
+            // Failure to schedule tomorrow's repeat must not cancel the alarm
+            // that is due now. Keep the enabled preference so WakeAlarmService
+            // can ring this occurrence; BootAlarmReceiver can restore repeats
+            // after exact-alarm access or device state is repaired.
         }
         Intent service = new Intent(context, WakeAlarmService.class)
             .setAction(WakeAlarmService.ACTION_RING).putExtra(AlarmScheduler.EXTRA_ALARM_ID, id);
