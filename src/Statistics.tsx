@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
 import type { DailyStepEntry } from './nativeAlarm';
+import './statistics.css';
 import ProgressInsights from './ProgressInsights';
 import {
-  Activity, Award, BarChart3, Clock3,
-  Dumbbell, Flame, Info, TrendingUp, Weight, Footprints
+  Activity, AlarmClock, Award, BarChart3, CalendarCheck,
+  Dumbbell, Flame, Info, TrendingUp, Footprints
 } from 'lucide-react';
 
 type Period = 'Week' | 'Month' | 'Year' | 'All';
@@ -78,6 +79,8 @@ export default function Statistics({ sessions = [], dailySteps = [], stepsPermis
     }).sort((a, b) => b.completedAt.localeCompare(a.completedAt));
   }, [sessions, period]);
   const workouts = filteredSessions.length;
+  const planWorkouts = filteredSessions.filter(session => session.kind === 'plan').length;
+  const alarmChallenges = filteredSessions.filter(session => session.kind === 'alarm').length;
   const lifetimeWorkouts = sessions.filter(session => {
     const completedAt = new Date(session.completedAt);
     return !Number.isNaN(completedAt.getTime()) && completedAt <= new Date();
@@ -121,15 +124,15 @@ export default function Statistics({ sessions = [], dailySteps = [], stepsPermis
       <div className="stats-v2-metrics">
         <article className="stats-v2-card">
           <span className="stats-v2-icon"><Dumbbell /></span>
-          <div><span>Workouts</span><strong>{workouts}</strong><small><TrendingUp size={13} /> Sessions completed</small></div>
+          <div><span>Completed sessions</span><strong>{workouts}</strong><small><TrendingUp size={13} /> All recorded workout types</small></div>
         </article>
         <article className="stats-v2-card">
-          <span className="stats-v2-icon"><Clock3 /></span>
-          <div><span>Time trained</span><strong>Not tracked</strong><small>Session duration is not recorded yet</small></div>
+          <span className="stats-v2-icon"><CalendarCheck /></span>
+          <div><span>Workout plans</span><strong>{planWorkouts}</strong><small>Completed in this period</small></div>
         </article>
-        <article className="stats-v2-card stats-v2-volume">
-          <span className="stats-v2-icon"><Weight /></span>
-          <div><span>Training volume</span><strong>Not measured</strong><small>No weight-based data has been recorded</small></div>
+        <article className="stats-v2-card">
+          <span className="stats-v2-icon"><AlarmClock /></span>
+          <div><span>Alarm challenges</span><strong>{alarmChallenges}</strong><small>Verified wake-up routines</small></div>
         </article>
         <article className="stats-v2-card">
           <span className="stats-v2-icon"><Footprints /></span>
@@ -156,11 +159,14 @@ export default function Statistics({ sessions = [], dailySteps = [], stepsPermis
         </div>
         {filteredSessions.length === 0
           ? <p className="muted">No completed sessions recorded for this period yet. Finish a workout plan or alarm challenge and it will appear here.</p>
-          : <div style={{display:'grid',gap:12}}>
+          : <div className="stats-v2-session-list">
               {filteredSessions.slice(0,10).map(session => (
-                <div key={session.id} style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'center',padding:'10px 0',borderBottom:'1px solid #34343d'}}>
-                  <div><strong>{session.title}</strong><div className="muted" style={{fontSize:12}}>{session.kind === 'alarm' ? 'Alarm challenge' : session.kind === 'exercise' ? 'Exercise library' : 'Workout plan'}</div></div>
-                  <time className="muted" style={{fontSize:12,textAlign:'right'}}>{new Date(session.completedAt).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</time>
+                <div className="stats-v2-session-row" key={session.id}>
+                  <div className="stats-v2-session-copy">
+                    <strong>{session.title}</strong>
+                    <small>{session.kind === 'alarm' ? 'Alarm challenge' : session.kind === 'exercise' ? 'Exercise library' : 'Workout plan'}</small>
+                  </div>
+                  <time>{new Date(session.completedAt).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</time>
                 </div>
               ))}
             </div>}
