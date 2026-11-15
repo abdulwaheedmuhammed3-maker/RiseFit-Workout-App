@@ -7,6 +7,7 @@ type Props = {
   notificationAccess: boolean | null;
   stepsAvailable: boolean;
   stepsEnabled: boolean;
+  stepsStatusLoaded: boolean;
   onRefresh: () => void;
   onReviewSetup: () => void;
 };
@@ -25,8 +26,13 @@ function CheckRow({ label, detail, state, icon }: CheckRowProps) {
   );
 }
 
-export default function AlarmReliability({ alarmStatus, notificationAccess, stepsAvailable, stepsEnabled, onRefresh, onReviewSetup }: Props) {
+export default function AlarmReliability({ alarmStatus, notificationAccess, stepsAvailable, stepsEnabled, stepsStatusLoaded, onRefresh, onReviewSetup }: Props) {
   const androidReady = Boolean(alarmStatus?.canScheduleExactAlarms && notificationAccess);
+  const requiredChecksReady = androidReady && (!stepsAvailable || stepsEnabled);
+  const checksHaveLoaded = Boolean(alarmStatus) && notificationAccess !== null && stepsStatusLoaded;
+  // Full-screen presentation is optional; hide the centre once every required
+  // permission is ready, and let it reappear automatically if access is revoked.
+  if (checksHaveLoaded && requiredChecksReady) return null;
   return (
     <section className="alarm-reliability" aria-label="Alarm reliability centre">
       <div className="alarm-reliability-heading">
