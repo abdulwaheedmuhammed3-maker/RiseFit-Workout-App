@@ -191,14 +191,30 @@ export default function DataPrivacy({
         throw new Error('The backup contains invalid training preferences.');
       }
 
-      localStorage.setItem(PROFILE_KEY, JSON.stringify(data.profile));
-      localStorage.setItem(HISTORY_KEY, JSON.stringify(data.completedSessions));
-      localStorage.setItem(GOALS_KEY, JSON.stringify(goals));
-      localStorage.setItem(LOW_IMPACT_KEY, data.lowImpactMode ? 'on' : 'off');
-      // A rest-day flag is valid for one local calendar day only. Do not
-      // turn an old backup's historical rest day into a rest day today.
-      if (data.restDayEnabled && restoreTodayRestDay) localStorage.setItem(REST_DAY_KEY, todayKey());
-      else localStorage.removeItem(REST_DAY_KEY);
+      const restoreKeys = [PROFILE_KEY, HISTORY_KEY, GOALS_KEY, LOW_IMPACT_KEY, REST_DAY_KEY];
+      const previousValues = restoreKeys.map(key => ({ key, value: localStorage.getItem(key) }));
+      try {
+        localStorage.setItem(PROFILE_KEY, JSON.stringify(data.profile));
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(data.completedSessions));
+        localStorage.setItem(GOALS_KEY, JSON.stringify(goals));
+        localStorage.setItem(LOW_IMPACT_KEY, data.lowImpactMode ? 'on' : 'off');
+        // A rest-day flag is valid for one local calendar day only. Do not
+        // turn an old backup's historical rest day into a rest day today.
+        if (data.restDayEnabled && restoreTodayRestDay) localStorage.setItem(REST_DAY_KEY, todayKey());
+        else localStorage.removeItem(REST_DAY_KEY);
+      } catch (writeError) {
+        // LocalStorage has no multi-key transaction. Roll back every key if
+        // a quota/security error interrupts the restore halfway through.
+        try {
+          restoreKeys.forEach(key => localStorage.removeItem(key));
+          previousValues.forEach(({ key, value }) => {
+            if (value !== null) localStorage.setItem(key, value);
+          });
+        } catch {
+          throw new Error('Backup restore failed, and RiseFit could not fully restore the previous local data. Do not retry with this storage state; free device storage and check your browser storage access.');
+        }
+        throw new Error('Backup restore could not be completed. Your previous RiseFit data was restored. Free device storage or check browser storage access, then try again.');
+      }
       setMessage('Backup restored. RiseFit will reload with your saved profile and workout data.');
       window.location.reload();
     } catch (reason) {
