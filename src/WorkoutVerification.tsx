@@ -102,14 +102,24 @@ function getMovementPhase(pose: Landmark[], exercise: ExerciseType): { phase: Ph
   if (exercise === 'pushup') {
     const arm = side([11,13,15], [12,14,16]);
     if (!arm) return { phase: 'ready', valid: false };
-    const body = arm[0] === 11 ? [11,23,27] : [12,24,28];
-    if (!visible(body)) return { phase: 'ready', valid: false };
+    const torso = arm[0] === 11 ? [11,23] : [12,24];
+    if (!visible(torso)) return { phase: 'ready', valid: false };
+    const fullBodyEnd = arm[0] === 11 ? 27 : 28;
+    const kneeSupportEnd = arm[0] === 11 ? 25 : 26;
+    const alignedBody = (endIndex: number) => {
+      if (!visible([torso[0], torso[1], endIndex])) return false;
+      const bodyAngle = angle(point(torso[0]), point(torso[1]), point(endIndex));
+      const bodyLevel = Math.abs(point(torso[0]).y - point(endIndex).y) < 0.35;
+      const bodyExtended = Math.abs(point(torso[0]).x - point(endIndex).x) > 0.18;
+      return bodyAngle >= 150 && bodyLevel && bodyExtended;
+    };
 
     // Elbow bending alone also occurs in standing arm curls. Require a
-    // straight, near-horizontal shoulder-to-ankle line before counting.
-    const bodyAngle = angle(point(body[0]), point(body[1]), point(body[2]));
-    const bodyLevel = Math.abs(point(body[0]).y - point(body[2]).y) < 0.35;
-    if (bodyAngle < 150 || !bodyLevel) return { phase: 'ready', valid: false };
+    // straight, near-horizontal body line. Check the ankle for a full push-up,
+    // then the knee for a supported knee push-up when the full line is not valid.
+    const fullPushup = alignedBody(fullBodyEnd);
+    const kneePushup = !fullPushup && alignedBody(kneeSupportEnd);
+    if (!fullPushup && !kneePushup) return { phase: 'ready', valid: false };
 
     const elbow = angle(point(arm[0]), point(arm[1]), point(arm[2]));
     return { phase: elbow < 95 ? 'down' : elbow > 150 ? 'up' : 'ready', valid: true };
@@ -139,19 +149,31 @@ function getMovementPhase(pose: Landmark[], exercise: ExerciseType): { phase: Ph
     return { phase: 'ready', valid: true };
   }
   if (exercise === 'plank') {
-    const body = side([11,23,27], [12,24,28]);
-    if (!body) return { phase: 'hold', valid: false };
-    const arm = body[0] === 11 ? [11,13,15] : [12,14,16];
+    const torso = side([11,23], [12,24]);
+    if (!torso) return { phase: 'hold', valid: false };
+    const arm = torso[0] === 11 ? [11,13,15] : [12,14,16];
     if (!visible(arm)) return { phase: 'hold', valid: false };
-    const bodyAngle = angle(point(body[0]), point(body[1]), point(body[2]));
-    const bodyLevel = Math.abs(point(body[0]).y - point(body[2]).y) < 0.22;
-    const bodyExtended = Math.abs(point(body[0]).x - point(body[2]).x) > 0.18;
+    const ankle = torso[0] === 11 ? 27 : 28;
+    const knee = torso[0] === 11 ? 25 : 26;
+    const alignedBody = (endIndex: number) => {
+      if (!visible([torso[0], torso[1], endIndex])) return false;
+      const bodyAngle = angle(point(torso[0]), point(torso[1]), point(endIndex));
+      const bodyLevel = Math.abs(point(torso[0]).y - point(endIndex).y) < 0.22;
+      const bodyExtended = Math.abs(point(torso[0]).x - point(endIndex).x) > 0.18;
+      return bodyAngle > 150 && bodyLevel && bodyExtended;
+    };
+
+    // Accept either a full forearm plank (shoulder-to-ankle line) or a
+    // knee-supported plank (shoulder-to-knee line). Both require a straight,
+    // level torso and elbows positioned beneath the shoulders.
+    const fullPlank = alignedBody(ankle);
+    const kneePlank = !fullPlank && alignedBody(knee);
     const elbowAngle = angle(point(arm[0]), point(arm[1]), point(arm[2]));
     const elbowBent = elbowAngle > 60 && elbowAngle < 130;
     const elbowUnderShoulder = Math.abs(point(arm[0]).x - point(arm[1]).x) < 0.2;
     return {
       phase: 'hold',
-      valid: bodyAngle > 150 && bodyLevel && bodyExtended && elbowBent && elbowUnderShoulder
+      valid: (fullPlank || kneePlank) && elbowBent && elbowUnderShoulder
     };
   }
   if (exercise === 'highknees') {
