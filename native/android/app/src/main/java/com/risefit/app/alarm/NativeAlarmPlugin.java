@@ -171,6 +171,7 @@ public class NativeAlarmPlugin extends Plugin {
             StepCounterService.enable(getContext());
             call.resolve();
         } catch (RuntimeException error) {
+            StepCounterService.disable(getContext());
             call.reject("RiseFit could not start background step tracking. Check notification and battery settings, then try again.", null, error);
         }
     }
@@ -206,7 +207,8 @@ public class NativeAlarmPlugin extends Plugin {
             try {
                 StepCounterService.startIfEnabled(context);
             } catch (RuntimeException error) {
-                call.reject("RiseFit could not restart its background step counter. Open RiseFit and try enabling automatic steps again.", null, error);
+                StepCounterService.disable(context);
+                call.reject("RiseFit could not restart its background step counter. Open RiseFit and enable automatic steps again.", null, error);
                 return;
             }
         }
