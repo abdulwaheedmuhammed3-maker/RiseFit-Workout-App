@@ -33,9 +33,10 @@ public class BootAlarmReceiver extends BroadcastReceiver {
                     AlarmScheduler.scheduleNext(context, id,
                         prefs.getInt(AlarmScheduler.hourKey(id), 6),
                         prefs.getInt(AlarmScheduler.minuteKey(id), 30));
-                } catch (SecurityException ignored) {
-                    // Do not clear the enabled preference. Android may send the
-                    // permission-granted broadcast later and the alarm can recover.
+                } catch (RuntimeException schedulingError) {
+                    // Isolate a failed alarm so it cannot abort recovery for
+                    // other alarms or prevent the step service restart below.
+                    // Keep the enabled preference for a later restoration attempt.
                 }
             }
         }
