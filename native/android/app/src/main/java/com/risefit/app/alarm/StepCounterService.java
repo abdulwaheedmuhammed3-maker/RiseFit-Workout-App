@@ -201,10 +201,12 @@ public final class StepCounterService extends Service implements SensorEventList
         long rawTotal = Math.max(0L, (long) event.values[0]);
         SharedPreferences prefs = preferences();
         long previousRaw = prefs.getLong(KEY_LAST_RAW, -1L);
-        // A lower hardware total means the device rebooted and its sensor
-        // counter reset. In that case, the new raw value is this boot's delta.
-        long delta = previousRaw < 0L || rawTotal < previousRaw
-            ? rawTotal
+        // TYPE_STEP_COUNTER is cumulative since boot, not since RiseFit started.
+        // Establishing a baseline must not automatically add the whole raw value:
+        // it may include steps from an earlier local calendar day.
+        boolean newCounterBaseline = previousRaw < 0L || rawTotal < previousRaw;
+        long delta = newCounterBaseline
+            ? 0L
             : Math.max(0L, rawTotal - previousRaw);
 
         long eventWallTime = System.currentTimeMillis();
@@ -214,7 +216,20 @@ public final class StepCounterService extends Service implements SensorEventList
         if (event.timestamp > 0L && elapsedSinceEventMs < eventWallTime) {
             eventWallTime -= elapsedSinceEventMs;
         }
-        String date = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date(eventWallTime));
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+        String date = dateFormat.format(new Date(eventWallTime));
+
+        if (newCounterBaseline) {
+            // If Android booted today, the cumulative sensor value is safely
+            // attributable to today. If the phone has been running across local
+            // dates, the raw total cannot be split by day, so start from zero
+            // rather than importing yesterday's steps into today's total.
+            long bootTimeMillis = System.currentTimeMillis() - SystemClock.elapsedRealtime();
+            String bootDate = dateFormat.format(new Date(bootTimeMillis));
+            if (bootDate.equals(date)) {
+                delta = rawTotal;
+            }
+        }
 
         SharedPreferences.Editor editor = prefs.edit()
             .putLong(KEY_LAST_RAW, rawTotal)
