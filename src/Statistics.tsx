@@ -86,7 +86,13 @@ export default function Statistics({ sessions = [], dailySteps = [], stepsPermis
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setHours(0, 0, 0, 0);
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
-  const stepsLastSevenDays = dailySteps.filter(day => new Date(day.date + 'T12:00:00') >= sevenDaysAgo).reduce((sum, day) => sum + day.steps, 0);
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+  const stepsLastSevenDays = dailySteps.filter(day => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day.date) || !Number.isFinite(day.steps) || day.steps < 0) return false;
+    const date = new Date(day.date + 'T12:00:00');
+    return !Number.isNaN(date.getTime()) && date >= sevenDaysAgo && date <= today;
+  }).reduce((sum, day) => sum + day.steps, 0);
   // Rank is based on lifetime completed sessions, not the currently selected chart period.
   const levelProgress = Math.min(lifetimeWorkouts * 10, 100);
   const currentLevel = isSilver ? 'Silver' : 'Bronze';
