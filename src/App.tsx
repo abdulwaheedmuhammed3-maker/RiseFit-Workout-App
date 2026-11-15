@@ -262,7 +262,13 @@ export default function App(){
    const [hour,minute]=alarm.time.split(':').map(Number);
    const updated=await NativeAlarm.schedule({id:alarm.id,hour,minute});
    setAlarmStatus(updated);updateAlarm(alarm.id,{enabled:true,time:alarm.time});setAlarmSaveNotice(`Alarm saved and enabled for ${formatClockTime(alarm.time)}.`);if(closeEditor){setEditingAlarmId(null);setEditingAlarmTime(null);}
-  }catch(error){window.alert(error instanceof Error?error.message:'RiseFit could not schedule this alarm.');}
+  }catch(error){
+   // The native scheduler disables an alarm when it cannot apply the save.
+   // Mirror that state in the UI so it is never shown as active after failure.
+   updateAlarm(alarm.id,{enabled:false});
+   await refreshAlarmStatus();
+   setAlarmSaveNotice(error instanceof Error?error.message:'RiseFit could not schedule this alarm.');
+  }
  };
  const requestExactAlarm=async()=>{try{await NativeAlarm.requestExactAlarmAccess();}catch(error){window.alert(error instanceof Error?error.message:'Could not open exact-alarm settings.');}};
  const requestFullScreenAccess=async()=>{try{await NativeAlarm.requestFullScreenAccess();}catch(error){window.alert(error instanceof Error?error.message:'Could not open full-screen alarm settings.');}};
