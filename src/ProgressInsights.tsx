@@ -35,7 +35,7 @@ export default function ProgressInsights({ dailySteps, sessions }: Props) {
     const cutoffKey = dayKey(recentCutoff);
     const todayKey = dayKey(today);
     const bestDay = dailySteps
-      .filter(item => item.date >= cutoffKey && item.date <= todayKey && Number.isFinite(item.steps) && item.steps >= 0)
+      .filter(item => item.date >= cutoffKey && item.date <= todayKey && Number.isFinite(item.steps) && item.steps > 0)
       .sort((a,b)=>b.steps-a.steps)[0];
     const score = Math.min(100, Math.round((activeDays/7)*70 + Math.min(weekSessions.length,3)*10));
     const message = activeDays === 7 ? 'A full week of movement. Protect that consistency.' : activeDays >= 4 ? 'You are building a strong routine. Keep your rhythm steady.' : activeDays >= 1 ? 'You have started moving. A little consistency will compound.' : 'Your next win is simple: take the first walk or complete one short workout.';
