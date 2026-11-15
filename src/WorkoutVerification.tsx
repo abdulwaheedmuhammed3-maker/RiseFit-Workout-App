@@ -391,11 +391,11 @@ export default function WorkoutVerification({
                   const isCompletedCycle = exercise === 'jumping-jack'
                     // A jumping jack is one complete open-and-return cycle.
                     ? previous === 'open' && movement.phase === 'closed'
-                    : exercise === 'deadbug'
-                      // A dead bug starts bent, extends, then completes only
-                      // when the visible leg or legs return to the bent position.
+                    : (exercise === 'deadbug' || exercise === 'situp' || exercise === 'bridge')
+                      // These movements start low, move to a raised/extended
+                      // phase, then finish when the body returns to the low start.
                       ? previous === 'up' && movement.phase === 'down'
-                      : (exercise === 'squat' || exercise === 'pushup' || exercise === 'situp' || exercise === 'lunge' || exercise === 'bridge')
+                      : (exercise === 'squat' || exercise === 'pushup' || exercise === 'lunge')
                         ? previous === 'down' && movement.phase === 'up'
                         : previous === 'closed' && movement.phase === 'open';
                   if (isCompletedCycle && now - lastCountAtRef.current > 650) {
