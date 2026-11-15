@@ -12,6 +12,8 @@ import android.os.BatteryManager;
 import android.os.PowerManager;
 import android.content.IntentFilter;
 import android.provider.Settings;
+import android.speech.tts.TextToSpeech;
+import java.util.Locale;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -37,6 +39,108 @@ import com.getcapacitor.annotation.PermissionCallback;
     }
 )
 public class NativeAlarmPlugin extends Plugin {
+    private TextToSpeech voiceEngine;
+    private boolean voiceEngineReady = false;
+    private String pendingVoiceText;
+    @PluginMethod
+    public void speakText(PluginCall call) {
+        String text = call.getString("text");
+        if (text == null || text.trim().isEmpty()) {
+            call.reject("There is no voice coaching text to speak.");
+            return;
+        }
+        String safeText = text.trim();
+        if (safeText.length() > 500) safeText = safeText.substring(0, 500);
+        if (voiceEngineReady && voiceEngine != null) {
+            int result = voiceEngine.speak(safeText, TextToSpeech.QUEUE_FLUSH, null, "risefit-coaching");
+            if (result == TextToSpeech.ERROR) call.reject("Android could not speak the coaching instruction.");
+            else call.resolve();
+            return;
+        }
+        pendingVoiceText = safeText;
+        if (voiceEngine == null) {
+            voiceEngine = new TextToSpeech(getContext(), status -> {
+                if (status == TextToSpeech.SUCCESS && voiceEngine != null) {
+                    voiceEngineReady = true;
+                    voiceEngine.setLanguage(Locale.getDefault());
+                    voiceEngine.setSpeechRate(0.95f);
+                    String queued = pendingVoiceText;
+                    pendingVoiceText = null;
+                    if (queued != null) voiceEngine.speak(queued, TextToSpeech.QUEUE_FLUSH, null, "risefit-coaching");
+                } else {
+                    voiceEngineReady = false;
+                    pendingVoiceText = null;
+                }
+            });
+        }
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void getSpeechStatus(PluginCall call) {
+        if (voiceEngineReady && voiceEngine != null) {
+            resolveSpeechStatus(call);
+            return;
+        }
+        if (voiceEngine != null) {
+            JSObject result = new JSObject();
+            result.put("available", false);
+            result.put("languageAvailable", false);
+            result.put("language", Locale.getDefault().toLanguageTag());
+            result.put("message", "Android voice engine is still starting. Check again in a moment.");
+            call.resolve(result);
+            return;
+        }
+        voiceEngine = new TextToSpeech(getContext(), status -> {
+            if (status == TextToSpeech.SUCCESS && voiceEngine != null) {
+                voiceEngineReady = true;
+                voiceEngine.setLanguage(Locale.getDefault());
+                resolveSpeechStatus(call);
+            } else {
+                voiceEngineReady = false;
+                JSObject result = new JSObject();
+                result.put("available", false);
+                result.put("languageAvailable", false);
+                result.put("language", Locale.getDefault().toLanguageTag());
+                result.put("message", "No working Android text-to-speech engine is available. Install or enable a speech engine in Android settings.");
+                call.resolve(result);
+            }
+        });
+    }
+
+    private void resolveSpeechStatus(PluginCall call) {
+        Locale locale = Locale.getDefault();
+        int languageResult = voiceEngine == null ? TextToSpeech.ERROR : voiceEngine.isLanguageAvailable(locale);
+        boolean languageAvailable = languageResult >= TextToSpeech.LANG_AVAILABLE;
+        JSObject result = new JSObject();
+        result.put("available", voiceEngineReady);
+        result.put("languageAvailable", languageAvailable);
+        result.put("language", locale.toLanguageTag());
+        result.put("message", !voiceEngineReady
+            ? "Android text-to-speech is unavailable."
+            : languageAvailable ? "Voice engine and device language are ready." : "The current device language is not installed for speech. Install a voice for " + locale.getDisplayName() + " in Android text-to-speech settings.");
+        call.resolve(result);
+    }
+
+    @PluginMethod
+    public void stopSpeech(PluginCall call) {
+        pendingVoiceText = null;
+        if (voiceEngine != null && voiceEngineReady) voiceEngine.stop();
+        call.resolve();
+    }
+
+    @Override
+    protected void handleOnDestroy() {
+        if (voiceEngine != null) {
+            voiceEngine.stop();
+            voiceEngine.shutdown();
+            voiceEngine = null;
+            voiceEngineReady = false;
+            pendingVoiceText = null;
+        }
+        super.handleOnDestroy();
+    }
+
     @PluginMethod
     public void getStatus(PluginCall call) {
         // Restore only alarms whose broadcast PendingIntent no longer exists.

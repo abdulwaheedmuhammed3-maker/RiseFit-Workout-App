@@ -43,6 +43,9 @@ interface NativeAlarmPlugin {
   schedule(options: { id: string; hour: number; minute: number }): Promise<NativeAlarmStatus>;
   cancelAlarm(options: { id: string }): Promise<void>;
   stopRinging(): Promise<void>;
+  speakText(options: { text: string }): Promise<void>;
+  stopSpeech(): Promise<void>;
+  getSpeechStatus(): Promise<{ available: boolean; languageAvailable: boolean; language: string; message: string }>;
   requestStepTrackingPermission(): Promise<void>;
   getDailyStepStats(): Promise<DailyStepStats>;
   getDeviceHealth(): Promise<DeviceHealth>;
