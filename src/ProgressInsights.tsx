@@ -25,7 +25,6 @@ export default function ProgressInsights({ dailySteps, sessions }: Props) {
     });
     const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
     const previousStart = new Date(today.getFullYear(), today.getMonth()-1, 1);
-    const previousEnd = monthStart;
     const previousComparableEnd = new Date(previousStart.getFullYear(), previousStart.getMonth(), Math.min(today.getDate(), new Date(previousStart.getFullYear(), previousStart.getMonth()+1, 0).getDate()));
     const thisMonthSteps = dailySteps.filter(item => item.date >= dayKey(monthStart) && item.date <= dayKey(today)).reduce((sum,item)=>sum+item.steps,0);
     const previousMonthSteps = dailySteps.filter(item => item.date >= dayKey(previousStart) && item.date <= dayKey(previousComparableEnd)).reduce((sum,item)=>sum+item.steps,0);
