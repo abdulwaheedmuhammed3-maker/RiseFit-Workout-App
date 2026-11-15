@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { DailyStepEntry } from './nativeAlarm';
+import './statistics.css';
 import ProgressInsights from './ProgressInsights';
 import {
   Activity, AlarmClock, Award, BarChart3, CalendarCheck,
@@ -158,11 +159,14 @@ export default function Statistics({ sessions = [], dailySteps = [], stepsPermis
         </div>
         {filteredSessions.length === 0
           ? <p className="muted">No completed sessions recorded for this period yet. Finish a workout plan or alarm challenge and it will appear here.</p>
-          : <div style={{display:'grid',gap:12}}>
+          : <div className="stats-v2-session-list">
               {filteredSessions.slice(0,10).map(session => (
-                <div key={session.id} style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'center',padding:'10px 0',borderBottom:'1px solid #34343d'}}>
-                  <div><strong>{session.title}</strong><div className="muted" style={{fontSize:12}}>{session.kind === 'alarm' ? 'Alarm challenge' : session.kind === 'exercise' ? 'Exercise library' : 'Workout plan'}</div></div>
-                  <time className="muted" style={{fontSize:12,textAlign:'right'}}>{new Date(session.completedAt).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</time>
+                <div className="stats-v2-session-row" key={session.id}>
+                  <div className="stats-v2-session-copy">
+                    <strong>{session.title}</strong>
+                    <small>{session.kind === 'alarm' ? 'Alarm challenge' : session.kind === 'exercise' ? 'Exercise library' : 'Workout plan'}</small>
+                  </div>
+                  <time>{new Date(session.completedAt).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</time>
                 </div>
               ))}
             </div>}
