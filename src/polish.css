@@ -1449,3 +1449,55 @@ h1, h2, h3, h4 {
 .privacy-facts article > svg {
   color: var(--lime);
 }
+
+
+/* Audit follow-up: preserve the established lime brand and prevent awkward button word breaks. */
+:root {
+  --rf-bg: #090c08;
+  --rf-surface: #151912;
+  --rf-surface-raised: #1b2115;
+  --rf-border: #30372a;
+  --rf-text: #f3f5ef;
+  --rf-muted: #a0a796;
+  --rf-accent: var(--lime);
+  --rf-accent-soft: var(--accent-soft);
+  --rf-radius-card: 18px;
+  --rf-content-width: 1160px;
+}
+
+button,
+button *,
+.nav,
+.linkbtn,
+.primary,
+.secondary {
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+button {
+  max-width: 100%;
+  white-space: normal;
+  line-height: 1.35;
+}
+
+input,
+select,
+textarea {
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (max-width: 380px) {
+  .header-actions {
+    gap: 6px;
+  }
+
+  .header-actions .date-chip {
+    flex: 0 0 38px;
+    width: 38px;
+    min-width: 38px;
+    height: 38px;
+    min-height: 38px;
+  }
+}
