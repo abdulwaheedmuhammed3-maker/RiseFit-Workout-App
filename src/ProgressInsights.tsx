@@ -70,7 +70,7 @@ export default function ProgressInsights({ dailySteps, sessions }: Props) {
         <div className="progress-month-row"><span>Steps</span><strong>{data.thisMonthSteps.toLocaleString()}</strong><small>{delta(data.thisMonthSteps,data.previousMonthSteps)}</small></div>
         <div className="progress-month-row"><span>Workouts</span><strong>{data.thisMonthSessions}</strong><small>{delta(data.thisMonthSessions,data.previousMonthSessions)}</small></div>
       </div>
-      {data.bestDay && <div className="progress-record"><Award size={18}/><div><span className="stats-eyebrow">PERSONAL STEP RECORD</span><strong>{data.bestDay.steps.toLocaleString()} steps</strong><small>{new Date(data.bestDay.date+'T12:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}</small></div></div>}
+      {data.bestDay && <div className="progress-record"><Award size={18}/><div><span className="stats-eyebrow">BEST DAY · LAST 30 DAYS</span><strong>{data.bestDay.steps.toLocaleString()} steps</strong><small>{new Date(data.bestDay.date+'T12:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}</small></div></div>}
     </section>
   );
 }
