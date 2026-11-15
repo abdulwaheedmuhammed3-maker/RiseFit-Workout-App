@@ -210,9 +210,9 @@ export default function App(){
   activeAlarmIdRef.current=alarmId;
   activeAlarmOccurrenceRef.current=safeOccurrence;
   setActiveAlarmId(alarmId);
-  setAlarmChallengeDone(canResume ? saved.completed : false);
-  setFollowOnIndex(canResume ? saved.followOnIndex : 0);
-  setAlarmRound(canResume ? saved.alarmRound : 1);
+  setAlarmChallengeDone(canResume && saved ? saved.completed : false);
+  setFollowOnIndex(canResume && saved ? saved.followOnIndex : 0);
+  setAlarmRound(canResume && saved ? saved.alarmRound : 1);
   if(!canResume){
    try {
     if(alarmId && safeOccurrence) localStorage.setItem(ALARM_PROGRESS_KEY,JSON.stringify({
