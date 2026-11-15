@@ -69,7 +69,7 @@ if (!manifest.includes('com.risefit.app.alarm.StepCounterService')) {
             android:exported="false"
             android:foregroundServiceType="health" />
 `;
-  manifest = manifest.replace(/<application\\b[^>]*>/, match => `${match}\\n${stepCounterService}`);
+  manifest = manifest.replace(/<application\b[^>]*>/, match => `${match}\n${stepCounterService}`);
 }
 
 // Keep the receiver current when android:prepare is rerun against an already
