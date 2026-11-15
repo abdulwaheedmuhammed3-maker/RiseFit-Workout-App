@@ -120,6 +120,10 @@ public class NativeAlarmPlugin extends Plugin {
         try { AlarmScheduler.scheduleNext(getContext(), id, hour, minute); call.resolve(status()); }
         catch (Exception error) {
             prefs.edit().putBoolean(AlarmScheduler.enabledKey(id), false).apply();
+            // A failed update must not leave an old AlarmManager entry or
+            // PendingIntent representing an alarm that is now marked disabled.
+            try { AlarmScheduler.cancel(getContext(), id); }
+            catch (RuntimeException ignored) {}
             call.reject("RiseFit could not schedule this alarm.", null, error);
         }
     }
