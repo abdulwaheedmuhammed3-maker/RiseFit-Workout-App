@@ -1310,3 +1310,142 @@ h1, h2, h3, h4 {
 .main > .panel + .panel {
   margin-top: 18px;
 }
+
+
+/* Final theme pass: remove legacy violet accents from active app controls. */
+.brand-symbol {
+  background: var(--lime);
+  color: #10150b;
+}
+.pill {
+  border-color: var(--accent-line);
+  background: #1a2016;
+  color: var(--text-soft);
+}
+.pill i,
+.clock-art {
+  color: var(--lime);
+}
+.ring {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+  box-shadow: 0 0 0 20px #171e12, 0 0 0 21px #394332;
+}
+.day.done b {
+  background: var(--lime);
+  color: #10150b;
+}
+.tone0,
+.tone1,
+.tone2,
+.exercise-card .plan-icon {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--lime);
+}
+.play {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--lime);
+}
+.quote > span {
+  color: var(--lime);
+}
+.filters button.selected {
+  border-color: var(--lime);
+  background: var(--lime);
+  color: #10150b;
+}
+.progress-track i {
+  background: linear-gradient(90deg, #789d36, var(--lime));
+}
+.number,
+.progress-number,
+.success {
+  color: var(--lime);
+}
+.notice {
+  border-color: var(--accent-line);
+  background: #1b2115;
+  color: var(--lime);
+}
+.notice span {
+  color: var(--text-soft);
+}
+.alarm-stop-error {
+  border-color: #684044;
+  background: #2a171b;
+  color: #ffb5ba;
+}
+.alarm-stop-error span {
+  color: #f2c7ca;
+}
+.alarm-editor {
+  border-color: var(--line);
+  background: linear-gradient(145deg, #1b2115, #151912);
+  color: var(--text);
+}
+.alarm-editor-footer .save-alarm-btn {
+  border-color: var(--lime);
+  background: var(--lime);
+  color: #10150b;
+}
+.alarm-repeat-pill,
+.alarm-summary-meta > span,
+.alarm-summary-status.active,
+.alarm-edit-btn,
+.alarm-feedback-dismiss {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--lime);
+}
+.alarm-save-feedback {
+  border-color: var(--accent-line);
+  background: #1b2115;
+  color: var(--lime);
+}
+.alarm-summary-status.active {
+  color: var(--lime);
+}
+.step-counter-icon,
+.step-counter-total-icon {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--lime);
+}
+.step-counter-status,
+.step-counter-footer {
+  border-color: var(--accent-line);
+  background: #1a2016;
+  color: var(--lime);
+}
+.step-counter-status span,
+.step-counter-footer span {
+  color: var(--text-soft);
+}
+.exercise-camera-start {
+  border-color: var(--accent-line);
+  background: #1b2115;
+}
+.exercise-verified-state {
+  border-color: var(--accent-line);
+  background: linear-gradient(145deg, #26331b, #171c13);
+  color: var(--lime);
+}
+.stats-v2-card small svg,
+.stats-v2-level-percent,
+.stats-v2-medal span {
+  color: var(--lime);
+}
+.muscle-dot {
+  background: var(--lime);
+  box-shadow: 0 0 8px rgba(199, 243, 107, 0.35);
+}
+.muscle-dot-1 { background: #d4f59a; }
+.muscle-dot-2 { background: #a6d75c; }
+.muscle-dot-3 { background: #8fbe43; }
+.muscle-dot-4 { background: #b9e77a; }
+.muscle-dot-5 { background: #729b35; }
+.privacy-facts article > svg {
+  color: var(--lime);
+}
