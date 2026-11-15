@@ -278,7 +278,18 @@ export default function App(){
     await NativeAlarm.cancelAlarm({id});
     await refreshAlarmStatus();
    }
+   if(activeAlarmIdRef.current===id){
+    // Disabling an alarm also ends its current challenge route; otherwise
+    // the active ID guard could keep the now-disabled alarm undeletable.
+    activeAlarmIdRef.current=null;
+    activeAlarmOccurrenceRef.current=null;
+    setActiveAlarmId(null);
+    setAlarmChallengeDone(false);
+    setFollowOnIndex(null);
+    setAlarmRound(1);
+   }
    updateAlarm(id,{enabled:false});
+   setAlarmSaveNotice('Alarm disabled. Its current ring and future repeat have been stopped.');
   }catch(error){
    setAlarmSaveNotice(error instanceof Error?error.message:'RiseFit could not disable this alarm. Its saved state has not been changed.');
   }
