@@ -13,9 +13,9 @@ function MuscleFigure({ back = false }: { back?: boolean }) {
     <svg className="anatomy-figure" viewBox="0 0 180 390" role="img" aria-label={back ? 'Back muscle anatomy' : 'Front muscle anatomy'}>
       <defs>
         <linearGradient id={back ? 'muscleBack' : 'muscleFront'} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#b8a5ff" />
-          <stop offset=".52" stopColor="#8065f5" />
-          <stop offset="1" stopColor="#4735a9" />
+          <stop offset="0" stopColor="#d8ff91" />
+          <stop offset=".52" stopColor="#9bc94c" />
+          <stop offset="1" stopColor="#4b6d25" />
         </linearGradient>
         <linearGradient id={back ? 'bodyBack' : 'bodyFront'} x1="0" y1="0" x2="1" y2="0">
           <stop offset="0" stopColor="#555867" />
