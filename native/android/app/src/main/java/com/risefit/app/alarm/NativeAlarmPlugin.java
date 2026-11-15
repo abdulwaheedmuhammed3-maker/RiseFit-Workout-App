@@ -12,6 +12,8 @@ import android.os.BatteryManager;
 import android.os.PowerManager;
 import android.content.IntentFilter;
 import android.provider.Settings;
+import android.speech.tts.TextToSpeech;
+import java.util.Locale;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -37,6 +39,62 @@ import com.getcapacitor.annotation.PermissionCallback;
     }
 )
 public class NativeAlarmPlugin extends Plugin {
+    private TextToSpeech voiceEngine;
+    private boolean voiceEngineReady = false;
+    private String pendingVoiceText;
+    @PluginMethod
+    public void speakText(PluginCall call) {
+        String text = call.getString("text");
+        if (text == null || text.trim().isEmpty()) {
+            call.reject("There is no voice coaching text to speak.");
+            return;
+        }
+        String safeText = text.trim();
+        if (safeText.length() > 500) safeText = safeText.substring(0, 500);
+        if (voiceEngineReady && voiceEngine != null) {
+            int result = voiceEngine.speak(safeText, TextToSpeech.QUEUE_FLUSH, null, "risefit-coaching");
+            if (result == TextToSpeech.ERROR) call.reject("Android could not speak the coaching instruction.");
+            else call.resolve();
+            return;
+        }
+        pendingVoiceText = safeText;
+        if (voiceEngine == null) {
+            voiceEngine = new TextToSpeech(getContext(), status -> {
+                if (status == TextToSpeech.SUCCESS && voiceEngine != null) {
+                    voiceEngineReady = true;
+                    voiceEngine.setLanguage(Locale.getDefault());
+                    voiceEngine.setSpeechRate(0.95f);
+                    String queued = pendingVoiceText;
+                    pendingVoiceText = null;
+                    if (queued != null) voiceEngine.speak(queued, TextToSpeech.QUEUE_FLUSH, null, "risefit-coaching");
+                } else {
+                    voiceEngineReady = false;
+                    pendingVoiceText = null;
+                }
+            });
+        }
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void stopSpeech(PluginCall call) {
+        pendingVoiceText = null;
+        if (voiceEngine != null && voiceEngineReady) voiceEngine.stop();
+        call.resolve();
+    }
+
+    @Override
+    protected void handleOnDestroy() {
+        if (voiceEngine != null) {
+            voiceEngine.stop();
+            voiceEngine.shutdown();
+            voiceEngine = null;
+            voiceEngineReady = false;
+            pendingVoiceText = null;
+        }
+        super.handleOnDestroy();
+    }
+
     @PluginMethod
     public void getStatus(PluginCall call) {
         // Restore only alarms whose broadcast PendingIntent no longer exists.
