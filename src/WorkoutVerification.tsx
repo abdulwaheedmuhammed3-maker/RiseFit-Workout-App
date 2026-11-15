@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { FilesetResolver, PoseLandmarker } from '@mediapipe/tasks-vision';
+import { NativeAlarm } from './nativeAlarm';
 import { Camera, CheckCircle2, ShieldCheck, RotateCcw, Volume2, VolumeX } from 'lucide-react';
 
 export type ExerciseType = 'squat' | 'pushup' | 'jumping-jack' | 'situp' | 'plank' | 'lunge' | 'highknees' | 'deadbug' | 'bridge';
@@ -301,9 +303,15 @@ export default function WorkoutVerification({
   const lastSpokenCueRef = useRef('');
   const lastSpokenAtRef = useRef(0);
   const config = EXERCISES[exercise];
-  const voiceSupported = typeof window !== 'undefined' && 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+  const isAndroidApp = Capacitor.getPlatform() === 'android';
+  const browserVoiceSupported = typeof window !== 'undefined' && 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+  const voiceSupported = isAndroidApp || browserVoiceSupported;
   const speak = (message: string) => {
-    if (!voiceSupported) return;
+    if (isAndroidApp) {
+      void NativeAlarm.speakText({ text: message }).catch(error => console.warn('RiseFit Android voice coaching failed:', error));
+      return;
+    }
+    if (!browserVoiceSupported) return;
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(message);
     utterance.rate = 0.95;
@@ -311,12 +319,16 @@ export default function WorkoutVerification({
     utterance.volume = 0.9;
     window.speechSynthesis.speak(utterance);
   };
+  const stopVoice = () => {
+    if (isAndroidApp) void NativeAlarm.stopSpeech().catch(error => console.warn('RiseFit could not stop Android voice coaching:', error));
+    else if (browserVoiceSupported) window.speechSynthesis.cancel();
+  };
   const toggleVoice = () => {
     const next = !voiceEnabled;
     voiceEnabledRef.current = next;
     setVoiceEnabled(next);
     if (next) speak(coachingTip || 'Voice coaching is on. Follow the live movement cues.');
-    else if (voiceSupported) window.speechSynthesis.cancel();
+    else stopVoice();
   };
   const updateCoachingCue = (pose: Landmark[] | undefined, phase: Phase, now: number) => {
     const cue = getCoachingCue(pose, exercise, phase);
@@ -576,7 +588,7 @@ export default function WorkoutVerification({
       landmarkerRef.current?.close();
       landmarkerRef.current = null;
       stopCamera();
-      if (voiceSupported) window.speechSynthesis.cancel();
+      stopVoice();
     };
   }, [target, exercise, unit, retryAttempt]);
 
