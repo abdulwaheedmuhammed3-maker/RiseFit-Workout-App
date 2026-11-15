@@ -53,12 +53,26 @@ function getMovementPhase(pose: Landmark[], exercise: ExerciseType): { phase: Ph
     return leftVisible ? left : right;
   };
 
-  if (exercise === 'squat' || exercise === 'lunge') {
+  if (exercise === 'squat') {
     const leg = side([23,25,27], [24,26,28]);
     if (!leg) return { phase: 'ready', valid: false };
     const knee = angle(point(leg[0]), point(leg[1]), point(leg[2]));
-    if (exercise === 'squat') return { phase: knee < 105 ? 'down' : knee > 155 ? 'up' : 'ready', valid: true };
-    return { phase: knee < 112 ? 'down' : knee > 150 ? 'up' : 'ready', valid: true };
+    return { phase: knee < 105 ? 'down' : knee > 155 ? 'up' : 'ready', valid: true };
+  }
+  if (exercise === 'lunge') {
+    // Count a lunge when either knee bends, and re-arm only once the visible
+    // legs return to standing. This supports alternating left/right lunges.
+    const leftVisible = visible([23,25,27]);
+    const rightVisible = visible([24,26,28]);
+    if (!leftVisible && !rightVisible) return { phase: 'ready', valid: false };
+    const leftKnee = leftVisible ? angle(point(23), point(25), point(27)) : null;
+    const rightKnee = rightVisible ? angle(point(24), point(26), point(28)) : null;
+    const anyKneeBent = (leftKnee !== null && leftKnee < 112) || (rightKnee !== null && rightKnee < 112);
+    const allVisibleLegsStanding = (leftKnee === null || leftKnee > 150) && (rightKnee === null || rightKnee > 150);
+    return {
+      phase: anyKneeBent ? 'down' : allVisibleLegsStanding ? 'up' : 'ready',
+      valid: true
+    };
   }
   if (exercise === 'pushup') {
     const arm = side([11,13,15], [12,14,16]);
