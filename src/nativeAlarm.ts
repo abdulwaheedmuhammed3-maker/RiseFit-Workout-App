@@ -47,7 +47,7 @@ interface NativeAlarmPlugin {
   getDailyStepStats(): Promise<DailyStepStats>;
   getDeviceHealth(): Promise<DeviceHealth>;
   openBatterySettings(): Promise<void>;
-  consumeAlarmLaunch(): Promise<{ openChallenge: boolean; alarmId?: string }>;
-  addListener(eventName: 'alarmTriggered', listener: (event: { openChallenge: boolean; alarmId?: string }) => void): Promise<PluginListenerHandle>;
+  consumeAlarmLaunch(): Promise<{ openChallenge: boolean; alarmId?: string; occurrenceAt?: number }>;
+  addListener(eventName: 'alarmTriggered', listener: (event: { openChallenge: boolean; alarmId?: string; occurrenceAt?: number }) => void): Promise<PluginListenerHandle>;
 }
 export const NativeAlarm = registerPlugin<NativeAlarmPlugin>('NativeAlarm');
