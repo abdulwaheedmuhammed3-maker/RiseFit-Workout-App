@@ -73,6 +73,16 @@ public final class StepCounterService extends Service implements SensorEventList
         context.stopService(new Intent(context, StepCounterService.class));
     }
 
+    public static void resetCounterBaselineAfterBoot(Context context) {
+        // TYPE_STEP_COUNTER restarts its cumulative value at device boot.
+        // Invalidate only the raw baseline; keep all saved daily totals.
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit()
+            .putLong(KEY_LAST_RAW, -1L)
+            .remove(KEY_LAST_EVENT_DATE)
+            .apply();
+    }
+
     public static void startIfEnabled(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         if (!prefs.getBoolean(KEY_ENABLED, false) || !hasActivityPermission(context)) return;
