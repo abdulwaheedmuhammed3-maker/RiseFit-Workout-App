@@ -17,16 +17,16 @@ export default function ProgressInsights({ dailySteps, sessions }: Props) {
       return !Number.isNaN(completedAt.getTime()) && completedAt <= now;
     });
     const stepMap = new Map(dailySteps.map(item => [item.date, Math.max(0, item.steps)]));
+    // Keep every weekly figure on the same Monday-to-Sunday local calendar week.
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() - ((today.getDay() + 6) % 7));
     const week = Array.from({ length: 7 }, (_, index) => {
-      const date = new Date(today);
-      date.setDate(today.getDate() - (6-index));
+      const date = new Date(weekStart);
+      date.setDate(weekStart.getDate() + index);
       return { date, key: dayKey(date), steps: stepMap.get(dayKey(date)) ?? 0 };
     });
     const weekSteps = week.reduce((sum, item) => sum + item.steps, 0);
     const activeDays = week.filter(item => item.steps > 0 || validSessions.some(session => dayKey(new Date(session.completedAt)) === item.key)).length;
-    // Match the Monday-to-Sunday calendar week used by Fitness Goals.
-    const weekStart = new Date(today);
-    weekStart.setDate(today.getDate() - ((today.getDay() + 6) % 7));
     const weekSessions = validSessions.filter(session => {
       const date = new Date(session.completedAt);
       return date >= weekStart && date <= now;
