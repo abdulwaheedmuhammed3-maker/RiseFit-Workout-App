@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { Activity, AlertTriangle, Download, FileCheck2, FileUp, LockKeyhole, ShieldCheck, Trash2, WifiOff } from 'lucide-react';
 import type { DailyStepEntry } from './nativeAlarm';
-import type { RiseFitProfile } from './Profile';
+import { getLocalDateKey, isValidDateOnly, type RiseFitProfile } from './Profile';
 
 type Session = { id: string; title: string; kind: 'plan' | 'alarm' | 'exercise'; completedAt: string };
 type Props = {
@@ -61,10 +61,8 @@ const safeGoals = (): BackupGoals => {
 const validProfile = (value: unknown): value is RiseFitProfile => {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
   const profile = value as Record<string, unknown>;
-  const validDate = typeof profile.dateOfBirth === 'string'
-    && /^\d{4}-\d{2}-\d{2}$/.test(profile.dateOfBirth)
-    && !Number.isNaN(Date.parse(profile.dateOfBirth + 'T12:00:00'))
-    && new Date(profile.dateOfBirth + 'T12:00:00').getTime() <= Date.now();
+  const validDate = isValidDateOnly(profile.dateOfBirth)
+    && profile.dateOfBirth <= getLocalDateKey();
   return typeof profile.fullName === 'string' && !!profile.fullName.trim()
     && profile.fullName.length <= 80 && validDate
     && ['Beginner', 'Intermediate', 'Expert'].includes(String(profile.level))
