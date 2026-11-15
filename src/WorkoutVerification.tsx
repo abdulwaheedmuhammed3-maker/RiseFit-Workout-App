@@ -56,6 +56,12 @@ function getMovementPhase(pose: Landmark[], exercise: ExerciseType): { phase: Ph
   if (exercise === 'squat') {
     const leg = side([23,25,27], [24,26,28]);
     if (!leg) return { phase: 'ready', valid: false };
+    const shoulder = leg[0] === 23 ? 11 : 12;
+    if (!visible([shoulder, leg[0]])) return { phase: 'ready', valid: false };
+    // Squats require an upright standing torso, not seated knee extensions.
+    const torsoDx = Math.abs(point(shoulder).x - point(leg[0]).x);
+    const torsoDy = Math.abs(point(shoulder).y - point(leg[0]).y);
+    if (torsoDy <= torsoDx * 1.05) return { phase: 'ready', valid: false };
     const knee = angle(point(leg[0]), point(leg[1]), point(leg[2]));
     return { phase: knee < 105 ? 'down' : knee > 155 ? 'up' : 'ready', valid: true };
   }
@@ -65,6 +71,12 @@ function getMovementPhase(pose: Landmark[], exercise: ExerciseType): { phase: Ph
     const leftVisible = visible([23,25,27]);
     const rightVisible = visible([24,26,28]);
     if (!leftVisible && !rightVisible) return { phase: 'ready', valid: false };
+    const torso = side([11,23], [12,24]);
+    if (!torso) return { phase: 'ready', valid: false };
+    // Reject seated or floor-based leg movements that can mimic a knee bend.
+    const torsoDx = Math.abs(point(torso[0]).x - point(torso[1]).x);
+    const torsoDy = Math.abs(point(torso[0]).y - point(torso[1]).y);
+    if (torsoDy <= torsoDx * 1.05) return { phase: 'ready', valid: false };
     const leftKnee = leftVisible ? angle(point(23), point(25), point(27)) : null;
     const rightKnee = rightVisible ? angle(point(24), point(26), point(28)) : null;
     const anyKneeBent = (leftKnee !== null && leftKnee < 112) || (rightKnee !== null && rightKnee < 112);
