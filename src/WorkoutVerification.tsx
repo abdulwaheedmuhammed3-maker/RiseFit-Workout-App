@@ -475,6 +475,13 @@ export default function WorkoutVerification({
           setLoading(false);
           const errorName = e instanceof Error ? e.name : 'UnknownError';
           const detail = e instanceof Error ? e.message : String(e);
+          if (stage === 'preview') {
+            // getUserMedia may have succeeded even when video.play() fails.
+            // Release that stream immediately so a failed preview does not
+            // leave the camera active behind the error/retry state.
+            stopCamera();
+            if (videoRef.current) videoRef.current.srcObject = null;
+          }
           if (stage === 'camera') {
             setError(errorName === 'NotAllowedError'
               ? 'Android reported that camera access was denied to the WebView, despite the app permission being enabled. This points to an Android WebView permission hand-off issue.'
