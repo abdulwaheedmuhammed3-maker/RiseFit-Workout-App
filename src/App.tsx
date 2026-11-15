@@ -5,7 +5,7 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import { Activity, AlarmClock, Home, Dumbbell, Flame, Settings, Play, ChevronRight, ChevronLeft, Timer, Plus, CheckCircle2, ArrowLeft, RotateCcw, CalendarDays, ShieldCheck, Footprints, Pencil, Camera } from 'lucide-react';
 import WorkoutVerification, { type ExerciseType } from './WorkoutVerification';
 import Statistics from './Statistics';
-import ProfileSetup, { type RiseFitProfile } from './Profile';
+import ProfileSetup, { getLocalDateKey, isValidDateOnly, type RiseFitProfile } from './Profile';
 import DeviceSetup from './DeviceSetup';
 import WomensFitness from './WomensFitness';
 import AlarmReliability from './AlarmReliability';
@@ -47,7 +47,7 @@ const loadProfile = (): RiseFitProfile | null => {
   if (!raw) return null;
   const value: unknown = JSON.parse(raw);
   if (!isRecord(value) || typeof value.fullName !== 'string' || !value.fullName.trim() ||
-      typeof value.dateOfBirth !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value.dateOfBirth)) return null;
+      !isValidDateOnly(value.dateOfBirth) || value.dateOfBirth > getLocalDateKey()) return null;
   const level = ['Beginner','Intermediate','Expert'].includes(String(value.level)) ? value.level as RiseFitProfile['level'] : 'Beginner';
   const goal = ['glutes','lower-body','core','full-body','upper-body'].includes(String(value.goal)) ? value.goal as RiseFitProfile['goal'] : 'full-body';
   return {fullName:value.fullName.trim(),dateOfBirth:value.dateOfBirth,level,goal};
