@@ -41,7 +41,7 @@ test('sit-up detector distinguishes lying and upright phases', () => {
   set(down, 11, .1, .5); set(down, 23, .5, .5); set(down, 25, .9, .5);
   expectPhase(down, 'situp', 'down');
   const up = pose();
-  set(up, 11, .5, .1); set(up, 23, .5, .5); set(up, 25, .5, .9);
+  set(up, 11, .5, .1); set(up, 23, .5, .5); set(up, 25, .9, .5);
   expectPhase(up, 'situp', 'up');
 });
 
@@ -50,7 +50,7 @@ test('glute bridge detector distinguishes lowered and raised hip positions', () 
   set(down, 11, .1, .5); set(down, 23, .5, .5); set(down, 25, .9, .5);
   expectPhase(down, 'bridge', 'down');
   const up = pose();
-  set(up, 11, .1, .5); set(up, 23, .5, .5); set(up, 25, .5, .1);
+  set(up, 11, .1, .5); set(up, 23, .5, .3); set(up, 25, .9, .1);
   expectPhase(up, 'bridge', 'up');
 });
 
