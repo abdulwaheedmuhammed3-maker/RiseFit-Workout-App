@@ -128,9 +128,24 @@ public class NativeAlarmPlugin extends Plugin {
     public void cancelAlarm(PluginCall call) {
         String id = call.getString("id");
         if (id == null || id.trim().isEmpty()) { call.reject("Alarm ID is required."); return; }
-        getContext().getSharedPreferences(AlarmScheduler.PREFS, Context.MODE_PRIVATE).edit()
-            .putBoolean(AlarmScheduler.enabledKey(id), false).apply();
-        AlarmScheduler.cancel(getContext(), id);
+        Context context = getContext();
+        android.content.SharedPreferences prefs = context.getSharedPreferences(AlarmScheduler.PREFS, Context.MODE_PRIVATE);
+        prefs.edit().putBoolean(AlarmScheduler.enabledKey(id), false).apply();
+        AlarmScheduler.cancel(context, id);
+
+        // Cancelling an alarm must also stop its current ring, even when the
+        // challenge Activity has not opened yet and cannot guard the UI action.
+        boolean isCurrentlyRinging = prefs.getBoolean("ringing", false)
+            && id.equals(prefs.getString("active_alarm_id", null));
+        if (isCurrentlyRinging) {
+            context.stopService(new Intent(context, WakeAlarmService.class));
+            prefs.edit().putBoolean("ringing", false)
+                .remove("active_alarm_id")
+                .remove("ring_started_at")
+                .apply();
+            NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            if (manager != null) manager.cancel(6303);
+        }
         call.resolve();
     }
 
