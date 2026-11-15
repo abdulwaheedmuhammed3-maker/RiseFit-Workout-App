@@ -20,10 +20,10 @@ type Phase = 'ready' | 'down' | 'up' | 'open' | 'closed' | 'hold';
 
 const EXERCISES: Record<ExerciseType, { title: string; instruction: string; setup: string }> = {
   squat: { title: 'bodyweight squats', instruction: 'Bend your knees and hips, then return to a fully upright position.', setup: 'Stand far enough back for your shoulders, hips, knees and ankles to stay visible. A side-facing camera angle works best.' },
-  pushup: { title: 'push-ups', instruction: 'Lower your chest with bent elbows while keeping your body aligned, then press back up.', setup: 'Use a low, side-on camera angle. Keep your shoulders, elbows, wrists, hips and ankles visible so RiseFit can check your full body line.' },
+  pushup: { title: 'push-ups', instruction: 'Lower your chest with bent elbows while keeping your body aligned, then press back up. A knee-supported version is also verified when your shoulders, hips and knees stay aligned.', setup: 'Use a low, side-on camera angle. Keep your shoulders, elbows and wrists visible, along with either your hips and ankles for a full push-up or your hips and knees for a supported version.' },
   'jumping-jack': { title: 'jumping jacks', instruction: 'Jump or step your feet apart while raising both hands, then return to the closed position.', setup: 'Stand back so your hands and feet remain visible throughout the movement.' },
   situp: { title: 'sit-ups', instruction: 'Raise your upper body from the lowered position and return under control.', setup: 'Position the phone side-on and keep your shoulders, hips and knees visible.' },
-  plank: { title: 'a forearm plank', instruction: 'Hold a straight line from your shoulders through your hips to your ankles. The timer only advances while your plank position is detected.', setup: 'Place the phone side-on at a low angle. Keep your shoulders, hips and ankles visible and hold your body in a straight line.' },
+  plank: { title: 'a forearm plank', instruction: 'Hold a straight line from your shoulders through your hips to your ankles, or to your knees for the supported version. The timer only advances while your position is detected.', setup: 'Place the phone side-on at a low angle. Keep your shoulders, hips and forearms visible, plus your ankles for a full plank or knees for a supported plank.' },
   lunge: { title: 'reverse lunges', instruction: 'Step one foot back, lower with control, then return to standing. Alternate legs.', setup: 'Face the camera at a slight angle and keep both hips, knees and ankles in frame.' },
   highknees: { title: 'high knees', instruction: 'Raise one knee at a time toward hip height while the other leg supports you. Alternate sides with control.', setup: 'Face the camera and keep your shoulders, hips, knees and ankles visible. Keep one leg straight as you lift the other knee.' },
   deadbug: { title: 'dead bugs', instruction: 'Lie on your back and slowly extend a leg, then return to the bent starting position.', setup: 'Position the phone side-on. Keep your shoulders, hips, knees and ankles visible while lying down.' },
@@ -244,24 +244,32 @@ function getCoachingCue(pose: Landmark[] | undefined, exercise: ExerciseType, ph
     }
     return leftVisible ? left : right;
   };
-  if (exercise === 'plank') {
-    const body = chooseSide([11,23,27], [12,24,28]);
-    if (!body) return 'Keep your shoulders, hips and ankles visible.';
-    const arm = body[0] === 11 ? [11,13,15] : [12,14,16];
+  if (exercise === 'plank' || exercise === 'pushup') {
+    const torso = chooseSide([11,23], [12,24]);
+    if (!torso) return 'Keep your shoulder and hip visible from the side.';
+    const arm = torso[0] === 11 ? [11,13,15] : [12,14,16];
     if (!visible(arm)) return 'Keep your shoulder, elbow and wrist visible from the side.';
-    const lineAngle = angle(point(body[0]), point(body[1]), point(body[2]));
-    const level = Math.abs(point(body[0]).y - point(body[2]).y);
+    const ankle = torso[0] === 11 ? 27 : 28;
+    const knee = torso[0] === 11 ? 25 : 26;
+    const alignedBody = (endIndex: number, tolerance: number) => {
+      if (!visible([torso[0], torso[1], endIndex])) return false;
+      const lineAngle = angle(point(torso[0]), point(torso[1]), point(endIndex));
+      const level = Math.abs(point(torso[0]).y - point(endIndex).y);
+      const extended = Math.abs(point(torso[0]).x - point(endIndex).x) > 0.18;
+      return lineAngle > (exercise === 'plank' ? 150 : 150) && level < tolerance && extended;
+    };
+    const fullBody = alignedBody(ankle, exercise === 'plank' ? 0.22 : 0.35);
+    const supportedBody = !fullBody && alignedBody(knee, exercise === 'plank' ? 0.22 : 0.35);
+    const endpoint = fullBody ? 'ankles' : 'knees';
     const elbowAngle = angle(point(arm[0]), point(arm[1]), point(arm[2]));
-    if (Math.abs(point(arm[0]).x - point(arm[1]).x) >= 0.2) return 'Place your elbows directly beneath your shoulders.';
-    if (elbowAngle <= 60 || elbowAngle >= 130) return 'Bend your elbows and keep your forearms supported.';
-    if (lineAngle < 150) return 'Straighten your line from shoulders through hips to ankles.';
-    if (level >= 0.22) return 'Adjust your hips so your body stays more level.';
-    return 'Hold steady and keep breathing.';
-  }
-  if (exercise === 'pushup') {
-    const body = chooseSide([11,23,27], [12,24,28]);
-    if (!body) return 'Keep your shoulders, hips and ankles visible.';
-    if (angle(point(body[0]), point(body[1]), point(body[2])) < 155) return 'Keep your shoulders, hips and ankles aligned.';
+    if (exercise === 'plank') {
+      if (Math.abs(point(arm[0]).x - point(arm[1]).x) >= 0.2) return 'Place your elbows directly beneath your shoulders.';
+      if (elbowAngle <= 60 || elbowAngle >= 130) return 'Bend your elbows and keep your forearms supported.';
+      if (!fullBody && !supportedBody) return 'Straighten your line from shoulders through hips to knees or ankles.';
+      if (Math.abs(point(torso[0]).y - point(fullBody ? ankle : knee).y) >= 0.22) return 'Adjust your hips so your body stays level.';
+      return 'Hold steady and keep breathing.';
+    }
+    if (!fullBody && !supportedBody) return 'Keep your shoulders, hips and knees or ankles aligned.';
     return phase === 'down' ? 'Keep your body steady as you lower.' : phase === 'up' ? 'Press the floor away and finish tall.' : 'Lower your chest with control, then press back up.';
   }
   if (exercise === 'squat') return phase === 'down'
