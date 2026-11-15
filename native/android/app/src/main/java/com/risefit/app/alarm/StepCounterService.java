@@ -33,6 +33,7 @@ public final class StepCounterService extends Service implements SensorEventList
     private static final String KEY_ENABLED = "tracking_enabled";
     private static final String KEY_LAST_RAW = "last_raw_counter";
     private static final String KEY_LAST_UPDATED = "last_updated";
+    private static final String KEY_LAST_EVENT_DATE = "last_event_date";
     private static final String KEY_SERVICE_STARTED_AT = "service_started_at";
     private static final String CHANNEL_ID = "risefit_step_tracking";
     private static final int NOTIFICATION_ID = 6310;
@@ -200,15 +201,9 @@ public final class StepCounterService extends Service implements SensorEventList
 
         long rawTotal = Math.max(0L, (long) event.values[0]);
         SharedPreferences prefs = preferences();
-        long previousRaw = prefs.getLong(KEY_LAST_RAW, -1L);
-        // TYPE_STEP_COUNTER is cumulative since boot, not since RiseFit started.
-        // Establishing a baseline must not automatically add the whole raw value:
-        // it may include steps from an earlier local calendar day.
-        boolean newCounterBaseline = previousRaw < 0L || rawTotal < previousRaw;
-        long delta = newCounterBaseline
-            ? 0L
-            : Math.max(0L, rawTotal - previousRaw);
 
+        // SensorEvent timestamps use elapsed realtime. Convert the event time
+        // to wall time before deciding which local calendar day receives steps.
         long eventWallTime = System.currentTimeMillis();
         long elapsedSinceEventMs = Math.max(
             0L, (SystemClock.elapsedRealtimeNanos() - event.timestamp) / 1_000_000L
@@ -219,11 +214,31 @@ public final class StepCounterService extends Service implements SensorEventList
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
         String date = dateFormat.format(new Date(eventWallTime));
 
-        if (newCounterBaseline) {
-            // If Android booted today, the cumulative sensor value is safely
-            // attributable to today. If the phone has been running across local
-            // dates, the raw total cannot be split by day, so start from zero
-            // rather than importing yesterday's steps into today's total.
+        long previousRaw = prefs.getLong(KEY_LAST_RAW, -1L);
+        boolean counterReset = previousRaw < 0L || rawTotal < previousRaw;
+
+        // A sensor gap can span a local midnight when the service was paused,
+        // killed, or could not run in the background. The cumulative difference
+        // then contains more than today's steps and cannot safely be split.
+        // Use the saved event date; older installs fall back to last_updated.
+        String previousEventDate = prefs.getString(KEY_LAST_EVENT_DATE, null);
+        if (previousEventDate == null) {
+            long lastUpdated = prefs.getLong(KEY_LAST_UPDATED, 0L);
+            if (lastUpdated > 0L) {
+                previousEventDate = dateFormat.format(new Date(lastUpdated));
+            }
+        }
+        boolean crossedCalendarDate = previousEventDate != null
+            && !previousEventDate.equals(date);
+        boolean newCounterBaseline = counterReset || crossedCalendarDate;
+        long delta = newCounterBaseline
+            ? 0L
+            : Math.max(0L, rawTotal - previousRaw);
+
+        if (counterReset) {
+            // If Android rebooted today, the raw total since boot is safe to
+            // attribute to today. If the phone has been running across dates,
+            // the cumulative value cannot be split, so keep a zero baseline.
             long bootTimeMillis = System.currentTimeMillis() - SystemClock.elapsedRealtime();
             String bootDate = dateFormat.format(new Date(bootTimeMillis));
             if (bootDate.equals(date)) {
@@ -233,7 +248,8 @@ public final class StepCounterService extends Service implements SensorEventList
 
         SharedPreferences.Editor editor = prefs.edit()
             .putLong(KEY_LAST_RAW, rawTotal)
-            .putLong(KEY_LAST_UPDATED, System.currentTimeMillis());
+            .putLong(KEY_LAST_UPDATED, System.currentTimeMillis())
+            .putString(KEY_LAST_EVENT_DATE, date);
         if (delta > 0L) {
             String key = dayKey(date);
             editor.putLong(key, Math.max(0L, prefs.getLong(key, 0L)) + delta);
