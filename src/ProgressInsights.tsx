@@ -24,17 +24,25 @@ export default function ProgressInsights({ dailySteps, sessions }: Props) {
     });
     const weekSteps = week.reduce((sum, item) => sum + item.steps, 0);
     const activeDays = week.filter(item => item.steps > 0 || validSessions.some(session => dayKey(new Date(session.completedAt)) === item.key)).length;
+    // Match the Monday-to-Sunday calendar week used by Fitness Goals.
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() - ((today.getDay() + 6) % 7));
     const weekSessions = validSessions.filter(session => {
       const date = new Date(session.completedAt);
-      return date >= week[0].date && date <= now;
+      return date >= weekStart && date <= now;
     });
     const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
     const previousStart = new Date(today.getFullYear(), today.getMonth()-1, 1);
     const previousComparableEnd = new Date(previousStart.getFullYear(), previousStart.getMonth(), Math.min(today.getDate(), new Date(previousStart.getFullYear(), previousStart.getMonth()+1, 0).getDate()));
+    const previousComparableEndExclusive = new Date(
+      previousComparableEnd.getFullYear(),
+      previousComparableEnd.getMonth(),
+      previousComparableEnd.getDate() + 1
+    );
     const thisMonthSteps = dailySteps.filter(item => item.date >= dayKey(monthStart) && item.date <= dayKey(today)).reduce((sum,item)=>sum+item.steps,0);
     const previousMonthSteps = dailySteps.filter(item => item.date >= dayKey(previousStart) && item.date <= dayKey(previousComparableEnd)).reduce((sum,item)=>sum+item.steps,0);
     const thisMonthSessions = validSessions.filter(item => new Date(item.completedAt) >= monthStart && new Date(item.completedAt) <= now).length;
-    const previousMonthSessions = validSessions.filter(item => new Date(item.completedAt) >= previousStart && new Date(item.completedAt) < new Date(previousComparableEnd.getTime()+86400000)).length;
+    const previousMonthSessions = validSessions.filter(item => new Date(item.completedAt) >= previousStart && new Date(item.completedAt) < previousComparableEndExclusive).length;
     const recentCutoff = new Date(today);
     recentCutoff.setDate(today.getDate() - 29);
     const cutoffKey = dayKey(recentCutoff);
