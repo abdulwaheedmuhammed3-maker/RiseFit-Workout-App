@@ -115,7 +115,8 @@ export default function FitnessGoals({ dailySteps, stepsPermissionGranted, sessi
     }).length;
     const todayWorkouts = sessionCounts.get(todayKey) ?? 0;
     const bestStepDay = dailySteps.reduce<DailyStepEntry | null>((best, item) =>
-      Number.isFinite(item.steps) && (!best || item.steps > best.steps) ? item : best, null);
+      Number.isFinite(item.steps) && item.steps > 0 && item.date <= todayKey
+        && (!best || item.steps > best.steps) ? item : best, null);
     const bestWorkoutDay = Array.from(sessionCounts.entries()).reduce<{ date: string; count: number } | null>(
       (best, entry) => !best || entry[1] > best.count ? { date: entry[0], count: entry[1] } : best, null
     );
@@ -141,7 +142,7 @@ export default function FitnessGoals({ dailySteps, stepsPermissionGranted, sessi
   const stepProgress = Math.min(100, Math.round((data.todaySteps / goals.dailySteps) * 100));
   const workoutProgress = Math.min(100, Math.round((data.weeklyWorkouts / goals.weeklyWorkouts) * 100));
   const recommendation = lowImpactMode ? { planId: 'low-impact', title: 'Low-impact Strength & Mobility', reason: 'A shorter session using controlled movements without jumping.' } : goalPlans[profileGoal];
-  const bothGoalsComplete = stepsPermissionGranted && data.todaySteps >= goals.dailySteps && data.todayWorkouts > 0;
+  const bothGoalsComplete = stepsPermissionGranted && data.todaySteps >= goals.dailySteps && data.weeklyWorkouts >= goals.weeklyWorkouts;
   const badges = [
     { title: 'First steps', description: 'Recorded movement on your phone', unlocked: dailySteps.some(item => item.steps > 0), icon: Footprints },
     { title: 'First workout', description: 'Complete your first workout', unlocked: data.totalWorkouts >= 1, icon: Dumbbell },
