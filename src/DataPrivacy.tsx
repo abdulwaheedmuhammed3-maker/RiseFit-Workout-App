@@ -72,8 +72,8 @@ const validProfile = (value: unknown): value is RiseFitProfile => {
 const validSession = (value: unknown): value is Session => {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
   const session = value as Record<string, unknown>;
-  return typeof session.id === 'string' && session.id.length <= 160
-    && typeof session.title === 'string' && session.title.length <= 200
+  return typeof session.id === 'string' && session.id.trim().length > 0 && session.id.length <= 160
+    && typeof session.title === 'string' && session.title.trim().length > 0 && session.title.length <= 200
     && ['plan', 'alarm', 'exercise'].includes(String(session.kind))
     && typeof session.completedAt === 'string' && !Number.isNaN(Date.parse(session.completedAt))
     && Date.parse(session.completedAt) <= Date.now();
@@ -183,9 +183,17 @@ export default function DataPrivacy({
         || !data.completedSessions.every(validSession)) {
         throw new Error('The backup contains invalid workout history.');
       }
+      const sessionIds = data.completedSessions.map(session => session.id);
+      if (new Set(sessionIds).size !== sessionIds.length) {
+        throw new Error('The backup contains duplicate workout records. Export a fresh RiseFit backup and try again.');
+      }
       if (!Array.isArray(data.dailyStepHistory) || data.dailyStepHistory.length > 366
         || !data.dailyStepHistory.every(validStepEntry)) {
         throw new Error('The backup contains invalid step history.');
+      }
+      const stepDates = data.dailyStepHistory.map(entry => entry.date);
+      if (new Set(stepDates).size !== stepDates.length) {
+        throw new Error('The backup contains duplicate daily step entries. Export a fresh RiseFit backup and try again.');
       }
       if (typeof data.lowImpactMode !== 'boolean' || typeof data.restDayEnabled !== 'boolean') {
         throw new Error('The backup contains invalid training preferences.');
