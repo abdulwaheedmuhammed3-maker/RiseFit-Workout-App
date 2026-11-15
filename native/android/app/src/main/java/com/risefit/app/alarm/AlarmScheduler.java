@@ -42,18 +42,61 @@ public final class AlarmScheduler {
         showIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent showPendingIntent = PendingIntent.getActivity(context, requestCode(id) + 1, showIntent,
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-        manager.setAlarmClock(new AlarmManager.AlarmClockInfo(next.getTimeInMillis(), showPendingIntent), alarmPendingIntent);
+        try {
+            manager.setAlarmClock(new AlarmManager.AlarmClockInfo(next.getTimeInMillis(), showPendingIntent), alarmPendingIntent);
+        } catch (RuntimeException schedulingError) {
+            // Do not leave an orphaned PendingIntent that looks like a scheduled alarm.
+            alarmPendingIntent.cancel();
+            showPendingIntent.cancel();
+            throw schedulingError;
+        }
+    }
+
+    private static Intent alarmIntent(Context context, String id) {
+        return new Intent(context, WakeAlarmReceiver.class)
+            .setAction(context.getPackageName() + ".WAKE_ALARM." + id)
+            .putExtra(EXTRA_ALARM_ID, id);
+    }
+
+    public static boolean hasPendingAlarm(Context context, String id) {
+        PendingIntent pending = PendingIntent.getBroadcast(
+            context,
+            requestCode(id),
+            alarmIntent(context, id),
+            PendingIntent.FLAG_NO_CREATE | PendingIntent.FLAG_IMMUTABLE
+        );
+        return pending != null;
+    }
+
+    public static void restoreMissingAlarms(Context context) {
+        AlarmManager manager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (manager == null || (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !manager.canScheduleExactAlarms())) return;
+
+        android.content.SharedPreferences prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        for (java.util.Map.Entry<String, ?> entry : prefs.getAll().entrySet()) {
+            String key = entry.getKey();
+            if (!key.startsWith("alarm_") || !key.endsWith("_enabled") || !Boolean.TRUE.equals(entry.getValue())) continue;
+            String id = key.substring(6, key.length() - 8);
+            if (hasPendingAlarm(context, id)) continue;
+            try {
+                int hour = prefs.getInt(hourKey(id), 6);
+                int minute = prefs.getInt(minuteKey(id), 30);
+                scheduleNext(context, id, hour, minute);
+            } catch (RuntimeException ignored) {
+                // Leave the user's enabled preference intact; another app launch or boot can retry.
+            }
+        }
     }
 
     public static void cancel(Context context, String id) {
         AlarmManager manager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         if (manager == null) return;
-        Intent intent = new Intent(context, WakeAlarmReceiver.class)
-            .setAction(context.getPackageName() + ".WAKE_ALARM." + id)
-            .putExtra(EXTRA_ALARM_ID, id);
-        PendingIntent pending = PendingIntent.getBroadcast(context, requestCode(id), intent,
-            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-        manager.cancel(pending); pending.cancel();
+        PendingIntent pending = PendingIntent.getBroadcast(
+            context, requestCode(id), alarmIntent(context, id),
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+        manager.cancel(pending);
+        pending.cancel();
     }
 
     public static String enabledKey(String id) { return key(id, "enabled"); }
