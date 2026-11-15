@@ -791,3 +791,100 @@ footer{color:#777783}footer span{color:#8589ff}
 .device-health-footnote{font-size:9px;line-height:1.55;color:#858593;margin:0}
 .device-health-checked{font-size:9px;color:#838392;text-align:right}
 @media(max-width:520px){.device-health{padding:14px;border-radius:15px}.device-health-grid{grid-template-columns:1fr}.device-health-battery{flex-wrap:wrap}.device-health-power{margin-left:auto}}
+
+
+/* RiseFit UI audit pass 1: shared alignment, overflow and mobile ergonomics */
+:root {
+  color-scheme: dark;
+  --rf-bg: #080809;
+  --rf-surface: #17171c;
+  --rf-surface-raised: #1d1d27;
+  --rf-border: #30303c;
+  --rf-text: #f4f4f7;
+  --rf-muted: #a2a2b1;
+  --rf-accent: #8589ff;
+  --rf-accent-soft: #292941;
+  --rf-radius-card: 18px;
+  --rf-content-width: 900px;
+}
+html { min-width: 320px; background: var(--rf-bg); }
+body { min-width: 320px; overflow-x: hidden; background: var(--rf-bg); color: var(--rf-text); }
+#root { min-height: 100vh; width: 100%; overflow-x: clip; }
+*, *::before, *::after { box-sizing: border-box; }
+button, input, select, textarea { max-width: 100%; }
+button { min-height: 36px; }
+img, svg { max-width: 100%; }
+.shell, .main, .panel, .stats-screen-v2, .fitness-goals,
+.device-setup-shell, .profile-setup-shell { min-width: 0; }
+.main { width: min(100%, var(--rf-content-width)); }
+.main > *, .panel > *, .stats-screen-v2 > *, .fitness-goals > * { min-width: 0; }
+h1, h2, h3, h4, p, small, strong, span, label, button {
+  overflow-wrap: anywhere;
+}
+h1, h2, h3, h4 { line-height: 1.2; }
+p { line-height: 1.55; }
+.eyebrow, .stats-eyebrow, .side-caption { line-height: 1.45; }
+.panel, .hero, .streak, .fitness-goal-card, .fitness-insight-card,
+.fitness-recommendation, .fitness-achievements, .fitness-records,
+.device-health, .data-privacy, .device-setup-card, .profile-setup-card {
+  min-width: 0;
+}
+.primary, .secondary, .fitness-recommendation-action,
+.privacy-actions button, .rest-timer-actions > button {
+  min-height: 42px;
+  line-height: 1.35;
+  white-space: normal;
+  text-align: center;
+}
+input, select, textarea {
+  min-width: 0;
+  width: 100%;
+}
+.stats-v2-card, .stats-v2-level, .stats-v2-level-content,
+.stats-v2-heading > div, .device-health-heading > div,
+.step-counter-heading > div, .fitness-goals-heading > div,
+.fitness-achievements-heading > div { min-width: 0; }
+.stats-v2-card strong, .stats-v2-card small,
+.stats-v2-level-content p, .fitness-goal-controls > span {
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+.step-history-row { min-width: 0; }
+.step-history-row > span { min-width: 0; overflow-wrap: anywhere; }
+.step-history-row > b { white-space: nowrap; }
+.device-health-grid article, .device-permission-row,
+.privacy-facts article, .fitness-badge { min-width: 0; }
+.device-permission-copy, .privacy-facts article > div,
+.fitness-badge > div { min-width: 0; overflow-wrap: anywhere; }
+
+@media (max-width: 760px) {
+  .main { padding-left: max(15px, env(safe-area-inset-left)); padding-right: max(15px, env(safe-area-inset-right)); }
+  .header, .section-title, .stats-v2-heading,
+  .fitness-goals-heading, .fitness-achievements-heading,
+  .device-health-heading { gap: 10px; }
+  .header h1 { min-width: 0; overflow-wrap: anywhere; }
+  .stats-v2-heading h2 { font-size: clamp(22px, 6vw, 28px); }
+  .stats-v2-card { gap: 9px; padding: 13px 11px; }
+  .stats-v2-card strong { font-size: clamp(17px, 5vw, 22px); }
+  .stats-v2-icon { width: 40px; height: 40px; flex: 0 0 40px; }
+  .stats-v2-level { align-items: flex-start; gap: 11px; padding: 14px; }
+  .stats-v2-medal { width: 58px; height: 58px; flex: 0 0 58px; border-radius: 17px; }
+  .stats-v2-level-percent { font-size: 12px; }
+  .stats-v2-figures, .stats-v2-anatomy-layout { min-width: 0; }
+  .fitness-goal-controls { align-items: flex-start; }
+  .fitness-goal-controls > span { flex: 1; }
+  .device-health-battery > div { flex: 1 1 120px; }
+  .device-health-power { white-space: normal; }
+  .sidebar .nav { overflow-wrap: normal; }
+}
+@media (max-width: 380px) {
+  .main { padding-left: 12px; padding-right: 12px; }
+  .stats-v2-metrics { gap: 7px; }
+  .stats-v2-card { padding: 11px 9px; gap: 7px; }
+  .stats-v2-card > div > span { font-size: 10px; }
+  .stats-v2-card strong { font-size: 17px; letter-spacing: -.3px; }
+  .stats-v2-card small { font-size: 8px; }
+  .stats-v2-icon { width: 35px; height: 35px; flex-basis: 35px; }
+  .stats-v2-icon svg { width: 19px; height: 19px; }
+  .stats-period button, .stats-v2-period button { font-size: 10px; }
+}
