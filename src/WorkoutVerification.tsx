@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { FilesetResolver, PoseLandmarker } from '@mediapipe/tasks-vision';
-import { Camera, CheckCircle2, ShieldCheck, RotateCcw, UserRound } from 'lucide-react';
+import { Camera, CheckCircle2, ShieldCheck, RotateCcw, Volume2, VolumeX } from 'lucide-react';
 
 export type ExerciseType = 'squat' | 'pushup' | 'jumping-jack' | 'situp' | 'plank' | 'lunge' | 'highknees' | 'deadbug' | 'bridge';
 type Unit = 'reps' | 'sec';
@@ -109,6 +109,52 @@ function getMovementPhase(pose: Landmark[], exercise: ExerciseType): { phase: Ph
   return { phase: hipAngle < 130 ? 'down' : hipAngle > 155 ? 'up' : 'ready', valid: true };
 }
 
+function getCoachingCue(pose: Landmark[] | undefined, exercise: ExerciseType, phase: Phase): string {
+  if (!pose) return 'Move your full body into the camera frame.';
+  const point = (index: number) => pose[index];
+  const visible = (indices: number[]) => indices.every(index => point(index) && (point(index).visibility ?? 1) > 0.55);
+  const chooseSide = (left: number[], right: number[]) => {
+    const leftVisible = visible(left), rightVisible = visible(right);
+    if (!leftVisible && !rightVisible) return null;
+    if (leftVisible && rightVisible) {
+      const score = (items: number[]) => items.reduce((sum, index) => sum + (point(index).visibility ?? 1), 0);
+      return score(left) >= score(right) ? left : right;
+    }
+    return leftVisible ? left : right;
+  };
+  if (exercise === 'plank') {
+    const body = chooseSide([11,23,27], [12,24,28]);
+    if (!body) return 'Keep your shoulders, hips and ankles visible.';
+    const lineAngle = angle(point(body[0]), point(body[1]), point(body[2]));
+    const level = Math.abs(point(body[0]).y - point(body[2]).y);
+    if (lineAngle < 150) return 'Straighten your line from shoulders through hips to ankles.';
+    if (level >= 0.22) return 'Adjust your hips so your body stays more level.';
+    return 'Hold steady and keep breathing.';
+  }
+  if (exercise === 'pushup') {
+    const body = chooseSide([11,23,27], [12,24,28]);
+    if (!body) return 'Keep your shoulders, hips and ankles visible.';
+    if (angle(point(body[0]), point(body[1]), point(body[2])) < 155) return 'Keep your shoulders, hips and ankles aligned.';
+    return phase === 'down' ? 'Keep your body steady as you lower.' : phase === 'up' ? 'Press the floor away and finish tall.' : 'Lower your chest with control, then press back up.';
+  }
+  if (exercise === 'squat') return phase === 'down'
+    ? 'Keep your chest lifted and knees tracking in line with your feet.'
+    : phase === 'up' ? 'Press through your feet and stand tall.' : 'Sit your hips back, lower with control, then stand.';
+  if (exercise === 'lunge') return phase === 'down'
+    ? 'Keep your front knee tracking in line with your foot.'
+    : phase === 'up' ? 'Press through the front foot and return to balance.' : 'Step back and lower only as far as feels comfortable.';
+  if (exercise === 'jumping-jack') return phase === 'open'
+    ? 'Bring your feet together and lower your arms smoothly.' : 'Open your feet while raising both arms.';
+  if (exercise === 'highknees') return phase === 'open'
+    ? 'Good lift. Alternate knees and keep your chest tall.' : 'Lift one knee towards hip height, then switch sides.';
+  if (exercise === 'situp') return phase === 'up'
+    ? 'Lower your shoulders slowly and keep your neck relaxed.' : 'Lift your chest using your core. Avoid pulling your neck.';
+  if (exercise === 'deadbug') return phase === 'up'
+    ? 'Return with control, then switch to the opposite side.' : 'Extend opposite arm and leg while keeping your back comfortable.';
+  return phase === 'up'
+    ? 'Lower your hips slowly and reset.' : 'Lift your hips by squeezing your glutes; avoid over-arching your back.';
+}
+
 export default function WorkoutVerification({
   target = 20,
   exercise = 'squat',
@@ -145,7 +191,42 @@ export default function WorkoutVerification({
   const [error, setError] = useState('');
   const [poseSeen, setPoseSeen] = useState(false);
   const [complete, setComplete] = useState(false);
+  const [coachingTip, setCoachingTip] = useState('Move your full body into the camera frame.');
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
+  const voiceEnabledRef = useRef(false);
+  const coachingCueRef = useRef('');
+  const lastSpokenCueRef = useRef('');
+  const lastSpokenAtRef = useRef(0);
   const config = EXERCISES[exercise];
+  const voiceSupported = typeof window !== 'undefined' && 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+  const speak = (message: string) => {
+    if (!voiceSupported) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(message);
+    utterance.rate = 0.95;
+    utterance.pitch = 1;
+    utterance.volume = 0.9;
+    window.speechSynthesis.speak(utterance);
+  };
+  const toggleVoice = () => {
+    const next = !voiceEnabled;
+    voiceEnabledRef.current = next;
+    setVoiceEnabled(next);
+    if (next) speak(coachingTip || 'Voice coaching is on. Follow the live movement cues.');
+    else if (voiceSupported) window.speechSynthesis.cancel();
+  };
+  const updateCoachingCue = (pose: Landmark[] | undefined, phase: Phase, now: number) => {
+    const cue = getCoachingCue(pose, exercise, phase);
+    if (cue !== coachingCueRef.current) {
+      coachingCueRef.current = cue;
+      setCoachingTip(cue);
+      if (voiceEnabledRef.current && voiceSupported && cue !== lastSpokenCueRef.current && now - lastSpokenAtRef.current > 2800) {
+        lastSpokenCueRef.current = cue;
+        lastSpokenAtRef.current = now;
+        speak(cue);
+      }
+    }
+  };
 
   useEffect(() => {
     let alive = true;
@@ -166,6 +247,7 @@ export default function WorkoutVerification({
             const pose = result.landmarks?.[0] as Landmark[] | undefined;
             if (pose) {
               const movement = getMovementPhase(pose, exercise);
+              updateCoachingCue(pose, movement.phase, now);
               if (poseSeenRef.current !== movement.valid) { poseSeenRef.current = movement.valid; setPoseSeen(movement.valid); }
 
               if (unit === 'sec') {
@@ -217,6 +299,7 @@ export default function WorkoutVerification({
                 stableFramesRef.current = 0;
               }
             } else {
+              updateCoachingCue(undefined, 'ready', now);
               if (poseSeenRef.current) { poseSeenRef.current = false; setPoseSeen(false); }
               stableFramesRef.current = 0;
               phaseRef.current = 'ready';
@@ -241,6 +324,8 @@ export default function WorkoutVerification({
         setLoading(true);
         setError('');
         setPoseSeen(false);
+        setCoachingTip('Move your full body into the camera frame.');
+        coachingCueRef.current = '';
         setCount(0);
         countRef.current = 0;
         setComplete(false);
@@ -360,6 +445,7 @@ export default function WorkoutVerification({
       landmarkerRef.current?.close();
       landmarkerRef.current = null;
       stopCamera();
+      if (voiceSupported) window.speechSynthesis.cancel();
     };
   }, [target, exercise, unit, retryAttempt]);
 
@@ -370,6 +456,7 @@ export default function WorkoutVerification({
       landmarkerRef.current = null;
       streamRef.current?.getTracks().forEach(track => track.stop());
       streamRef.current = null;
+      if (voiceEnabledRef.current) speak('Target reached. Well done.');
     }
   }, [complete]);
 
@@ -392,6 +479,11 @@ export default function WorkoutVerification({
       <span className="eyebrow">{loading ? 'INITIALIZING CAMERA & POSE MODEL' : error ? 'CAMERA / TRACKING ISSUE' : poseSeen ? (unit === 'sec' ? 'PLANK POSITION VERIFIED · HOLD STEADY' : 'BODY DETECTED · KEEP MOVING') : 'POSITION YOUR BODY IN FRAME'}</span>
       <div className="number">{count}<small>/ {target} {progressUnit}</small></div>
       <div className="progress-track count-track"><i style={{width:`${count/target*100}%`}}/></div>
+    </div>
+    <div className="live-coaching-card" aria-live="polite">
+      <div className="live-coaching-top"><span className="eyebrow">LIVE MOVEMENT CUE</span>{isWorkout && <button type="button" className="voice-coach-toggle" onClick={toggleVoice} disabled={!voiceSupported} aria-pressed={voiceEnabled}>{voiceEnabled ? <Volume2 size={15}/> : <VolumeX size={15}/>} {voiceSupported ? (voiceEnabled ? 'Voice on' : 'Voice off') : 'Voice unavailable'}</button>}</div>
+      <p>{coachingTip}</p>
+      <small>Guidance is based on visible pose landmarks. It is a movement aid, not a medical-grade form assessment.</small>
     </div>
     {error && <><div className="notice"><Camera size={17}/><span>{error}</span></div><button className="secondary full" onClick={() => setRetryAttempt(value => value + 1)}><RotateCcw size={15}/> Retry camera &amp; pose setup</button></>}
     {complete
