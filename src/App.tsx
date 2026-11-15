@@ -153,6 +153,23 @@ export default function App(){
   window.addEventListener('focus',refresh);
   return()=>{disposed=true;window.clearInterval(timer);document.removeEventListener('visibilitychange',refresh);window.removeEventListener('focus',refresh);};
  },[]);
+ const openAlarmChallenge=(alarmId:string|null)=>{
+  setActiveAlarmId(alarmId);
+  setAlarmChallengeDone(false);
+  setFollowOnIndex(0);
+  setAlarmRound(1);
+  // An alarm must take priority over a workout already in progress.
+  // Unmount camera verification/rest screens before showing the alarm mission.
+  setPlanId(null);
+  setDetail(null);
+  setRestState(null);
+  setIdx(0);
+  setRound(1);
+  setComplete(false);
+  setExerciseVerificationStarted(false);
+  setExerciseCompleted(false);
+  setTab('Alarm Challenge');
+ };
  const refreshAlarmStatus=async()=>{
   if(Capacitor.getPlatform()!=='android')return;
   try{
@@ -164,9 +181,9 @@ export default function App(){
   if(Capacitor.getPlatform()!=='android')return;
   let listener:{remove:()=>Promise<void>}|undefined;
   let disposed=false;
-  void NativeAlarm.addListener('alarmTriggered',event=>{setActiveAlarmId(event.alarmId??null);setAlarmChallengeDone(false);setFollowOnIndex(0);setAlarmRound(1);setTab('Alarm Challenge');}).then(value=>{if(disposed)void value.remove();else listener=value;});
+  void NativeAlarm.addListener('alarmTriggered',event=>openAlarmChallenge(event.alarmId??null)).then(value=>{if(disposed)void value.remove();else listener=value;});
   void LocalNotifications.cancel({notifications:[{id:6301}]}).catch(()=>{});
-  const checkLaunch=async()=>{try{const result=await NativeAlarm.consumeAlarmLaunch();if(result.openChallenge){setActiveAlarmId(result.alarmId??null);setAlarmChallengeDone(false);setFollowOnIndex(0);setAlarmRound(1);setTab('Alarm Challenge');}await refreshAlarmStatus();}catch{}};
+  const checkLaunch=async()=>{try{const result=await NativeAlarm.consumeAlarmLaunch();if(result.openChallenge)openAlarmChallenge(result.alarmId??null);await refreshAlarmStatus();}catch{}};
   const onVisibility=()=>{if(!document.hidden)void checkLaunch();};
   void checkLaunch();
   document.addEventListener('visibilitychange',onVisibility);
