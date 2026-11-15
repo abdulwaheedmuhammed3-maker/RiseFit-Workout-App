@@ -11,6 +11,7 @@ const formatTime = (value: number) => {
 
 export default function RestTimer({ seconds = 30, nextLabel, onComplete }: Props) {
   const [remaining, setRemaining] = useState(seconds);
+  const [total, setTotal] = useState(seconds);
   const [paused, setPaused] = useState(false);
   const onCompleteRef = useRef(onComplete);
   const completedRef = useRef(false);
@@ -18,6 +19,7 @@ export default function RestTimer({ seconds = 30, nextLabel, onComplete }: Props
   useEffect(() => { onCompleteRef.current = onComplete; }, [onComplete]);
   useEffect(() => {
     setRemaining(seconds);
+    setTotal(seconds);
     setPaused(false);
     completedRef.current = false;
   }, [seconds]);
@@ -38,9 +40,9 @@ export default function RestTimer({ seconds = 30, nextLabel, onComplete }: Props
   const extend = () => {
     completedRef.current = false;
     setRemaining(value => value + 15);
+    setTotal(value => value + 15);
     setPaused(false);
   };
-  const total = Math.max(seconds, remaining);
   const progress = total > 0 ? Math.max(0, Math.min(100, (remaining / total) * 100)) : 0;
 
   return (
