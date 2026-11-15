@@ -12,6 +12,7 @@ public final class AlarmScheduler {
     public static final String PREFS = "risefit_native_alarm";
     public static final String EXTRA_OPEN_CHALLENGE = "risefitAlarmChallenge";
     public static final String EXTRA_ALARM_ID = "risefitAlarmId";
+    public static final String EXTRA_ALARM_OCCURRENCE_AT = "risefitAlarmOccurrenceAt";
     private AlarmScheduler() {}
 
     private static String key(String id, String field) { return "alarm_" + id + "_" + field; }
