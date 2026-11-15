@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { DailyStepEntry } from './nativeAlarm';
+import ProgressInsights from './ProgressInsights';
 import {
   Activity, Award, BarChart3, Clock3,
   Dumbbell, Flame, Info, TrendingUp, Weight, Footprints
@@ -92,6 +93,8 @@ export default function Statistics({ sessions = [], dailySteps = [], stepsPermis
         </div>
         <span className="stats-v2-avatar"><Activity size={22} /></span>
       </div>
+
+      <ProgressInsights dailySteps={dailySteps} sessions={sessions} />
 
       <div className="stats-v2-period" aria-label="Statistics period">
         {(['Week', 'Month', 'Year', 'All'] as Period[]).map(item => (
