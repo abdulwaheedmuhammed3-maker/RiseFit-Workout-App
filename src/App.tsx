@@ -350,6 +350,12 @@ export default function App(){
     setFollowOnIndex(null);
     setAlarmRound(1);
     localStorage.removeItem(ALARM_PROGRESS_KEY);
+    // Return to the alarm list so the disabled challenge is unmounted.
+    // This also releases any active camera/pose-verification resources.
+    setPlanId(null);
+    setDetail(null);
+    setRestState(null);
+    setTab('My alarms');
    }
    updateAlarm(id,{enabled:false});
    setAlarmSaveNotice('Alarm disabled. Its current ring and future repeat have been stopped.');
