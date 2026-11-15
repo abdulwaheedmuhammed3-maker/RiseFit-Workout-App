@@ -209,13 +209,11 @@ export default function WorkoutVerification({
     window.speechSynthesis.speak(utterance);
   };
   const toggleVoice = () => {
-    setVoiceEnabled(current => {
-      const next = !current;
-      voiceEnabledRef.current = next;
-      if (next) speak(coachingTip || 'Voice coaching is on. Follow the live movement cues.');
-      else if (voiceSupported) window.speechSynthesis.cancel();
-      return next;
-    });
+    const next = !voiceEnabled;
+    voiceEnabledRef.current = next;
+    setVoiceEnabled(next);
+    if (next) speak(coachingTip || 'Voice coaching is on. Follow the live movement cues.');
+    else if (voiceSupported) window.speechSynthesis.cancel();
   };
   const updateCoachingCue = (pose: Landmark[] | undefined, phase: Phase, now: number) => {
     const cue = getCoachingCue(pose, exercise, phase);
@@ -458,6 +456,7 @@ export default function WorkoutVerification({
       landmarkerRef.current = null;
       streamRef.current?.getTracks().forEach(track => track.stop());
       streamRef.current = null;
+      if (voiceEnabledRef.current) speak('Target reached. Well done.');
     }
   }, [complete]);
 
