@@ -125,12 +125,31 @@ export default function FitnessGoals({ dailySteps, stepsPermissionGranted, sessi
       date.setDate(today.getDate() - offset);
       return activeDays.has(dayKey(date));
     }).filter(Boolean).length;
+
+    // The milestone is historical, not limited to the recent 30-day panel.
+    // Compute the longest consecutive run across all active days currently
+    // available in the saved phone-step and workout history.
+    let longestRecordedStreak = 0;
+    let runningRecordedStreak = 0;
+    let previousActiveKey: string | null = null;
+    for (const key of Array.from(activeDays).sort()) {
+      if (previousActiveKey) {
+        const nextDate = new Date(previousActiveKey + 'T12:00:00');
+        nextDate.setDate(nextDate.getDate() + 1);
+        runningRecordedStreak = dayKey(nextDate) === key ? runningRecordedStreak + 1 : 1;
+      } else {
+        runningRecordedStreak = 1;
+      }
+      longestRecordedStreak = Math.max(longestRecordedStreak, runningRecordedStreak);
+      previousActiveKey = key;
+    }
     return {
       todaySteps: stepMap.get(todayKey) ?? 0,
       weeklyWorkouts,
       todayWorkouts,
       currentStreak,
       longestRecentStreak,
+      longestRecordedStreak,
       recentActiveDays,
       totalWorkouts: sessions.length,
       bestStepDay,
@@ -148,7 +167,7 @@ export default function FitnessGoals({ dailySteps, stepsPermissionGranted, sessi
     { title: 'First workout', description: 'Complete your first workout', unlocked: data.totalWorkouts >= 1, icon: Dumbbell },
     { title: 'Three workouts', description: 'Log three completed sessions', unlocked: data.totalWorkouts >= 3, icon: CalendarCheck },
     { title: '10K day', description: 'Record 10,000 steps in one day', unlocked: dailySteps.some(item => item.steps >= 10000), icon: Target },
-    { title: 'Week of movement', description: 'Stay active seven days in a row', unlocked: data.longestRecentStreak >= 7, icon: Flame },
+    { title: 'Week of movement', description: 'Stay active seven days in a row', unlocked: data.longestRecordedStreak >= 7, icon: Flame },
     { title: '10 sessions', description: 'Complete ten workout sessions', unlocked: data.totalWorkouts >= 10, icon: Trophy }
   ];
   const unlockedBadges = badges.filter(item => item.unlocked).length;
