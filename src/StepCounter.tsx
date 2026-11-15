@@ -47,7 +47,7 @@ export default function StepCounter({ stats, loading, error, onConnect, onRefres
     </section>;
   }
 
-  const days = [...(stats.days ?? [])].sort((a, b) => b.date.localeCompare(a.date));
+  const days = [...(stats.days ?? [])].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 30);
   return <section className="panel step-counter-panel">
     <div className="step-counter-heading">
       <div><span className="eyebrow">YOUR DAILY ACTIVITY</span><h2>Steps today</h2></div>
