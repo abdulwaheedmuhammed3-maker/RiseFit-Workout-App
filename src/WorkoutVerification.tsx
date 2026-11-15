@@ -18,7 +18,7 @@ type Phase = 'ready' | 'down' | 'up' | 'open' | 'closed' | 'hold';
 
 const EXERCISES: Record<ExerciseType, { title: string; instruction: string; setup: string }> = {
   squat: { title: 'bodyweight squats', instruction: 'Bend your knees and hips, then return to a fully upright position.', setup: 'Stand far enough back for your shoulders, hips, knees and ankles to stay visible. A side-facing camera angle works best.' },
-  pushup: { title: 'push-ups', instruction: 'Lower your chest with bent elbows while keeping your body aligned, then press back up.', setup: 'Place the phone low enough to see your shoulders, elbows, hips and wrists. Keep your full body in frame.' },
+  pushup: { title: 'push-ups', instruction: 'Lower your chest with bent elbows while keeping your body aligned, then press back up.', setup: 'Use a low, side-on camera angle. Keep your shoulders, elbows, wrists, hips and ankles visible so RiseFit can check your full body line.' },
   'jumping-jack': { title: 'jumping jacks', instruction: 'Jump or step your feet apart while raising both hands, then return to the closed position.', setup: 'Stand back so your hands and feet remain visible throughout the movement.' },
   situp: { title: 'sit-ups', instruction: 'Raise your upper body from the lowered position and return under control.', setup: 'Position the phone side-on and keep your shoulders, hips and knees visible.' },
   plank: { title: 'a forearm plank', instruction: 'Hold a straight line from your shoulders through your hips to your ankles. The timer only advances while your plank position is detected.', setup: 'Place the phone side-on at a low angle. Keep your shoulders, hips and ankles visible and hold your body in a straight line.' },
@@ -77,8 +77,15 @@ function getMovementPhase(pose: Landmark[], exercise: ExerciseType): { phase: Ph
   if (exercise === 'pushup') {
     const arm = side([11,13,15], [12,14,16]);
     if (!arm) return { phase: 'ready', valid: false };
-    const matchingHip = arm[0] === 11 ? 23 : 24;
-    if (!visible([matchingHip])) return { phase: 'ready', valid: false };
+    const body = arm[0] === 11 ? [11,23,27] : [12,24,28];
+    if (!visible(body)) return { phase: 'ready', valid: false };
+
+    // Elbow bending alone also occurs in standing arm curls. Require a
+    // straight, near-horizontal shoulder-to-ankle line before counting.
+    const bodyAngle = angle(point(body[0]), point(body[1]), point(body[2]));
+    const bodyLevel = Math.abs(point(body[0]).y - point(body[2]).y) < 0.35;
+    if (bodyAngle < 150 || !bodyLevel) return { phase: 'ready', valid: false };
+
     const elbow = angle(point(arm[0]), point(arm[1]), point(arm[2]));
     return { phase: elbow < 95 ? 'down' : elbow > 150 ? 'up' : 'ready', valid: true };
   }
@@ -96,15 +103,31 @@ function getMovementPhase(pose: Landmark[], exercise: ExerciseType): { phase: Ph
     const torso = side([11,23,25], [12,24,26]);
     if (!torso) return { phase: 'ready', valid: false };
     const hip = angle(point(torso[0]), point(torso[1]), point(torso[2]));
-    return { phase: hip < 115 ? 'up' : hip > 145 ? 'down' : 'ready', valid: true };
+    const horizontal = Math.abs(point(torso[0]).x - point(torso[1]).x);
+    const vertical = Math.abs(point(torso[0]).y - point(torso[1]).y);
+    const lyingBack = horizontal > vertical * 1.1;
+    const sittingUp = vertical > horizontal * 1.1;
+    // Reject standing hip bends: a sit-up starts with the torso horizontal
+    // and reaches the raised phase with the torso more upright.
+    if (hip > 145 && lyingBack) return { phase: 'down', valid: true };
+    if (hip < 115 && sittingUp) return { phase: 'up', valid: true };
+    return { phase: 'ready', valid: true };
   }
   if (exercise === 'plank') {
     const body = side([11,23,27], [12,24,28]);
     if (!body) return { phase: 'hold', valid: false };
+    const arm = body[0] === 11 ? [11,13,15] : [12,14,16];
+    if (!visible(arm)) return { phase: 'hold', valid: false };
     const bodyAngle = angle(point(body[0]), point(body[1]), point(body[2]));
     const bodyLevel = Math.abs(point(body[0]).y - point(body[2]).y) < 0.22;
     const bodyExtended = Math.abs(point(body[0]).x - point(body[2]).x) > 0.18;
-    return { phase: 'hold', valid: bodyAngle > 150 && bodyLevel && bodyExtended };
+    const elbowAngle = angle(point(arm[0]), point(arm[1]), point(arm[2]));
+    const elbowBent = elbowAngle > 60 && elbowAngle < 130;
+    const elbowUnderShoulder = Math.abs(point(arm[0]).x - point(arm[1]).x) < 0.2;
+    return {
+      phase: 'hold',
+      valid: bodyAngle > 150 && bodyLevel && bodyExtended && elbowBent && elbowUnderShoulder
+    };
   }
   if (exercise === 'highknees') {
     if (!visible([23,24,25,26])) return { phase: 'ready', valid: false };
@@ -117,6 +140,11 @@ function getMovementPhase(pose: Landmark[], exercise: ExerciseType): { phase: Ph
     const leftVisible = visible([11,23,25]);
     const rightVisible = visible([12,24,26]);
     if (!leftVisible && !rightVisible) return { phase: 'ready', valid: false };
+    const torso = side([11,23], [12,24]);
+    if (!torso) return { phase: 'ready', valid: false };
+    const torsoHorizontal = Math.abs(point(torso[0]).x - point(torso[1]).x)
+      > Math.abs(point(torso[0]).y - point(torso[1]).y) * 1.1;
+    if (!torsoHorizontal) return { phase: 'ready', valid: false };
     const leftAngle = leftVisible ? angle(point(11), point(23), point(25)) : null;
     const rightAngle = rightVisible ? angle(point(12), point(24), point(26)) : null;
     const anyLegExtended = (leftAngle !== null && leftAngle > 148)
@@ -130,6 +158,9 @@ function getMovementPhase(pose: Landmark[], exercise: ExerciseType): { phase: Ph
   }
   const torso = side([11,23,25], [12,24,26]);
   if (!torso) return { phase: 'ready', valid: false };
+  const torsoHorizontal = Math.abs(point(torso[0]).x - point(torso[1]).x)
+    > Math.abs(point(torso[0]).y - point(torso[1]).y) * 1.1;
+  if (!torsoHorizontal) return { phase: 'ready', valid: false };
   const hipAngle = angle(point(torso[0]), point(torso[1]), point(torso[2]));
   return { phase: hipAngle < 130 ? 'down' : hipAngle > 155 ? 'up' : 'ready', valid: true };
 }
@@ -150,8 +181,13 @@ function getCoachingCue(pose: Landmark[] | undefined, exercise: ExerciseType, ph
   if (exercise === 'plank') {
     const body = chooseSide([11,23,27], [12,24,28]);
     if (!body) return 'Keep your shoulders, hips and ankles visible.';
+    const arm = body[0] === 11 ? [11,13,15] : [12,14,16];
+    if (!visible(arm)) return 'Keep your shoulder, elbow and wrist visible from the side.';
     const lineAngle = angle(point(body[0]), point(body[1]), point(body[2]));
     const level = Math.abs(point(body[0]).y - point(body[2]).y);
+    const elbowAngle = angle(point(arm[0]), point(arm[1]), point(arm[2]));
+    if (Math.abs(point(arm[0]).x - point(arm[1]).x) >= 0.2) return 'Place your elbows directly beneath your shoulders.';
+    if (elbowAngle <= 60 || elbowAngle >= 130) return 'Bend your elbows and keep your forearms supported.';
     if (lineAngle < 150) return 'Straighten your line from shoulders through hips to ankles.';
     if (level >= 0.22) return 'Adjust your hips so your body stays more level.';
     return 'Hold steady and keep breathing.';
