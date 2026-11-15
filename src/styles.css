@@ -727,3 +727,36 @@ footer{color:#777783}footer span{color:#8589ff}
 .fitness-mode-switch{min-width:58px;padding:8px 12px;border:1px solid #42424f;border-radius:20px;background:#25252d;color:#aaaab6;font-size:11px;font-weight:700}
 .fitness-mode-switch.enabled{background:#39325f;border-color:#665a9c;color:#e4ddff}
 @media(max-width:520px){.fitness-mode-controls{border-radius:15px;padding:14px}.fitness-mode-row{align-items:flex-start}.fitness-mode-switch{flex-shrink:0}}
+
+
+/* Local data privacy and backup centre */
+.data-privacy{display:grid;gap:15px;margin:18px 0 26px;padding:18px;border:1px solid #30303c;border-radius:18px;background:linear-gradient(145deg,#1b1b24,#14141a)}
+.data-privacy-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.data-privacy-heading h2{font:700 21px 'Space Grotesk';letter-spacing:-.4px;margin:5px 0}
+.data-privacy-heading p{font-size:11px;color:#a2a2b1;margin:0}
+.data-privacy-mark{width:44px;height:44px;display:grid;place-items:center;flex-shrink:0;border-radius:14px;background:#22223b;color:#a29bff;border:1px solid #393951}
+.privacy-facts{display:grid;gap:9px}
+.privacy-facts article{display:flex;align-items:flex-start;gap:11px;padding:12px;border:1px solid #30303b;border-radius:12px;background:#17171e}
+.privacy-facts article>svg{flex-shrink:0;margin-top:1px;color:#a19aff}
+.privacy-facts article>div{display:grid;gap:4px}
+.privacy-facts strong{font-size:11px;color:#efeff7}
+.privacy-facts small{font-size:10px;line-height:1.6;color:#a0a0ae}
+.privacy-actions{display:flex;flex-wrap:wrap;gap:8px}
+.privacy-actions button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;padding:10px 13px;border-radius:10px;font-size:11px;font-weight:700}
+.privacy-actions .primary{border:1px solid #777bff;background:#777bff;color:#09090d}
+.privacy-actions .secondary{border:1px solid #3a3a48;background:#22222c;color:#d6d6e2}
+.privacy-actions button:disabled{opacity:.55}
+.data-privacy-message,.data-privacy-error{display:flex;align-items:flex-start;gap:8px;margin:0;padding:11px;border-radius:10px;font-size:10px;line-height:1.6}
+.data-privacy-message{background:#1e2630;border:1px solid #39485a;color:#c7d8ef}
+.data-privacy-error{background:#302020;border:1px solid #593636;color:#f0c5c5}
+.data-privacy-message svg,.data-privacy-error svg{flex-shrink:0}
+.privacy-scope{padding:13px;border:1px solid #30303b;border-radius:12px;background:#17171e}
+.privacy-scope p{font-size:10px;line-height:1.6;color:#c0c0cd;margin:7px 0}
+.privacy-scope small{font-size:9px;line-height:1.6;color:#898997}
+.privacy-danger-zone{display:grid;gap:9px;padding-top:14px;border-top:1px solid #34343f}
+.privacy-danger-zone h3{font:700 15px 'Space Grotesk';margin:4px 0}
+.privacy-danger-zone p{font-size:10px;line-height:1.5;color:#9999a7;margin:0}
+.privacy-delete-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;width:100%;min-height:39px;padding:10px 12px;border:1px solid #41414d;border-radius:9px;background:#23232b;color:#d7d7e2;font-size:10px;font-weight:700}
+.privacy-delete-button.danger{border-color:#624040;background:#2a1d21;color:#efc7c7}
+.data-privacy-footnote{font-size:9px;line-height:1.6;color:#7f7f8d;margin:0}
+@media(max-width:520px){.data-privacy{padding:14px;border-radius:15px}.data-privacy-heading h2{font-size:19px}.privacy-actions{display:grid;grid-template-columns:1fr 1fr}.privacy-actions button{font-size:10px;padding:9px 8px}}
