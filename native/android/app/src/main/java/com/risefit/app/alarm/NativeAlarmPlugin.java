@@ -235,9 +235,9 @@ public class NativeAlarmPlugin extends Plugin {
         if (!activityPermissionGranted) {
             result.put("message", "Allow RiseFit to recognise physical activity so it can count steps automatically.");
         } else if (!trackingEnabled) {
-            result.put("message", "Enable automatic step counting once. RiseFit will then keep counting while the app is closed.");
+            result.put("message", "Enable automatic phone step tracking. Android battery and manufacturer power controls can affect how continuously it runs.");
         } else {
-            result.put("message", "Steps are counted directly from this phone, including while RiseFit is closed.");
+            result.put("message", "Automatic phone step tracking is enabled. RiseFit attempts to keep the hardware sensor registered while the app is closed, subject to Android and manufacturer power controls.");
         }
         call.resolve(result);
     }
