@@ -59,7 +59,18 @@ public final class StepCounterService extends Service implements SensorEventList
     public static void enable(Context context) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .edit().putBoolean(KEY_ENABLED, true).apply();
-        startService(context);
+        try {
+            startService(context);
+        } catch (RuntimeException error) {
+            disable(context);
+            throw error;
+        }
+    }
+
+    public static void disable(Context context) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putBoolean(KEY_ENABLED, false).apply();
+        context.stopService(new Intent(context, StepCounterService.class));
     }
 
     public static void startIfEnabled(Context context) {
@@ -101,7 +112,15 @@ public final class StepCounterService extends Service implements SensorEventList
             return START_NOT_STICKY;
         }
 
-        startAsForegroundService();
+        try {
+            startAsForegroundService();
+        } catch (RuntimeException startError) {
+            // Do not leave the user-facing enabled flag set when Android
+            // refuses the foreground-service start or required service type.
+            preferences().edit().putBoolean(KEY_ENABLED, false).apply();
+            stopSelf();
+            return START_NOT_STICKY;
+        }
         if (listenerRegistered) return START_STICKY;
 
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
@@ -125,9 +144,14 @@ public final class StepCounterService extends Service implements SensorEventList
         sensorThread = new HandlerThread("RiseFitStepCounter");
         sensorThread.start();
         sensorHandler = new Handler(sensorThread.getLooper());
-        listenerRegistered = sensorManager.registerListener(
-            this, stepCounter, SensorManager.SENSOR_DELAY_NORMAL, 10_000_000, sensorHandler
-        );
+        try {
+            listenerRegistered = sensorManager.registerListener(
+                this, stepCounter, SensorManager.SENSOR_DELAY_NORMAL, 10_000_000, sensorHandler
+            );
+        } catch (RuntimeException registrationError) {
+            markUnsupportedAndStop();
+            return START_NOT_STICKY;
+        }
         if (!listenerRegistered) {
             markUnsupportedAndStop();
             return START_NOT_STICKY;
