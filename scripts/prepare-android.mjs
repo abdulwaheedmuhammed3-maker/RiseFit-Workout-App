@@ -26,7 +26,8 @@ const permissions = [
   'android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK',
   'android.permission.WAKE_LOCK',
   'android.permission.USE_FULL_SCREEN_INTENT',
-  'android.permission.health.READ_STEPS',
+  'android.permission.ACTIVITY_RECOGNITION',
+  'android.permission.FOREGROUND_SERVICE_HEALTH',
 ];
 const missingPermissions = permissions
   .filter(permission => !manifest.includes(permission))
@@ -49,10 +50,45 @@ if (!manifest.includes('com.risefit.app.alarm.WakeAlarmService')) {
             android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
             </intent-filter>
         </receiver>
 `;
   manifest = manifest.replace(/<application\b[^>]*>/, match => `${match}\n${components}`);
+}
+
+
+
+if (!manifest.includes('com.risefit.app.alarm.StepCounterService')) {
+  const stepCounterService = `
+        <service
+            android:name="com.risefit.app.alarm.StepCounterService"
+            android:exported="false"
+            android:foregroundServiceType="health" />
+`;
+  manifest = manifest.replace(/<application\\b[^>]*>/, match => `${match}\\n${stepCounterService}`);
+}
+
+// Keep the receiver current when android:prepare is rerun against an already
+// generated Android project (where the native components may already exist).
+if (!manifest.includes('android.intent.action.TIMEZONE_CHANGED')) {
+  manifest = manifest.replace(
+    '<action android:name="android.intent.action.BOOT_COMPLETED" />',
+    `<action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />`
+  );
+}
+if (!manifest.includes('android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED')) {
+  manifest = manifest.replace(
+    '<action android:name="android.intent.action.MY_PACKAGE_REPLACED" />',
+    `<action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />`
+  );
 }
 await writeFile(manifestPath, manifest);
 

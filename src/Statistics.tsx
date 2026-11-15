@@ -114,7 +114,7 @@ export default function Statistics({ sessions = [], dailySteps = [], stepsPermis
         </article>
         <article className="stats-v2-card">
           <span className="stats-v2-icon"><Footprints /></span>
-          <div><span>Steps · last 7 days</span><strong>{stepsPermissionGranted ? stepsLastSevenDays.toLocaleString() : "—"}</strong><small>{stepsPermissionGranted ? "Automatic daily phone count" : "Connect automatic steps to read this total"}</small></div>
+          <div><span>Steps · last 7 days</span><strong>{stepsPermissionGranted ? stepsLastSevenDays.toLocaleString() : "—"}</strong><small>{stepsPermissionGranted ? "Automatic daily phone count" : "Enable automatic phone step tracking to read this total"}</small></div>
         </article>
       </div>
 

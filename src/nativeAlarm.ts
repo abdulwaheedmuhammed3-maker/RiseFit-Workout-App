@@ -17,7 +17,7 @@ export interface DailyStepStats {
   stepsToday: number;
   days: DailyStepEntry[];
   lastUpdated?: number;
-  source?: 'health_connect';
+  source?: 'native_sensor';
   message?: string;
 }
 interface NativeAlarmPlugin {
@@ -28,7 +28,7 @@ interface NativeAlarmPlugin {
   schedule(options: { id: string; hour: number; minute: number }): Promise<NativeAlarmStatus>;
   cancelAlarm(options: { id: string }): Promise<void>;
   stopRinging(): Promise<void>;
-  requestStepReadPermission(): Promise<void>;
+  requestStepTrackingPermission(): Promise<void>;
   getDailyStepStats(): Promise<DailyStepStats>;
   consumeAlarmLaunch(): Promise<{ openChallenge: boolean; alarmId?: string }>;
   addListener(eventName: 'alarmTriggered', listener: (event: { openChallenge: boolean; alarmId?: string }) => void): Promise<PluginListenerHandle>;
