@@ -45,6 +45,7 @@ interface NativeAlarmPlugin {
   stopRinging(): Promise<void>;
   speakText(options: { text: string }): Promise<void>;
   stopSpeech(): Promise<void>;
+  getSpeechStatus(): Promise<{ available: boolean; languageAvailable: boolean; language: string; message: string }>;
   requestStepTrackingPermission(): Promise<void>;
   getDailyStepStats(): Promise<DailyStepStats>;
   getDeviceHealth(): Promise<DeviceHealth>;
