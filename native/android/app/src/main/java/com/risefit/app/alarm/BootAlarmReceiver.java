@@ -10,6 +10,14 @@ import java.util.Map;
 
 public class BootAlarmReceiver extends BroadcastReceiver {
     @Override public void onReceive(Context context, Intent intent) {
+        if (intent != null && Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
+            // The hardware step counter resets its cumulative value at reboot.
+            // Clear its old raw baseline before the service registers again,
+            // or steps after a same-day reboot may be missed when the new raw
+            // value has already climbed above the previous boot's last value.
+            StepCounterService.resetCounterBaselineAfterBoot(context);
+        }
+
         // Exact alarms are removed by Android when the special access is revoked.
         // Keep the user's enabled preference in SharedPreferences so it can be
         // restored when Android sends ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED.
