@@ -65,11 +65,18 @@ const loadAlarms = (): WakeAlarm[] => {
    typeof item.enabled === 'boolean' && typeof item.time === 'string' &&
    /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(item.time)
   ).map(item => {
-   const challenge = Array.isArray(item.challenge) ? item.challenge.filter((entry): entry is AlarmExerciseConfig =>
-    isRecord(entry) && typeof entry.exerciseId === 'string' && validExerciseIds.includes(entry.exerciseId as ExerciseId) &&
-    Number.isInteger(entry.target) && Number(entry.target) >= 1 && Number(entry.target) <= 300 &&
-    Number.isInteger(entry.rounds) && Number(entry.rounds) >= 1 && Number(entry.rounds) <= 10
-   ) : undefined;
+   const challenge = Array.isArray(item.challenge) ? item.challenge.flatMap((entry): AlarmExerciseConfig[] => {
+    if (!isRecord(entry) || typeof entry.exerciseId !== 'string'
+      || !validExerciseIds.includes(entry.exerciseId as ExerciseId)) return [];
+    const target = Number(entry.target);
+    const rounds = Number(entry.rounds);
+    if (!Number.isFinite(target) || !Number.isFinite(rounds)) return [];
+    return [{
+     exerciseId: entry.exerciseId as ExerciseId,
+     target: Math.max(1, Math.min(300, Math.round(target))),
+     rounds: Math.max(1, Math.min(10, Math.round(rounds)))
+    }];
+   }) : undefined;
    return {id:item.id as string,time:item.time as string,enabled:item.enabled as boolean,label:item.label as string,
     difficulty:['Easy','Normal','Hard','Extreme'].includes(String(item.difficulty)) ? item.difficulty as AlarmDifficulty : 'Normal',
     requireAllMissions:typeof item.requireAllMissions === 'boolean' ? item.requireAllMissions : false,
