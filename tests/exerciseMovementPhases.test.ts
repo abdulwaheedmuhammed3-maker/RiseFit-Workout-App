@@ -3,7 +3,7 @@ import { equal } from 'node:assert/strict';
 import { getMovementPhase, type ExerciseType, type Landmark } from '../src/exerciseDetection.js';
 
 function pose(): Landmark[] {
-  return Array.from({ length: 33 }, () => ({ x: 0.5, y: 0.5, visibility: 1 }));
+  return Array.from({ length: 33 }, () => ({ x: 0.5, y: 0.5, visibility: 0 }));
 }
 function set(p: Landmark[], index: number, x: number, y: number) {
   p[index] = { x, y, visibility: 1 };
@@ -56,7 +56,7 @@ test('glute bridge detector distinguishes lowered and raised hip positions', () 
 
 test('dead bug detector requires a horizontal torso and detects leg extension', () => {
   const down = pose();
-  set(down, 11, .1, .5); set(down, 23, .5, .5); set(down, 25, .5, .7);
+  set(down, 11, .1, .5); set(down, 23, .5, .5); set(down, 25, .9, .5);
   expectPhase(down, 'deadbug', 'down');
   const extended = pose();
   set(extended, 11, .1, .5); set(extended, 23, .5, .5); set(extended, 25, .9, .5);
