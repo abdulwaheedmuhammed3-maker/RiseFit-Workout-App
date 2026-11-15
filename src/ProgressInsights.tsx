@@ -10,7 +10,12 @@ const startOfDay = (date: Date) => new Date(date.getFullYear(), date.getMonth(),
 
 export default function ProgressInsights({ dailySteps, sessions }: Props) {
   const data = useMemo(() => {
-    const today = startOfDay(new Date());
+    const now = new Date();
+    const today = startOfDay(now);
+    const validSessions = sessions.filter(session => {
+      const completedAt = new Date(session.completedAt);
+      return !Number.isNaN(completedAt.getTime()) && completedAt <= now;
+    });
     const stepMap = new Map(dailySteps.map(item => [item.date, Math.max(0, item.steps)]));
     const week = Array.from({ length: 7 }, (_, index) => {
       const date = new Date(today);
@@ -18,19 +23,25 @@ export default function ProgressInsights({ dailySteps, sessions }: Props) {
       return { date, key: dayKey(date), steps: stepMap.get(dayKey(date)) ?? 0 };
     });
     const weekSteps = week.reduce((sum, item) => sum + item.steps, 0);
-    const activeDays = week.filter(item => item.steps > 0 || sessions.some(session => dayKey(new Date(session.completedAt)) === item.key)).length;
-    const weekSessions = sessions.filter(session => {
+    const activeDays = week.filter(item => item.steps > 0 || validSessions.some(session => dayKey(new Date(session.completedAt)) === item.key)).length;
+    const weekSessions = validSessions.filter(session => {
       const date = new Date(session.completedAt);
-      return date >= week[0].date && date <= new Date(today.getTime()+86400000);
+      return date >= week[0].date && date <= now;
     });
     const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
     const previousStart = new Date(today.getFullYear(), today.getMonth()-1, 1);
     const previousComparableEnd = new Date(previousStart.getFullYear(), previousStart.getMonth(), Math.min(today.getDate(), new Date(previousStart.getFullYear(), previousStart.getMonth()+1, 0).getDate()));
     const thisMonthSteps = dailySteps.filter(item => item.date >= dayKey(monthStart) && item.date <= dayKey(today)).reduce((sum,item)=>sum+item.steps,0);
     const previousMonthSteps = dailySteps.filter(item => item.date >= dayKey(previousStart) && item.date <= dayKey(previousComparableEnd)).reduce((sum,item)=>sum+item.steps,0);
-    const thisMonthSessions = sessions.filter(item => new Date(item.completedAt) >= monthStart && new Date(item.completedAt) <= new Date(today.getTime()+86400000)).length;
-    const previousMonthSessions = sessions.filter(item => new Date(item.completedAt) >= previousStart && new Date(item.completedAt) < new Date(previousComparableEnd.getTime()+86400000)).length;
-    const bestDay = [...dailySteps].sort((a,b)=>b.steps-a.steps)[0];
+    const thisMonthSessions = validSessions.filter(item => new Date(item.completedAt) >= monthStart && new Date(item.completedAt) <= now).length;
+    const previousMonthSessions = validSessions.filter(item => new Date(item.completedAt) >= previousStart && new Date(item.completedAt) < new Date(previousComparableEnd.getTime()+86400000)).length;
+    const recentCutoff = new Date(today);
+    recentCutoff.setDate(today.getDate() - 29);
+    const cutoffKey = dayKey(recentCutoff);
+    const todayKey = dayKey(today);
+    const bestDay = dailySteps
+      .filter(item => item.date >= cutoffKey && item.date <= todayKey && Number.isFinite(item.steps) && item.steps > 0)
+      .sort((a,b)=>b.steps-a.steps)[0];
     const score = Math.min(100, Math.round((activeDays/7)*70 + Math.min(weekSessions.length,3)*10));
     const message = activeDays === 7 ? 'A full week of movement. Protect that consistency.' : activeDays >= 4 ? 'You are building a strong routine. Keep your rhythm steady.' : activeDays >= 1 ? 'You have started moving. A little consistency will compound.' : 'Your next win is simple: take the first walk or complete one short workout.';
     return { week, weekSteps, activeDays, weekSessions: weekSessions.length, thisMonthSteps, previousMonthSteps, thisMonthSessions, previousMonthSessions, bestDay, score, message };
