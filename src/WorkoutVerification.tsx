@@ -344,9 +344,12 @@ export default function WorkoutVerification({
                 stableFramesRef.current += 1;
                 if (stableFramesRef.current >= 2) {
                   const previous = phaseRef.current;
-                  const isCompletedCycle = (exercise === 'squat' || exercise === 'pushup' || exercise === 'situp' || exercise === 'lunge' || exercise === 'deadbug' || exercise === 'bridge')
-                    ? previous === 'down' && movement.phase === 'up'
-                    : previous === 'closed' && movement.phase === 'open';
+                  const isCompletedCycle = exercise === 'jumping-jack'
+                    // A jumping jack is one complete open-and-return cycle.
+                    ? previous === 'open' && movement.phase === 'closed'
+                    : (exercise === 'squat' || exercise === 'pushup' || exercise === 'situp' || exercise === 'lunge' || exercise === 'deadbug' || exercise === 'bridge')
+                      ? previous === 'down' && movement.phase === 'up'
+                      : previous === 'closed' && movement.phase === 'open';
                   if (isCompletedCycle && now - lastCountAtRef.current > 650) {
                     lastCountAtRef.current = now;
                     incrementCount();
