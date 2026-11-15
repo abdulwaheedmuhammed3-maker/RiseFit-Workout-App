@@ -87,7 +87,7 @@ const loadHistory = (): CompletedSession[] => {
   return value.filter((item): item is CompletedSession =>
    isRecord(item) && typeof item.id === 'string' && typeof item.title === 'string' &&
    ['plan','alarm','exercise'].includes(String(item.kind)) &&
-   typeof item.completedAt === 'string' && !Number.isNaN(Date.parse(item.completedAt))
+   typeof item.completedAt === 'string' && !Number.isNaN(Date.parse(item.completedAt)) && Date.parse(item.completedAt) <= Date.now()
   );
  } catch { return []; }
 };
