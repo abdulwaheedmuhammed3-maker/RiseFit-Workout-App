@@ -259,8 +259,18 @@ public class NativeAlarmPlugin extends Plugin {
 
     @PluginMethod
     public void stopRinging(PluginCall call) {
-        getContext().stopService(new Intent(getContext(), WakeAlarmService.class).setAction(WakeAlarmService.ACTION_STOP));
-        NotificationManager manager = (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
+        Context context = getContext();
+        // Clear persisted ring state even if Android already stopped the
+        // service after process pressure. Otherwise a stale ringing flag can
+        // make a later sticky-service recovery resume an alarm the user has
+        // already completed in RiseFit.
+        context.stopService(new Intent(context, WakeAlarmService.class));
+        android.content.SharedPreferences prefs = context.getSharedPreferences(AlarmScheduler.PREFS, Context.MODE_PRIVATE);
+        prefs.edit().putBoolean("ringing", false)
+            .remove("active_alarm_id")
+            .remove("ring_started_at")
+            .apply();
+        NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if (manager != null) manager.cancel(6303);
         call.resolve();
     }
