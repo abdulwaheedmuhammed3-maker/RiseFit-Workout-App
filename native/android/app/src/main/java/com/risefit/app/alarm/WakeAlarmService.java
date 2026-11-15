@@ -34,8 +34,15 @@ public class WakeAlarmService extends Service {
 
         SharedPreferences prefs = getSharedPreferences(AlarmScheduler.PREFS, Context.MODE_PRIVATE);
         String alarmId = intent == null ? null : intent.getStringExtra(AlarmScheduler.EXTRA_ALARM_ID);
-        // A sticky service restart without its original alarm intent must never start ringing again.
-        if (alarmId == null || !prefs.getBoolean(AlarmScheduler.enabledKey(alarmId), false)) {
+        if (alarmId == null && intent == null && prefs.getBoolean("ringing", false)) {
+            // Android can restart a START_STICKY service with a null intent
+            // after process death. Resume only the persisted active alarm.
+            alarmId = prefs.getString("active_alarm_id", null);
+        }
+        // A normal stop clears "ringing" in onDestroy. The persisted flag lets
+        // a genuine process-death restart resume, but prevents stale restarts.
+        if (alarmId == null || !prefs.getBoolean(AlarmScheduler.enabledKey(alarmId), false)
+            || (intent == null && !prefs.getBoolean("ringing", false))) {
             stopSelf();
             return START_NOT_STICKY;
         }
