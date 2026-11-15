@@ -1064,3 +1064,242 @@ footer span {
     padding: calc(16px + env(safe-area-inset-top, 0px)) 10px calc(16px + env(safe-area-inset-bottom, 0px));
   }
 }
+
+
+/* Consolidated responsive foundation — loaded after component styles intentionally. */
+:root {
+  --rf-bg: #090c08;
+  --rf-surface: #151912;
+  --rf-surface-raised: #1b2115;
+  --rf-border: #30372a;
+  --rf-text: #f3f5ef;
+  --rf-muted: #a0a796;
+  --rf-accent: var(--lime);
+  --rf-accent-soft: var(--accent-soft);
+  --rf-radius-card: 18px;
+  --rf-content-width: 1160px;
+}
+
+#root,
+.shell,
+.main,
+.panel,
+.stats-screen-v2,
+.fitness-goals,
+.device-setup-shell,
+.profile-setup-shell {
+  min-width: 0;
+}
+
+#root {
+  overflow-x: clip;
+}
+
+.main {
+  width: min(100%, var(--rf-content-width));
+}
+
+.main > *,
+.panel > *,
+.stats-screen-v2 > *,
+.fitness-goals > * {
+  min-width: 0;
+}
+
+h1, h2, h3, h4 {
+  line-height: 1.2;
+  overflow-wrap: break-word;
+}
+
+.primary,
+.secondary,
+.fitness-recommendation-action,
+.privacy-actions button,
+.rest-timer-actions > button {
+  min-height: 42px;
+  line-height: 1.35;
+  white-space: normal;
+  text-align: center;
+}
+
+.step-counter-refresh {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  min-height: 38px;
+  flex: 0 0 38px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--accent-line);
+  border-radius: 11px;
+  background: var(--accent-soft);
+  color: var(--lime);
+  cursor: pointer;
+  transition: background-color .18s ease, border-color .18s ease, opacity .18s ease;
+}
+
+.step-counter-refresh:hover:not(:disabled) {
+  border-color: var(--lime);
+  background: #2a351e;
+}
+
+.step-counter-refresh:focus-visible {
+  outline: 2px solid var(--lime);
+  outline-offset: 3px;
+}
+
+.step-counter-refresh:disabled {
+  opacity: .5;
+  cursor: wait;
+}
+
+.stats-v2-card,
+.stats-v2-level,
+.stats-v2-level-content,
+.stats-v2-heading > div,
+.device-health-heading > div,
+.step-counter-heading > div,
+.fitness-goals-heading > div,
+.fitness-achievements-heading > div,
+.device-permission-copy {
+  min-width: 0;
+}
+
+.stats-v2-card strong,
+.stats-v2-card small,
+.stats-v2-level-content p,
+.fitness-goal-controls > span,
+.device-permission-copy,
+.privacy-facts article > div,
+.fitness-badge > div {
+  overflow-wrap: anywhere;
+}
+
+.step-history-row {
+  min-width: 0;
+}
+
+.step-history-row > span {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.step-history-row > b {
+  white-space: nowrap;
+}
+
+.device-health-grid article,
+.device-permission-row,
+.privacy-facts article,
+.fitness-badge {
+  min-width: 0;
+}
+
+@media (max-width: 760px) {
+  .main {
+    padding-left: max(15px, env(safe-area-inset-left));
+    padding-right: max(15px, env(safe-area-inset-right));
+  }
+
+  .header,
+  .section-title,
+  .stats-v2-heading,
+  .fitness-goals-heading,
+  .fitness-achievements-heading,
+  .device-health-heading {
+    gap: 10px;
+  }
+
+  .stats-v2-heading h2 {
+    font-size: clamp(22px, 6vw, 28px);
+  }
+
+  .stats-v2-card {
+    gap: 9px;
+    padding: 13px 11px;
+  }
+
+  .stats-v2-card strong {
+    font-size: clamp(17px, 5vw, 22px);
+  }
+
+  .stats-v2-icon {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+  }
+
+  .stats-v2-level {
+    align-items: flex-start;
+    gap: 11px;
+    padding: 14px;
+  }
+
+  .stats-v2-medal {
+    width: 58px;
+    height: 58px;
+    flex: 0 0 58px;
+    border-radius: 17px;
+  }
+
+  .fitness-goal-controls {
+    align-items: flex-start;
+  }
+
+  .fitness-goal-controls > span {
+    flex: 1;
+  }
+
+  .device-health-battery > div {
+    flex: 1 1 120px;
+  }
+
+  .device-health-power {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 380px) {
+  .main {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .stats-v2-metrics {
+    gap: 7px;
+  }
+
+  .stats-v2-card {
+    padding: 11px 9px;
+    gap: 7px;
+  }
+
+  .stats-v2-card > div > span {
+    font-size: 10px;
+  }
+
+  .stats-v2-card strong {
+    font-size: 17px;
+    letter-spacing: -.3px;
+  }
+
+  .stats-v2-card small {
+    font-size: 8px;
+  }
+
+  .stats-v2-icon {
+    width: 35px;
+    height: 35px;
+    flex-basis: 35px;
+  }
+
+  .stats-v2-icon svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  .stats-period button,
+  .stats-v2-period button {
+    font-size: 10px;
+  }
+}
