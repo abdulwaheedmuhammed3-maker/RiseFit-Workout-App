@@ -319,6 +319,7 @@ public class NativeAlarmPlugin extends Plugin {
         Intent intent = getActivity().getIntent();
         boolean openChallenge = intent != null && intent.getBooleanExtra(AlarmScheduler.EXTRA_OPEN_CHALLENGE, false);
         String alarmId = intent == null ? null : intent.getStringExtra(AlarmScheduler.EXTRA_ALARM_ID);
+        long occurrenceAt = intent == null ? 0L : intent.getLongExtra(AlarmScheduler.EXTRA_ALARM_OCCURRENCE_AT, 0L);
         if (openChallenge) {
             intent.removeExtra(AlarmScheduler.EXTRA_OPEN_CHALLENGE);
             getActivity().setIntent(intent);
@@ -326,6 +327,7 @@ public class NativeAlarmPlugin extends Plugin {
         JSObject result = new JSObject();
         result.put("openChallenge", openChallenge);
         if (alarmId != null) result.put("alarmId", alarmId);
+        if (openChallenge && occurrenceAt > 0L) result.put("occurrenceAt", occurrenceAt);
         call.resolve(result);
     }
 
@@ -341,7 +343,9 @@ public class NativeAlarmPlugin extends Plugin {
             JSObject event = new JSObject();
             event.put("openChallenge", true);
             String alarmId = intent.getStringExtra(AlarmScheduler.EXTRA_ALARM_ID);
+            long occurrenceAt = intent.getLongExtra(AlarmScheduler.EXTRA_ALARM_OCCURRENCE_AT, 0L);
             if (alarmId != null) event.put("alarmId", alarmId);
+            if (occurrenceAt > 0L) event.put("occurrenceAt", occurrenceAt);
             notifyListeners("alarmTriggered", event, true);
         }
     }
