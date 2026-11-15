@@ -6,6 +6,7 @@ import { Activity, AlarmClock, Home, Dumbbell, Flame, Settings, Play, ChevronRig
 import WorkoutVerification, { type ExerciseType } from './WorkoutVerification';
 import Statistics from './Statistics';
 import ProfileSetup, { getLocalDateKey, isValidDateOnly, type RiseFitProfile } from './Profile';
+import { getNextEnabledAlarm, normalizeAlarmMissions } from './alarmUtils';
 import DeviceSetup from './DeviceSetup';
 import WomensFitness from './WomensFitness';
 import AlarmReliability from './AlarmReliability';
@@ -65,18 +66,7 @@ const loadAlarms = (): WakeAlarm[] => {
    typeof item.enabled === 'boolean' && typeof item.time === 'string' &&
    /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(item.time)
   ).map(item => {
-   const challenge = Array.isArray(item.challenge) ? item.challenge.flatMap((entry): AlarmExerciseConfig[] => {
-    if (!isRecord(entry) || typeof entry.exerciseId !== 'string'
-      || !validExerciseIds.includes(entry.exerciseId as ExerciseId)) return [];
-    const target = Number(entry.target);
-    const rounds = Number(entry.rounds);
-    if (!Number.isFinite(target) || !Number.isFinite(rounds)) return [];
-    return [{
-     exerciseId: entry.exerciseId as ExerciseId,
-     target: Math.max(1, Math.min(300, Math.round(target))),
-     rounds: Math.max(1, Math.min(10, Math.round(rounds)))
-    }];
-   }) : undefined;
+   const challenge = normalizeAlarmMissions<ExerciseId>(item.challenge, validExerciseIds);
    return {id:item.id as string,time:item.time as string,enabled:item.enabled as boolean,label:item.label as string,
     difficulty:['Easy','Normal','Hard','Extreme'].includes(String(item.difficulty)) ? item.difficulty as AlarmDifficulty : 'Normal',
     requireAllMissions:typeof item.requireAllMissions === 'boolean' ? item.requireAllMissions : false,
@@ -218,16 +208,7 @@ export default function App(){
  const recordSession=(title:string,kind:CompletedSession['kind'])=>setHistory(items=>[...items,{id:`${Date.now()}-${items.length}`,title,kind,completedAt:new Date().toISOString()}]);
  const deleteProfileAndTrainingData=()=>{localStorage.removeItem('risefit-profile-v1');localStorage.removeItem('risefit-fitness-goals-v1');localStorage.removeItem('risefit-low-impact-mode-v1');localStorage.removeItem('risefit-rest-day-v1');setProfile(null);setHistory([]);setLowImpactMode(false);setRestDayEnabled(false);};
  const sessions=history.length;
- const nextEnabledAlarm=alarms
-  .filter(alarm=>alarm.enabled)
-  .map(alarm=>{
-   const [hour,minute]=alarm.time.split(':').map(Number);
-   const nextOccurrence=new Date(now);
-   nextOccurrence.setHours(hour,minute,0,0);
-   if(nextOccurrence<=now)nextOccurrence.setDate(nextOccurrence.getDate()+1);
-   return {alarm,nextOccurrence};
-  })
-  .sort((a,b)=>a.nextOccurrence.getTime()-b.nextOccurrence.getTime())[0]?.alarm;
+ const nextEnabledAlarm=getNextEnabledAlarm(alarms,now);
  const updateAlarm=(id:string,patch:Partial<WakeAlarm>)=>setAlarms(items=>items.map(a=>a.id===id?{...a,...patch}:a));
  const addAlarm=()=>{const alarm:WakeAlarm={id:`alarm-${Date.now()}`,time:'07:00',enabled:false,label:`Alarm ${alarms.length+1}`,challenge:[...defaultAlarmChallenge],difficulty:'Normal',requireAllMissions:true};setAlarms(items=>[...items,alarm]);setEditingAlarmId(alarm.id);setEditingAlarmTime(alarm.time);};
  const getAlarmChallenge=(alarm:WakeAlarm)=>alarm.challenge?.length?alarm.challenge:defaultAlarmChallenge;
