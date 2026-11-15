@@ -7,6 +7,8 @@ RiseFit is an Android-first fitness app built around automatic daily activity tr
 - **Home dashboard:** daily steps read directly from the phone's hardware step counter after one-time Activity Recognition permission; a foreground service keeps counting when RiseFit is closed.
 - **Workout library:** guided workout plans and individual exercise sessions.
 - **Live exercise verification:** MediaPipe Pose Landmarker analyses the live camera feed on-device and counts supported movements or verified hold time.
+- **Guided workout coaching:** step-by-step illustrated movement guides, live pose-landmark movement cues, and optional spoken coaching when Android WebView speech synthesis is available.
+- **Recovery timer:** a 30-second rest break between workout rounds and exercises, with pause, +15 seconds, and skip controls.
 - **Wake-up alarms:** native Android exact-alarm scheduling, a foreground ringing service, and alarm recovery after device reboot.
 - **Alarm challenge:** the first configured exercise is required to stop the ringing alarm; additional configured exercises are optional follow-on workouts.
 - **Progress:** completed sessions and profile data are stored locally on the device; the calendar and statistics read the local workout history and available step history.
