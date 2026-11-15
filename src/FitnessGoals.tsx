@@ -12,13 +12,12 @@ type Props = {
   profileGoal: FitnessGoal;
   lowImpactMode: boolean;
   onLowImpactChange: (enabled: boolean) => void;
+  restDayEnabled: boolean;
+  onRestDayChange: (enabled: boolean) => void;
   onStartPlan: (planId: string) => void;
 };
 
 const STORAGE_KEY = 'risefit-fitness-goals-v1';
-const REST_DAY_KEY = 'risefit-rest-day-v1';
-const todayKey = () => dayKey(new Date());
-const loadRestDay = () => { try { return localStorage.getItem(REST_DAY_KEY) === todayKey(); } catch { return false; } };
 const DEFAULT_GOALS: Goals = { dailySteps: 8000, weeklyWorkouts: 3 };
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, Math.round(value)));
 const dayKey = (date: Date) => date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
@@ -59,12 +58,8 @@ const goalNames: Record<FitnessGoal, string> = {
   'upper-body': 'upper-body strength'
 };
 
-export default function FitnessGoals({ dailySteps, stepsPermissionGranted, sessions, profileGoal, lowImpactMode, onLowImpactChange, onStartPlan }: Props) {
+export default function FitnessGoals({ dailySteps, stepsPermissionGranted, sessions, profileGoal, lowImpactMode, onLowImpactChange, restDayEnabled, onRestDayChange, onStartPlan }: Props) {
   const [goals, setGoals] = useState<Goals>(loadGoals);
-  const [restDayEnabled, setRestDayEnabled] = useState(loadRestDay);
-  useEffect(() => {
-    try { if (restDayEnabled) localStorage.setItem(REST_DAY_KEY, todayKey()); else localStorage.removeItem(REST_DAY_KEY); } catch { /* Keep the control usable if storage is unavailable. */ }
-  }, [restDayEnabled]);
   useEffect(() => {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(goals)); } catch { /* Keep the screen usable if storage is unavailable. */ }
   }, [goals]);
@@ -180,7 +175,7 @@ export default function FitnessGoals({ dailySteps, stepsPermissionGranted, sessi
         </div>
         <div className="fitness-mode-row">
           <div><strong>Rest day mode</strong><small>Pauses workout prompts for today. This resets automatically tomorrow.</small></div>
-          <button type="button" className={'fitness-mode-switch' + (restDayEnabled ? ' enabled' : '')} aria-pressed={restDayEnabled} onClick={() => setRestDayEnabled(value => !value)}>{restDayEnabled ? 'On' : 'Off'}</button>
+          <button type="button" className={'fitness-mode-switch' + (restDayEnabled ? ' enabled' : '')} aria-pressed={restDayEnabled} onClick={() => onRestDayChange(!restDayEnabled)}>{restDayEnabled ? 'On' : 'Off'}</button>
         </div>
       </article>
 
