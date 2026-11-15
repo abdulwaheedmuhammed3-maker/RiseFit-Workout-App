@@ -229,7 +229,7 @@ export default function FitnessGoals({ dailySteps, stepsPermissionGranted, sessi
         ) : bothGoalsComplete ? (
           <>
             <h3>Goals reached. Make recovery count.</h3>
-            <p>You have reached your step target and logged a workout today. Gentle movement or rest is a sensible next choice; there is no need to add another hard session.</p>
+            <p>You have reached today's step target and your weekly workout target. Gentle movement or rest is a sensible next choice; there is no need to add another hard session.</p>
           </>
         ) : data.todayWorkouts > 0 ? (
           <>
