@@ -202,14 +202,24 @@ export default function App(){
  useEffect(()=>{
   if(Capacitor.getPlatform()!=='android')return;
   let listener:{remove:()=>Promise<void>}|undefined;
+  let settingsListener:{remove:()=>Promise<void>}|undefined;
   let disposed=false;
   void NativeAlarm.addListener('alarmTriggered',event=>openAlarmChallenge(event.alarmId??null,event.occurrenceAt??null)).then(value=>{if(disposed)void value.remove();else listener=value;});
+  const openAlarmSettings=()=>{
+   setPlanId(null);
+   setDetail(null);
+   setRestState(null);
+   setEditingAlarmId(null);
+   setEditingAlarmTime(null);
+   setTab('My alarms');
+  };
+  void NativeAlarm.addListener('alarmSettingsRequested',openAlarmSettings).then(value=>{if(disposed)void value.remove();else settingsListener=value;});
   void LocalNotifications.cancel({notifications:[{id:6301}]}).catch(()=>{});
-  const checkLaunch=async()=>{try{const result=await NativeAlarm.consumeAlarmLaunch();if(result.openChallenge)openAlarmChallenge(result.alarmId??null,result.occurrenceAt??null);await refreshAlarmStatus();}catch{}};
+  const checkLaunch=async()=>{try{const result=await NativeAlarm.consumeAlarmLaunch();if(result.openChallenge)openAlarmChallenge(result.alarmId??null,result.occurrenceAt??null);else if(result.openAlarmSettings)openAlarmSettings();await refreshAlarmStatus();}catch{}};
   const onVisibility=()=>{if(!document.hidden)void checkLaunch();};
   void checkLaunch();
   document.addEventListener('visibilitychange',onVisibility);
-  return()=>{disposed=true;document.removeEventListener('visibilitychange',onVisibility);void listener?.remove();};
+  return()=>{disposed=true;document.removeEventListener('visibilitychange',onVisibility);void listener?.remove();void settingsListener?.remove();};
  },[]);
 
  useEffect(()=>{if(profile)localStorage.setItem('risefit-profile-v1',JSON.stringify(profile));},[profile]);
