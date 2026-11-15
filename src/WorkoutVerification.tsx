@@ -256,11 +256,10 @@ function getCoachingCue(pose: Landmark[] | undefined, exercise: ExerciseType, ph
       const lineAngle = angle(point(torso[0]), point(torso[1]), point(endIndex));
       const level = Math.abs(point(torso[0]).y - point(endIndex).y);
       const extended = Math.abs(point(torso[0]).x - point(endIndex).x) > 0.18;
-      return lineAngle > (exercise === 'plank' ? 150 : 150) && level < tolerance && extended;
+      return lineAngle > 150 && level < tolerance && extended;
     };
     const fullBody = alignedBody(ankle, exercise === 'plank' ? 0.22 : 0.35);
     const supportedBody = !fullBody && alignedBody(knee, exercise === 'plank' ? 0.22 : 0.35);
-    const endpoint = fullBody ? 'ankles' : 'knees';
     const elbowAngle = angle(point(arm[0]), point(arm[1]), point(arm[2]));
     if (exercise === 'plank') {
       if (Math.abs(point(arm[0]).x - point(arm[1]).x) >= 0.2) return 'Place your elbows directly beneath your shoulders.';
