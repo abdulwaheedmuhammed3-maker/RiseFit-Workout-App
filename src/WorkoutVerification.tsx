@@ -23,7 +23,7 @@ const EXERCISES: Record<ExerciseType, { title: string; instruction: string; setu
   situp: { title: 'sit-ups', instruction: 'Raise your upper body from the lowered position and return under control.', setup: 'Position the phone side-on and keep your shoulders, hips and knees visible.' },
   plank: { title: 'a forearm plank', instruction: 'Hold a straight line from your shoulders through your hips to your ankles. The timer only advances while your plank position is detected.', setup: 'Place the phone side-on at a low angle. Keep your shoulders, hips and ankles visible and hold your body in a straight line.' },
   lunge: { title: 'reverse lunges', instruction: 'Step one foot back, lower with control, then return to standing. Alternate legs.', setup: 'Face the camera at a slight angle and keep both hips, knees and ankles in frame.' },
-  highknees: { title: 'high knees', instruction: 'Raise one knee at a time toward hip height, alternating sides with control.', setup: 'Face the camera and keep your hips and both knees visible. Lift each knee clearly above hip level.' },
+  highknees: { title: 'high knees', instruction: 'Raise one knee at a time toward hip height while the other leg supports you. Alternate sides with control.', setup: 'Face the camera and keep your shoulders, hips, knees and ankles visible. Keep one leg straight as you lift the other knee.' },
   deadbug: { title: 'dead bugs', instruction: 'Lie on your back and slowly extend a leg, then return to the bent starting position.', setup: 'Position the phone side-on. Keep your shoulders, hips, knees and ankles visible while lying down.' },
   bridge: { title: 'glute bridges', instruction: 'Lie on your back with knees bent, lift your hips, then lower under control.', setup: 'Position the phone side-on and keep your shoulders, hips and knees visible.' },
 };
@@ -142,9 +142,28 @@ function getMovementPhase(pose: Landmark[], exercise: ExerciseType): { phase: Ph
     };
   }
   if (exercise === 'highknees') {
-    if (!visible([23,24,25,26])) return { phase: 'ready', valid: false };
-    const raised = point(25).y < point(23).y - 0.1 || point(26).y < point(24).y - 0.1;
-    return { phase: raised ? 'open' : 'closed', valid: true };
+    if (!visible([11,12,23,24,25,26,27,28])) return { phase: 'ready', valid: false };
+    const shoulderX = (point(11).x + point(12).x) / 2;
+    const shoulderY = (point(11).y + point(12).y) / 2;
+    const hipX = (point(23).x + point(24).x) / 2;
+    const hipY = (point(23).y + point(24).y) / 2;
+    const torsoUpright = hipY > shoulderY + 0.08
+      && Math.abs(hipY - shoulderY) > Math.abs(hipX - shoulderX);
+    if (!torsoUpright) return { phase: 'ready', valid: false };
+
+    const leftRaised = point(25).y < point(23).y - 0.1;
+    const rightRaised = point(26).y < point(24).y - 0.1;
+    const leftKnee = angle(point(23), point(25), point(27));
+    const rightKnee = angle(point(24), point(26), point(28));
+    // One leg must remain nearly straight as the other knee lifts. This
+    // rejects seated knee raises and double-knee tucks as high-knee reps.
+    const hasStandingSupport = leftRaised && !rightRaised
+      ? rightKnee > 150
+      : rightRaised && !leftRaised
+        ? leftKnee > 150
+        : !leftRaised && !rightRaised && (leftKnee > 150 || rightKnee > 150);
+    if (!hasStandingSupport || (leftRaised && rightRaised)) return { phase: 'ready', valid: false };
+    return { phase: leftRaised || rightRaised ? 'open' : 'closed', valid: true };
   }
   if (exercise === 'deadbug') {
     // Dead bugs alternate legs. Track either extension and re-arm only when
@@ -371,6 +390,13 @@ export default function WorkoutVerification({
               } else if (!movement.valid) {
                 stableFramesRef.current = 0;
                 phaseRef.current = 'ready';
+                if (exercise === 'highknees') {
+                  // Do not count a knee lift that happened while the standing
+                  // pose or support leg was outside the verified camera frame.
+                  highKneesInitializedRef.current = false;
+                  leftKneeRaisedRef.current = false;
+                  rightKneeRaisedRef.current = false;
+                }
               } else {
                 stableFramesRef.current = 0;
               }
@@ -380,6 +406,11 @@ export default function WorkoutVerification({
               stableFramesRef.current = 0;
               phaseRef.current = 'ready';
               lastFrameAtRef.current = 0;
+              if (exercise === 'highknees') {
+                highKneesInitializedRef.current = false;
+                leftKneeRaisedRef.current = false;
+                rightKneeRaisedRef.current = false;
+              }
             }
           } catch (trackingError) {
             processingFailedRef.current = true;
