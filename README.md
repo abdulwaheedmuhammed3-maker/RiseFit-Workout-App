@@ -16,12 +16,14 @@ RiseFit is an Android-first fitness app built around automatic daily activity tr
 - **Recovery and accessibility:** a daily rest-day setting suppresses workout suggestions until the next day; low-impact mode recommends a separate no-jump strength and mobility plan with shorter targets.
 - **Privacy and backup:** export/import of the local profile, fitness targets, workout history and preferences; controls to delete saved workout data and profile information.
 - **Offline workout access:** workout plans, illustrated guides, MediaPipe runtime files and the pose model are bundled into the installed app for local use without a runtime internet connection.
+- **Device health monitor:** reads Android battery percentage/charging state, power-saver mode, standard battery-optimisation exemption, hardware step-sensor details, Activity Recognition permission and the last recorded sensor update.
 
 ## Android requirements and behaviour
 
 - Native alarms require the Android app. The browser build is a UI/development preview and cannot provide Android alarm behaviour.
 - Automatic on-device step counting requires a phone with a hardware step-counter sensor. Android 10+ requires Activity Recognition permission. RiseFit uses a health foreground service with an ongoing notification to keep the sensor registered while the app is closed; daily totals stay in app-private storage.
 - The native sensor reports cumulative step totals while RiseFit's background service is registered. The dashboard refreshes its local daily totals when RiseFit is open.
+- The device health monitor refreshes when opened, when the app resumes and when manually requested. Its last sensor update is the last hardware step-counter event; a quiet period without steps does not prove the service has stopped. Standard battery-optimisation status may not cover all manufacturer-specific power controls.
 - Camera verification requires camera permission and a supported Android WebView. The video is processed locally; RiseFit does not upload or store the camera feed.
 - Alarm delivery, full-screen presentation, DND behaviour, and camera detection must still be verified on physical Android devices across supported OS versions and manufacturer battery-management settings.
 

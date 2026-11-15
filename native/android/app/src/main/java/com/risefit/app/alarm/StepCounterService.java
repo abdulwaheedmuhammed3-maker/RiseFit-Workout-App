@@ -33,6 +33,7 @@ public final class StepCounterService extends Service implements SensorEventList
     private static final String KEY_ENABLED = "tracking_enabled";
     private static final String KEY_LAST_RAW = "last_raw_counter";
     private static final String KEY_LAST_UPDATED = "last_updated";
+    private static final String KEY_SERVICE_STARTED_AT = "service_started_at";
     private static final String CHANNEL_ID = "risefit_step_tracking";
     private static final int NOTIFICATION_ID = 6310;
 
@@ -130,6 +131,7 @@ public final class StepCounterService extends Service implements SensorEventList
             markUnsupportedAndStop();
             return START_NOT_STICKY;
         }
+        preferences().edit().putLong(KEY_SERVICE_STARTED_AT, System.currentTimeMillis()).apply();
         return START_STICKY;
     }
 
