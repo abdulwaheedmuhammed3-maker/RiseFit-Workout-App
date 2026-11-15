@@ -318,14 +318,17 @@ public class NativeAlarmPlugin extends Plugin {
     public void consumeAlarmLaunch(PluginCall call) {
         Intent intent = getActivity().getIntent();
         boolean openChallenge = intent != null && intent.getBooleanExtra(AlarmScheduler.EXTRA_OPEN_CHALLENGE, false);
+        boolean openAlarmSettings = intent != null && intent.getBooleanExtra(AlarmScheduler.EXTRA_OPEN_ALARM_SETTINGS, false);
         String alarmId = intent == null ? null : intent.getStringExtra(AlarmScheduler.EXTRA_ALARM_ID);
         long occurrenceAt = intent == null ? 0L : intent.getLongExtra(AlarmScheduler.EXTRA_ALARM_OCCURRENCE_AT, 0L);
-        if (openChallenge) {
+        if (openChallenge || openAlarmSettings) {
             intent.removeExtra(AlarmScheduler.EXTRA_OPEN_CHALLENGE);
+            intent.removeExtra(AlarmScheduler.EXTRA_OPEN_ALARM_SETTINGS);
             getActivity().setIntent(intent);
         }
         JSObject result = new JSObject();
         result.put("openChallenge", openChallenge);
+        result.put("openAlarmSettings", openAlarmSettings);
         if (alarmId != null) result.put("alarmId", alarmId);
         if (openChallenge && occurrenceAt > 0L) result.put("occurrenceAt", occurrenceAt);
         call.resolve(result);
@@ -334,19 +337,32 @@ public class NativeAlarmPlugin extends Plugin {
     @Override
     protected void handleOnNewIntent(Intent intent) {
         super.handleOnNewIntent(intent);
-        if (intent != null && intent.getBooleanExtra(AlarmScheduler.EXTRA_OPEN_CHALLENGE, false)) {
-            // Treat the notification launch flag as one-shot. Leaving it on the
-            // Activity intent would replay the mission when the app resumes later.
+        if (intent == null) return;
+
+        boolean openChallenge = intent.getBooleanExtra(AlarmScheduler.EXTRA_OPEN_CHALLENGE, false);
+        boolean openAlarmSettings = intent.getBooleanExtra(AlarmScheduler.EXTRA_OPEN_ALARM_SETTINGS, false);
+        if (openChallenge || openAlarmSettings) {
+            // Both launch flags are one-shot. Do not replay a challenge or
+            // reopen the alarm editor on a later app resume.
             intent.removeExtra(AlarmScheduler.EXTRA_OPEN_CHALLENGE);
+            intent.removeExtra(AlarmScheduler.EXTRA_OPEN_ALARM_SETTINGS);
             getActivity().setIntent(intent);
 
-            JSObject event = new JSObject();
-            event.put("openChallenge", true);
             String alarmId = intent.getStringExtra(AlarmScheduler.EXTRA_ALARM_ID);
-            long occurrenceAt = intent.getLongExtra(AlarmScheduler.EXTRA_ALARM_OCCURRENCE_AT, 0L);
-            if (alarmId != null) event.put("alarmId", alarmId);
-            if (occurrenceAt > 0L) event.put("occurrenceAt", occurrenceAt);
-            notifyListeners("alarmTriggered", event, true);
+            if (openChallenge) {
+                JSObject event = new JSObject();
+                event.put("openChallenge", true);
+                long occurrenceAt = intent.getLongExtra(AlarmScheduler.EXTRA_ALARM_OCCURRENCE_AT, 0L);
+                if (alarmId != null) event.put("alarmId", alarmId);
+                if (occurrenceAt > 0L) event.put("occurrenceAt", occurrenceAt);
+                notifyListeners("alarmTriggered", event, true);
+            }
+            if (openAlarmSettings) {
+                JSObject event = new JSObject();
+                event.put("openAlarmSettings", true);
+                if (alarmId != null) event.put("alarmId", alarmId);
+                notifyListeners("alarmSettingsRequested", event, true);
+            }
         }
     }
 
