@@ -14,24 +14,29 @@ public class BootAlarmReceiver extends BroadcastReceiver {
         // Keep the user's enabled preference in SharedPreferences so it can be
         // restored when Android sends ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED.
         AlarmManager manager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        if (manager == null) return;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !manager.canScheduleExactAlarms()) return;
-
-        // AlarmManager stores wall-clock trigger instants. Recalculate each
-        // recurring alarm after boot, manual clock changes, timezone changes,
-        // app replacement, or exact-alarm permission being granted.
         SharedPreferences prefs = context.getSharedPreferences(AlarmScheduler.PREFS, Context.MODE_PRIVATE);
-        for (Map.Entry<String, ?> entry : prefs.getAll().entrySet()) {
-            String key = entry.getKey();
-            if (!key.startsWith("alarm_") || !key.endsWith("_enabled") || !Boolean.TRUE.equals(entry.getValue())) continue;
-            String id = key.substring(6, key.length() - 8);
-            try {
-                AlarmScheduler.scheduleNext(context, id,
-                    prefs.getInt(AlarmScheduler.hourKey(id), 6),
-                    prefs.getInt(AlarmScheduler.minuteKey(id), 30));
-            } catch (SecurityException ignored) {
-                // Do not clear the enabled preference. Android may send the
-                // permission-granted broadcast later and the alarm can recover.
+
+        // Alarm restoration is independent of step tracking. If exact-alarm
+        // access is unavailable, skip only the alarm rescheduling work rather
+        // than returning before the step foreground service can be restored.
+        boolean canRestoreAlarms = manager != null
+            && (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || manager.canScheduleExactAlarms());
+        if (canRestoreAlarms) {
+            // AlarmManager stores wall-clock trigger instants. Recalculate each
+            // recurring alarm after boot, manual clock changes, timezone changes,
+            // app replacement, or exact-alarm permission being granted.
+            for (Map.Entry<String, ?> entry : prefs.getAll().entrySet()) {
+                String key = entry.getKey();
+                if (!key.startsWith("alarm_") || !key.endsWith("_enabled") || !Boolean.TRUE.equals(entry.getValue())) continue;
+                String id = key.substring(6, key.length() - 8);
+                try {
+                    AlarmScheduler.scheduleNext(context, id,
+                        prefs.getInt(AlarmScheduler.hourKey(id), 6),
+                        prefs.getInt(AlarmScheduler.minuteKey(id), 30));
+                } catch (SecurityException ignored) {
+                    // Do not clear the enabled preference. Android may send the
+                    // permission-granted broadcast later and the alarm can recover.
+                }
             }
         }
         // Restore the continuous step listener after a reboot or app update.
