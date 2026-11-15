@@ -12,6 +12,8 @@
   "include": [
     "src/exerciseDetection.ts",
     "tests/**/*.test.ts",
-    "tests/**/*.d.ts"
+    "tests/**/*.d.ts",
+    "src/workoutHistory.ts",
+    "tests/workoutHistory.test.ts"
   ]
 }
