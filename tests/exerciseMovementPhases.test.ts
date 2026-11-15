@@ -38,7 +38,7 @@ test('jumping-jack detector requires arms overhead and feet apart for open phase
 
 test('sit-up detector distinguishes lying and upright phases', () => {
   const down = pose();
-  set(down, 11, .1, .5); set(down, 23, .5, .5); set(down, 25, .9, .5);
+  set(down, 11, .1, .5); set(down, 23, .5, .5); set(down, 25, .7, .8);
   expectPhase(down, 'situp', 'down');
   const up = pose();
   set(up, 11, .5, .1); set(up, 23, .5, .5); set(up, 25, .9, .5);
