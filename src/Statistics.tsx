@@ -2,8 +2,8 @@ import { useMemo, useState } from 'react';
 import type { DailyStepEntry } from './nativeAlarm';
 import ProgressInsights from './ProgressInsights';
 import {
-  Activity, Award, BarChart3, Clock3,
-  Dumbbell, Flame, Info, TrendingUp, Weight, Footprints
+  Activity, AlarmClock, Award, BarChart3, CalendarCheck,
+  Dumbbell, Flame, Info, TrendingUp, Footprints
 } from 'lucide-react';
 
 type Period = 'Week' | 'Month' | 'Year' | 'All';
@@ -78,6 +78,8 @@ export default function Statistics({ sessions = [], dailySteps = [], stepsPermis
     }).sort((a, b) => b.completedAt.localeCompare(a.completedAt));
   }, [sessions, period]);
   const workouts = filteredSessions.length;
+  const planWorkouts = filteredSessions.filter(session => session.kind === 'plan').length;
+  const alarmChallenges = filteredSessions.filter(session => session.kind === 'alarm').length;
   const lifetimeWorkouts = sessions.filter(session => {
     const completedAt = new Date(session.completedAt);
     return !Number.isNaN(completedAt.getTime()) && completedAt <= new Date();
@@ -121,15 +123,15 @@ export default function Statistics({ sessions = [], dailySteps = [], stepsPermis
       <div className="stats-v2-metrics">
         <article className="stats-v2-card">
           <span className="stats-v2-icon"><Dumbbell /></span>
-          <div><span>Workouts</span><strong>{workouts}</strong><small><TrendingUp size={13} /> Sessions completed</small></div>
+          <div><span>Completed sessions</span><strong>{workouts}</strong><small><TrendingUp size={13} /> All recorded workout types</small></div>
         </article>
         <article className="stats-v2-card">
-          <span className="stats-v2-icon"><Clock3 /></span>
-          <div><span>Time trained</span><strong>Not tracked</strong><small>Session duration is not recorded yet</small></div>
+          <span className="stats-v2-icon"><CalendarCheck /></span>
+          <div><span>Workout plans</span><strong>{planWorkouts}</strong><small>Completed in this period</small></div>
         </article>
-        <article className="stats-v2-card stats-v2-volume">
-          <span className="stats-v2-icon"><Weight /></span>
-          <div><span>Training volume</span><strong>Not measured</strong><small>No weight-based data has been recorded</small></div>
+        <article className="stats-v2-card">
+          <span className="stats-v2-icon"><AlarmClock /></span>
+          <div><span>Alarm challenges</span><strong>{alarmChallenges}</strong><small>Verified wake-up routines</small></div>
         </article>
         <article className="stats-v2-card">
           <span className="stats-v2-icon"><Footprints /></span>
