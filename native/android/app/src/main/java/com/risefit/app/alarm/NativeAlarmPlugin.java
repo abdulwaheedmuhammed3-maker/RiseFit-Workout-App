@@ -211,7 +211,7 @@ public class NativeAlarmPlugin extends Plugin {
         LocalDate today = LocalDate.now(ZoneId.systemDefault());
         JSArray days = new JSArray();
         long stepsToday = 0L;
-        for (int index = 0; index < 7; index++) {
+        for (int index = 0; index < 30; index++) {
             LocalDate date = today.minusDays(index);
             long steps = Math.max(0L, prefs.getLong(StepCounterService.dayKey(date.toString()), 0L));
             JSObject entry = new JSObject();
