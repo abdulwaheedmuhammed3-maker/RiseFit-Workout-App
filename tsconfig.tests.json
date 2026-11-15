@@ -7,8 +7,11 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "rootDir": ".",
-    "outDir": ".test-dist",
-    "types": ["node"]
+    "outDir": ".test-dist"
   },
-  "include": ["src/exerciseDetection.ts", "tests/**/*.test.ts"]
+  "include": [
+    "src/exerciseDetection.ts",
+    "tests/**/*.test.ts",
+    "tests/**/*.d.ts"
+  ]
 }
