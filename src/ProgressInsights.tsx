@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, type CSSProperties } from 'react';
 import { Award, Footprints, TrendingUp, CalendarDays, Flame } from 'lucide-react';
 import type { DailyStepEntry } from './nativeAlarm';
 
@@ -26,10 +26,11 @@ export default function ProgressInsights({ dailySteps, sessions }: Props) {
     const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
     const previousStart = new Date(today.getFullYear(), today.getMonth()-1, 1);
     const previousEnd = monthStart;
+    const previousComparableEnd = new Date(previousStart.getFullYear(), previousStart.getMonth(), Math.min(today.getDate(), new Date(previousStart.getFullYear(), previousStart.getMonth()+1, 0).getDate()));
     const thisMonthSteps = dailySteps.filter(item => item.date >= dayKey(monthStart) && item.date <= dayKey(today)).reduce((sum,item)=>sum+item.steps,0);
-    const previousMonthSteps = dailySteps.filter(item => item.date >= dayKey(previousStart) && item.date < dayKey(previousEnd)).reduce((sum,item)=>sum+item.steps,0);
+    const previousMonthSteps = dailySteps.filter(item => item.date >= dayKey(previousStart) && item.date <= dayKey(previousComparableEnd)).reduce((sum,item)=>sum+item.steps,0);
     const thisMonthSessions = sessions.filter(item => new Date(item.completedAt) >= monthStart && new Date(item.completedAt) <= new Date(today.getTime()+86400000)).length;
-    const previousMonthSessions = sessions.filter(item => new Date(item.completedAt) >= previousStart && new Date(item.completedAt) < previousEnd).length;
+    const previousMonthSessions = sessions.filter(item => new Date(item.completedAt) >= previousStart && new Date(item.completedAt) < new Date(previousComparableEnd.getTime()+86400000)).length;
     const bestDay = [...dailySteps].sort((a,b)=>b.steps-a.steps)[0];
     const score = Math.min(100, Math.round((activeDays/7)*70 + Math.min(weekSessions.length,3)*10));
     const message = activeDays === 7 ? 'A full week of movement. Protect that consistency.' : activeDays >= 4 ? 'You are building a strong routine. Keep your rhythm steady.' : activeDays >= 1 ? 'You have started moving. A little consistency will compound.' : 'Your next win is simple: take the first walk or complete one short workout.';
@@ -46,7 +47,7 @@ export default function ProgressInsights({ dailySteps, sessions }: Props) {
       </div>
       <div className="progress-insights-score">
         <div><span className="stats-eyebrow">CONSISTENCY SCORE</span><strong>{data.score}<small>/100</small></strong><p>{data.message}</p></div>
-        <div className="progress-score-ring" style={{'--score': `${data.score}%`} as React.CSSProperties}><Award size={25}/></div>
+        <div className="progress-score-ring" style={{'--score': `${data.score}%`} as CSSProperties}><Award size={25}/></div>
       </div>
       <div className="progress-week-chart">
         {data.week.map(item => {
