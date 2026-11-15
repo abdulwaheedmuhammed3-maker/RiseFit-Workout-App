@@ -58,7 +58,7 @@ export default function StepCounter({ stats, loading, error, onConnect, onRefres
       <strong>{stats.stepsToday.toLocaleString()}</strong>
       <span>steps recorded today</span>
     </div>
-    <div className="step-counter-status"><ShieldCheck size={16}/><span>Automatic counting is enabled. Your phone records steps throughout the day, even when RiseFit is closed.</span></div>
+    <div className="step-counter-status"><ShieldCheck size={16}/><span>Automatic tracking is enabled in RiseFit. The phone sensor is read by a background service; Android or manufacturer battery controls can affect how continuously it runs.</span></div>
     <div className="step-history-heading"><div><span className="eyebrow">RECENT RECORD</span><h3>Daily step history</h3></div><span className="step-history-period">LAST 30 DAYS</span></div>
     {days.length===0 ? <p className="muted">No steps have been recorded by the phone yet. The count will appear after the sensor reports activity.</p> :
       <div className="step-history-list">{days.map(day=><div className="step-history-row" key={day.date}>
@@ -66,7 +66,7 @@ export default function StepCounter({ stats, loading, error, onConnect, onRefres
         <div className="step-history-track"><i style={{width:`${Math.min(100,(day.steps/10000)*100)}%`}}/></div>
         <b>{day.steps.toLocaleString()}</b>
       </div>)}</div>}
-    <div className="step-counter-footer"><TrendingUp size={15}/><span>Daily totals come from this phone's built-in hardware step counter and are saved locally by RiseFit. The display refreshes about once per minute while the app is open.</span></div>
+    <div className="step-counter-footer"><TrendingUp size={15}/><span>Daily totals come from this phone's built-in hardware step counter and are saved locally. If the phone has been running across multiple dates before RiseFit first registers the sensor, earlier steps cannot always be split accurately by day, so RiseFit uses a safe baseline instead of guessing.</span></div>
     {error && <p className="step-counter-error" role="alert">{error}</p>}
   </section>;
 }

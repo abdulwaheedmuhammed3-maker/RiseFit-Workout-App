@@ -117,7 +117,7 @@ export default function DeviceSetup({ onComplete }: Props) {
         {isAndroid && <div className="device-setup-list">
           <article className="device-permission-row">
             <span className="device-permission-icon"><Footprints size={19}/></span>
-            <div className="device-permission-copy"><b>Automatic step counting</b><p>Uses your phone's built-in step sensor and Activity Recognition permission. No GPS or location access.</p><small>{loading ? 'Checking access…' : !state.sensorAvailable ? 'Not supported by this phone' : state.steps ? 'Enabled · background tracking active' : 'Needed for automatic daily steps'}</small></div>
+            <div className="device-permission-copy"><b>Automatic step counting</b><p>Uses your phone's built-in step sensor and Activity Recognition permission. No GPS or location access.</p><small>{loading ? 'Checking access…' : !state.sensorAvailable ? 'Not supported by this phone' : state.steps ? 'Enabled in RiseFit · sensor available' : 'Needed for automatic daily steps'}</small></div>
             <span className={state.steps ? 'device-permission-status done' : 'device-permission-status'}>{state.steps ? <CheckCircle2 size={18}/> : 'Needed'}</span>
             {!state.steps && state.sensorAvailable && <button className="secondary device-permission-action" disabled={loading || !!busy} onClick={enableSteps}>{busy === 'steps' ? 'Enabling…' : 'Enable'}</button>}
           </article>
