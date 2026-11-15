@@ -1,0 +1,914 @@
+/* RiseFit visual system: graphite surfaces, clear typography and one lime accent. */
+:root {
+  color-scheme: dark;
+  --lime: #c7f36b;
+  --muted: #a0a796;
+  --line: #30372a;
+  --card: #151912;
+  --surface: #10140e;
+  --text: #f3f5ef;
+  --text-soft: #c1c7b9;
+  --accent-soft: #242d19;
+  --accent-line: #465333;
+  background: #090c08;
+  color: var(--text);
+}
+
+html {
+  min-width: 320px;
+  min-height: 100%;
+  background: #090c08;
+  scroll-behavior: smooth;
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  background: #090c08;
+  color: var(--text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+#root {
+  min-height: 100vh;
+  width: 100%;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--lime);
+  outline-offset: 3px;
+}
+
+img,
+video,
+svg {
+  max-width: 100%;
+}
+
+h1,
+h2,
+h3,
+h4,
+p,
+strong,
+b,
+small,
+label,
+span {
+  overflow-wrap: break-word;
+}
+
+p {
+  line-height: 1.65;
+}
+
+.eyebrow,
+.side-caption,
+.stats-eyebrow {
+  line-height: 1.35;
+  font-size: 10px;
+}
+
+.shell {
+  width: 100%;
+  min-height: 100vh;
+  align-items: stretch;
+}
+
+.sidebar {
+  flex: 0 0 220px;
+  min-width: 0;
+}
+
+.main {
+  flex: 1 1 0;
+  width: auto;
+  min-width: 0;
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: clamp(22px, 3vw, 38px) clamp(16px, 3vw, 36px) 28px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-width: 0;
+  margin-bottom: 28px;
+}
+
+.header > div:first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.header h1 {
+  max-width: 100%;
+  font-size: clamp(22px, 2.5vw, 30px);
+  line-height: 1.15;
+  letter-spacing: -0.6px;
+  overflow-wrap: anywhere;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.date-chip {
+  min-height: 42px;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.header-greeting-name {
+  color: var(--lime);
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.hero-grid {
+  grid-template-columns: minmax(0, 1.35fr) minmax(250px, 0.9fr);
+  gap: 16px;
+}
+
+.hero,
+.streak,
+.panel,
+.stats-v2-card,
+.stats-v2-level,
+.stats-v2-anatomy-card,
+.progress-insights,
+.fitness-goal-card,
+.fitness-insight-card,
+.fitness-recommendation,
+.fitness-achievements,
+.fitness-records,
+.device-health,
+.step-counter-panel,
+.rest-timer-card,
+.womens-recommend,
+.womens-goal-card {
+  min-width: 0;
+}
+
+.hero,
+.streak,
+.panel {
+  border-color: var(--line);
+  border-radius: 18px;
+}
+
+.panel {
+  padding: clamp(16px, 2vw, 23px);
+  background: linear-gradient(145deg, #171c14, #12160f);
+}
+
+.section-title {
+  gap: 12px;
+  min-width: 0;
+}
+
+.section-title > div {
+  min-width: 0;
+}
+
+.section-title h2,
+.panel h2,
+.stats-v2-heading h2,
+.stats-v2-section-heading h3 {
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.plan-row,
+.alarm-card,
+.exercise-card {
+  min-width: 0;
+  border-color: var(--line);
+}
+
+.plan-info {
+  min-width: 0;
+}
+
+.plan-info b,
+.exercise-card b,
+.alarm-summary-heading b {
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.plan-info span,
+.duration,
+.alarm-summary-meta > span,
+.alarm-summary-challenge > span {
+  line-height: 1.45;
+}
+
+.exercise-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+}
+
+.exercise-card {
+  min-height: 142px;
+  height: 100%;
+}
+
+.primary,
+.secondary,
+.save-alarm-btn,
+.alarm-edit-btn {
+  min-height: 42px;
+  line-height: 1.25;
+  white-space: normal;
+  text-align: center;
+}
+
+.primary {
+  background: var(--lime);
+  border-color: var(--lime);
+  color: #10150b;
+  box-shadow: 0 4px 14px rgba(199, 243, 107, 0.12);
+}
+
+.secondary {
+  border-color: #394332;
+  background: #1a2016;
+  color: var(--text-soft);
+}
+
+.linkbtn {
+  min-height: 36px;
+  color: var(--lime);
+  line-height: 1.35;
+}
+
+.filters button {
+  min-height: 36px;
+}
+
+.play {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+}
+
+input,
+select,
+textarea {
+  max-width: 100%;
+}
+
+.alarm-editor,
+.alarm-summary {
+  min-width: 0;
+}
+
+.alarm-editor-content,
+.alarm-summary-content,
+.alarm-challenge-editor {
+  min-width: 0;
+}
+
+.alarm-editor-heading,
+.alarm-editor-footer,
+.alarm-summary-heading,
+.alarm-summary-footer {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.alarm-title-field,
+.alarm-time-field,
+.alarm-exercise-config label,
+.alarm-settings-grid > label {
+  min-width: 0;
+}
+
+.alarm-title-input,
+.alarm-time-input,
+.alarm-exercise-config input,
+.alarm-exercise-config select,
+.alarm-settings-grid select {
+  min-width: 0;
+  min-height: 42px;
+  max-width: 100%;
+}
+
+.alarm-summary-challenge > span {
+  overflow-wrap: anywhere;
+}
+
+.profile-setup-shell {
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+.profile-setup-card {
+  width: min(100%, 560px);
+  min-width: 0;
+  margin: 0 auto;
+  padding: clamp(18px, 3vw, 28px);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: linear-gradient(145deg, #171c14, #12160f);
+}
+
+.profile-setup-card h1 {
+  font-size: clamp(24px, 4vw, 30px);
+  line-height: 1.18;
+  overflow-wrap: anywhere;
+}
+
+.profile-setup-card input,
+.profile-setup-card select {
+  min-height: 46px;
+}
+
+.profile-choice-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.profile-choice-grid button {
+  min-height: 42px;
+}
+
+.profile-choice-grid button.chosen {
+  border-color: var(--lime);
+  background: var(--accent-soft);
+  color: var(--lime);
+}
+
+.onboarding-main {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+}
+
+.stats-v2-heading {
+  min-width: 0;
+  align-items: center;
+}
+
+.stats-v2-heading > div {
+  min-width: 0;
+}
+
+.stats-v2-heading h2 {
+  font-size: clamp(24px, 3vw, 30px);
+}
+
+.stats-v2-metrics {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+}
+
+.stats-v2-card {
+  min-width: 0;
+  align-items: center;
+  border-color: var(--line);
+  background: linear-gradient(145deg, #191e16, #13170f);
+}
+
+.stats-v2-card > div {
+  min-width: 0;
+}
+
+.stats-v2-card strong {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.stats-v2-level {
+  min-width: 0;
+  border-color: var(--accent-line);
+  background: radial-gradient(ellipse at 0 50%, #28331b 0, #191e15 48%, #151912 100%);
+}
+
+.stats-v2-level-content {
+  min-width: 0;
+  flex: 1 1 180px;
+}
+
+.stats-v2-level h3 {
+  color: var(--lime);
+}
+
+.stats-v2-progress {
+  background: #30382b;
+}
+
+.stats-v2-progress i {
+  background: linear-gradient(90deg, #8bbd3c, var(--lime));
+}
+
+.stats-v2-period {
+  border-color: var(--line);
+  background: #12170f;
+}
+
+.stats-v2-period button.active {
+  background: linear-gradient(110deg, #789d36, var(--lime));
+  color: #11160b;
+  box-shadow: 0 4px 16px rgba(199, 243, 107, 0.16);
+}
+
+.stats-v2-icon,
+.stats-v2-avatar,
+.stats-v2-medal,
+.fitness-goals-mark,
+.fitness-insight-icon,
+.fitness-recommendation-icon,
+.data-privacy-mark,
+.device-health-icon,
+.device-health-mini-icon,
+.step-counter-permission-icon,
+.alarm-editor-icon,
+.alarm-check-icon {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--lime);
+}
+
+.stats-v2-anatomy-layout {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
+  align-items: center;
+  gap: 14px;
+}
+
+.stats-v2-muscle-list,
+.stats-v2-figures {
+  min-width: 0;
+}
+
+.stats-v2-muscle-item {
+  min-width: 0;
+}
+
+.progress-insights,
+.fitness-goal-card,
+.fitness-insight-card,
+.fitness-recommendation,
+.fitness-achievements,
+.fitness-records {
+  border-color: var(--line);
+  background: linear-gradient(145deg, #191e16, #13170f);
+}
+
+.progress-insights-icon,
+.progress-insights-metrics svg,
+.progress-record,
+.progress-insights-score strong,
+.fitness-goal-title > span svg,
+.fitness-recommendation-icon,
+.fitness-badge.unlocked > span,
+.fitness-badge.unlocked > b {
+  color: var(--lime);
+}
+
+.progress-week-track {
+  background: #30382b;
+}
+
+.progress-week-track i,
+.fitness-goal-track i,
+.step-history-track i {
+  background: linear-gradient(90deg, #789d36, var(--lime));
+}
+
+.progress-record {
+  background: var(--accent-soft);
+}
+
+.fitness-goal-track {
+  background: #30382b;
+}
+
+.fitness-recommendation {
+  background: linear-gradient(140deg, #26331b, #171c13);
+}
+
+.fitness-recommendation-action {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--lime);
+}
+
+.fitness-badge.unlocked {
+  border-color: var(--accent-line);
+  background: #1b2115;
+}
+
+.fitness-badge.unlocked > span {
+  background: var(--accent-soft);
+}
+
+.womens-hero,
+.womens-recommend {
+  border-color: var(--accent-line);
+  background: linear-gradient(140deg, #26331b, #171c13);
+}
+
+.womens-icon,
+.womens-moves span {
+  background: var(--accent-soft);
+  color: var(--lime);
+}
+
+.alarm-editor-icon {
+  background: var(--accent-soft);
+  color: var(--lime);
+}
+
+.alarm-title-input:focus,
+.alarm-time-input:focus {
+  border-color: var(--lime);
+  box-shadow: 0 0 0 3px rgba(199, 243, 107, 0.16);
+}
+
+.alarm-repeat-pill,
+.alarm-summary-meta > span,
+.alarm-summary-status.active,
+.alarm-edit-btn,
+.alarm-save-feedback,
+.alarm-feedback-dismiss,
+.alarm-check-icon {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--lime);
+}
+
+.device-health-refresh,
+.device-health-icon,
+.device-health-mini-icon {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--lime);
+}
+
+.device-health-power-status {
+  border-color: var(--accent-line);
+  background: #1b2115;
+  color: var(--lime);
+}
+
+.device-health-power-status span {
+  color: var(--text-soft);
+}
+
+.step-counter-total {
+  border-color: var(--accent-line);
+  background: radial-gradient(ellipse at 50% 0, #29351d 0, #191e15 58%, #141810 100%);
+}
+
+.step-counter-permission {
+  border-color: var(--accent-line);
+  background: #1a2016;
+}
+
+.step-counter-permission-icon {
+  background: var(--accent-soft);
+  color: var(--lime);
+}
+
+.step-counter-status,
+.step-counter-footer {
+  border-color: var(--line);
+}
+
+.step-history-track {
+  background: #30382b;
+}
+
+.data-privacy-message {
+  border-color: var(--accent-line);
+  background: #1b2115;
+  color: var(--text-soft);
+}
+
+.data-privacy-mark {
+  background: var(--accent-soft);
+  color: var(--lime);
+}
+
+.privacy-actions .primary {
+  border-color: var(--lime);
+  background: var(--lime);
+  color: #10150b;
+}
+
+.live-coaching-card {
+  border-color: var(--accent-line);
+  background: #171e12;
+}
+
+.live-coaching-card > p {
+  color: var(--text);
+}
+
+.voice-coach-toggle {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--lime);
+}
+
+.rest-timer-card {
+  border-color: var(--accent-line);
+  background: radial-gradient(circle at 50% 25%, #26331b 0, #171d13 48%, #11140f 100%);
+}
+
+.rest-timer-icon {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--lime);
+}
+
+.rest-timer-ring {
+  background: conic-gradient(var(--lime) var(--rest-progress), #353d2e 0);
+  box-shadow: 0 0 0 7px rgba(199, 243, 107, 0.05);
+}
+
+.rest-timer-ring::before {
+  background: #141911;
+}
+
+footer span {
+  color: var(--lime);
+}
+
+@media (max-width: 900px) {
+  .hero-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hero,
+  .streak {
+    min-height: 210px;
+  }
+}
+
+@media (max-width: 760px) {
+  .shell {
+    display: block;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  .sidebar {
+    width: 100%;
+    height: calc(76px + env(safe-area-inset-bottom, 0px));
+    min-height: 76px;
+    padding: 7px 10px calc(7px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .sidebar nav {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: stretch;
+  }
+
+  .sidebar .nav {
+    min-width: 0;
+    font-size: 10px;
+    line-height: 1.2;
+    white-space: normal;
+  }
+
+  .sidebar .nav.active {
+    background: #26321c;
+    color: var(--lime);
+  }
+
+  .main {
+    width: 100%;
+    max-width: none;
+    padding: calc(22px + env(safe-area-inset-top, 0px)) 15px calc(100px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .header {
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+
+  .header h1 {
+    font-size: clamp(21px, 6vw, 25px);
+  }
+
+  .header-actions {
+    gap: 7px;
+  }
+
+  .date-chip {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    min-height: 42px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 0;
+  }
+
+  .date-chip svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .hero,
+  .streak {
+    border-radius: 18px;
+    padding: 18px;
+  }
+
+  .hero .clock {
+    position: relative;
+    z-index: 1;
+    width: max-content;
+    max-width: 100%;
+  }
+
+  .hero .clock-art {
+    opacity: 0.32;
+    pointer-events: none;
+    transform: scale(0.7);
+    transform-origin: right top;
+  }
+
+  .panel {
+    border-radius: 18px;
+    padding: 17px;
+  }
+
+  .exercise-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .exercise-card {
+    min-height: 132px;
+    padding: 13px;
+  }
+
+  .section-title {
+    align-items: center;
+  }
+
+  .stats-v2-anatomy-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .stats-v2-figures {
+    justify-content: center;
+    gap: 26px;
+  }
+
+  .stats-v2-muscle-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 14px;
+  }
+
+  .stats-v2-muscle-list > p {
+    grid-column: 1 / -1;
+  }
+
+  .stats-v2-level {
+    flex-wrap: wrap;
+  }
+
+  .stats-v2-level-content {
+    flex: 1 1 190px;
+  }
+
+  .alarm-summary-footer,
+  .alarm-editor-footer {
+    align-items: stretch;
+  }
+
+  .alarm-summary-footer > .alarm-edit-btn,
+  .alarm-editor-footer > .save-alarm-btn {
+    flex: 1 1 140px;
+  }
+}
+
+@media (max-width: 520px) {
+  .profile-setup-card {
+    border-radius: 17px;
+  }
+
+  .stats-v2-metrics {
+    gap: 8px;
+  }
+
+  .stats-v2-card {
+    padding: 13px 10px;
+    gap: 9px;
+  }
+
+  .stats-v2-card strong {
+    font-size: 19px;
+  }
+
+  .progress-insights-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .step-history-row {
+    grid-template-columns: minmax(74px, 0.9fr) minmax(42px, 1fr) auto;
+    gap: 7px;
+  }
+
+  .alarm-summary-footer,
+  .alarm-editor-footer {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 390px) {
+  .main {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .stats-v2-metrics {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .stats-v2-volume {
+    grid-column: auto;
+  }
+
+  .stats-v2-level {
+    gap: 10px;
+    padding: 13px;
+  }
+
+  .stats-v2-medal {
+    width: 58px;
+    min-width: 58px;
+  }
+
+  .stats-v2-level-percent {
+    margin-left: auto;
+  }
+
+  .stats-v2-muscle-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .alarm-routine-presets > button {
+    flex: 1 1 100px;
+  }
+
+  .alarm-summary-footer .alarm-edit-btn,
+  .alarm-editor-footer .save-alarm-btn {
+    flex: 1 1 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
