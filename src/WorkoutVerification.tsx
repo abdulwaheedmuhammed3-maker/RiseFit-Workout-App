@@ -310,7 +310,7 @@ export default function WorkoutVerification({
                   const previous = phaseRef.current;
                   const isCompletedCycle = (exercise === 'squat' || exercise === 'pushup' || exercise === 'situp' || exercise === 'lunge' || exercise === 'deadbug' || exercise === 'bridge')
                     ? previous === 'down' && movement.phase === 'up'
-                    : previous === 'closed' && movement.phase === 'open';
+                    : previous === 'open' && movement.phase === 'closed';
                   if (isCompletedCycle && now - lastCountAtRef.current > 650) {
                     lastCountAtRef.current = now;
                     incrementCount();
