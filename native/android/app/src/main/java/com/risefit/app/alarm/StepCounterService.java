@@ -34,6 +34,7 @@ public final class StepCounterService extends Service implements SensorEventList
     private static final String KEY_LAST_RAW = "last_raw_counter";
     private static final String KEY_LAST_UPDATED = "last_updated";
     private static final String KEY_LAST_EVENT_DATE = "last_event_date";
+    private static final String KEY_LAST_SENSOR_ELAPSED = "last_sensor_elapsed";
     private static final String KEY_SERVICE_STARTED_AT = "service_started_at";
     private static final String CHANNEL_ID = "risefit_step_tracking";
     private static final int NOTIFICATION_ID = 6310;
@@ -80,6 +81,7 @@ public final class StepCounterService extends Service implements SensorEventList
             .edit()
             .putLong(KEY_LAST_RAW, -1L)
             .remove(KEY_LAST_EVENT_DATE)
+            .remove(KEY_LAST_SENSOR_ELAPSED)
             .apply();
     }
 
@@ -249,7 +251,14 @@ public final class StepCounterService extends Service implements SensorEventList
         String date = dateFormat.format(new Date(eventWallTime));
 
         long previousRaw = prefs.getLong(KEY_LAST_RAW, -1L);
-        boolean counterReset = previousRaw < 0L || rawTotal < previousRaw;
+        long previousSensorElapsed = prefs.getLong(KEY_LAST_SENSOR_ELAPSED, -1L);
+        // SensorEvent timestamps are monotonic since boot. A decrease proves
+        // the phone rebooted even when Android did not deliver BOOT_COMPLETED
+        // to RiseFit (for example, while the package was force-stopped).
+        boolean sensorClockReset = event.timestamp > 0L
+            && previousSensorElapsed >= 0L
+            && event.timestamp < previousSensorElapsed;
+        boolean counterReset = previousRaw < 0L || rawTotal < previousRaw || sensorClockReset;
 
         // A sensor gap can span a local midnight when the service was paused,
         // killed, or could not run in the background. The cumulative difference
@@ -284,6 +293,7 @@ public final class StepCounterService extends Service implements SensorEventList
             .putLong(KEY_LAST_RAW, rawTotal)
             .putLong(KEY_LAST_UPDATED, System.currentTimeMillis())
             .putString(KEY_LAST_EVENT_DATE, date);
+        if (event.timestamp > 0L) editor.putLong(KEY_LAST_SENSOR_ELAPSED, event.timestamp);
         if (delta > 0L) {
             String key = dayKey(date);
             editor.putLong(key, Math.max(0L, prefs.getLong(key, 0L)) + delta);
