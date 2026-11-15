@@ -77,7 +77,8 @@ const validSession = (value: unknown): value is Session => {
   return typeof session.id === 'string' && session.id.length <= 160
     && typeof session.title === 'string' && session.title.length <= 200
     && ['plan', 'alarm', 'exercise'].includes(String(session.kind))
-    && typeof session.completedAt === 'string' && !Number.isNaN(Date.parse(session.completedAt));
+    && typeof session.completedAt === 'string' && !Number.isNaN(Date.parse(session.completedAt))
+    && Date.parse(session.completedAt) <= Date.now();
 };
 
 const validStepEntry = (value: unknown): value is DailyStepEntry => {
