@@ -68,3 +68,65 @@ test('lunge detector rejects a horizontal torso pose', () => {
   set(p, 11, .1, .5); set(p, 23, .5, .5); set(p, 25, .5, .7); set(p, 27, .5, .9);
   expectPhase(p, 'lunge', 'ready', false);
 });
+
+
+test('push-up detector requires a horizontal extended body and tracks elbow bend', () => {
+  const down = pose();
+  set(down, 11, .2, .4); set(down, 13, .35, .55); set(down, 15, .5, .4);
+  set(down, 23, .55, .4); set(down, 27, .9, .4);
+  expectPhase(down, 'pushup', 'down');
+
+  const up = pose();
+  set(up, 11, .2, .4); set(up, 13, .35, .4); set(up, 15, .5, .4);
+  set(up, 23, .55, .4); set(up, 27, .9, .4);
+  expectPhase(up, 'pushup', 'up');
+
+  const standingCurl = pose();
+  set(standingCurl, 11, .2, .2); set(standingCurl, 13, .35, .3); set(standingCurl, 15, .5, .2);
+  set(standingCurl, 23, .2, .5); set(standingCurl, 27, .2, .9);
+  expectPhase(standingCurl, 'pushup', 'ready', false);
+});
+
+test('plank detector accepts a straight supported hold and rejects a sagging body', () => {
+  const valid = pose();
+  set(valid, 11, .2, .4); set(valid, 13, .2, .5); set(valid, 15, .3, .5);
+  set(valid, 23, .55, .4); set(valid, 27, .9, .4);
+  expectPhase(valid, 'plank', 'hold');
+
+  const sagging = pose();
+  set(sagging, 11, .2, .4); set(sagging, 13, .2, .5); set(sagging, 15, .3, .5);
+  set(sagging, 23, .55, .65); set(sagging, 27, .9, .4);
+  expectPhase(sagging, 'plank', 'hold', false);
+});
+
+test('high-knee detector requires one flexed raised knee and a straight support leg', () => {
+  const raised = pose();
+  set(raised, 11, .45, .2); set(raised, 12, .55, .2);
+  set(raised, 23, .45, .55); set(raised, 24, .55, .55);
+  set(raised, 25, .45, .35); set(raised, 27, .55, .35);
+  set(raised, 26, .55, .75); set(raised, 28, .55, .95);
+  expectPhase(raised, 'highknees', 'open');
+
+  const standing = pose();
+  set(standing, 11, .45, .2); set(standing, 12, .55, .2);
+  set(standing, 23, .45, .55); set(standing, 24, .55, .55);
+  set(standing, 25, .45, .75); set(standing, 27, .45, .95);
+  set(standing, 26, .55, .75); set(standing, 28, .55, .95);
+  expectPhase(standing, 'highknees', 'closed');
+});
+
+test('lunge detector tracks bent-to-standing leg movement with an upright torso', () => {
+  const down = pose();
+  set(down, 11, .4, .1); set(down, 12, .6, .1);
+  set(down, 23, .4, .4); set(down, 24, .6, .4);
+  set(down, 25, .4, .6); set(down, 27, .6, .6);
+  set(down, 26, .6, .6); set(down, 28, .6, .8);
+  expectPhase(down, 'lunge', 'down');
+
+  const up = pose();
+  set(up, 11, .4, .1); set(up, 12, .6, .1);
+  set(up, 23, .4, .4); set(up, 24, .6, .4);
+  set(up, 25, .4, .6); set(up, 27, .4, .8);
+  set(up, 26, .6, .6); set(up, 28, .6, .8);
+  expectPhase(up, 'lunge', 'up');
+});
