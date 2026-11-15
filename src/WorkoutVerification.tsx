@@ -103,7 +103,15 @@ function getMovementPhase(pose: Landmark[], exercise: ExerciseType): { phase: Ph
     const torso = side([11,23,25], [12,24,26]);
     if (!torso) return { phase: 'ready', valid: false };
     const hip = angle(point(torso[0]), point(torso[1]), point(torso[2]));
-    return { phase: hip < 115 ? 'up' : hip > 145 ? 'down' : 'ready', valid: true };
+    const horizontal = Math.abs(point(torso[0]).x - point(torso[1]).x);
+    const vertical = Math.abs(point(torso[0]).y - point(torso[1]).y);
+    const lyingBack = horizontal > vertical * 1.1;
+    const sittingUp = vertical > horizontal * 1.1;
+    // Reject standing hip bends: a sit-up starts with the torso horizontal
+    // and reaches the raised phase with the torso more upright.
+    if (hip > 145 && lyingBack) return { phase: 'down', valid: true };
+    if (hip < 115 && sittingUp) return { phase: 'up', valid: true };
+    return { phase: 'ready', valid: true };
   }
   if (exercise === 'plank') {
     const body = side([11,23,27], [12,24,28]);
@@ -124,6 +132,11 @@ function getMovementPhase(pose: Landmark[], exercise: ExerciseType): { phase: Ph
     const leftVisible = visible([11,23,25]);
     const rightVisible = visible([12,24,26]);
     if (!leftVisible && !rightVisible) return { phase: 'ready', valid: false };
+    const torso = side([11,23], [12,24]);
+    if (!torso) return { phase: 'ready', valid: false };
+    const torsoHorizontal = Math.abs(point(torso[0]).x - point(torso[1]).x)
+      > Math.abs(point(torso[0]).y - point(torso[1]).y) * 1.1;
+    if (!torsoHorizontal) return { phase: 'ready', valid: false };
     const leftAngle = leftVisible ? angle(point(11), point(23), point(25)) : null;
     const rightAngle = rightVisible ? angle(point(12), point(24), point(26)) : null;
     const anyLegExtended = (leftAngle !== null && leftAngle > 148)
@@ -137,6 +150,9 @@ function getMovementPhase(pose: Landmark[], exercise: ExerciseType): { phase: Ph
   }
   const torso = side([11,23,25], [12,24,26]);
   if (!torso) return { phase: 'ready', valid: false };
+  const torsoHorizontal = Math.abs(point(torso[0]).x - point(torso[1]).x)
+    > Math.abs(point(torso[0]).y - point(torso[1]).y) * 1.1;
+  if (!torsoHorizontal) return { phase: 'ready', valid: false };
   const hipAngle = angle(point(torso[0]), point(torso[1]), point(torso[2]));
   return { phase: hipAngle < 130 ? 'down' : hipAngle > 155 ? 'up' : 'ready', valid: true };
 }
