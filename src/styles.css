@@ -664,3 +664,54 @@ footer{color:#777783}footer span{color:#8589ff}
  .rest-timer-card{padding:17px 12px}
  .rest-timer-ring{width:150px;height:150px}
 }
+
+
+/* Personal goals, activity streaks, achievements and recommendation */
+.fitness-goals{display:grid;gap:13px;margin:22px 0 8px}
+.fitness-goals-heading,.fitness-achievements-heading{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.fitness-goals-heading h2,.fitness-achievements-heading h3{font:700 21px 'Space Grotesk';letter-spacing:-.35px;margin:5px 0}
+.fitness-goals-heading p,.fitness-achievements-heading p{font-size:11px;color:#a2a2b1;margin:0}
+.fitness-goals-mark{width:42px;height:42px;display:grid;place-items:center;border-radius:14px;background:#22223b;color:#8589ff;border:1px solid #393951;flex-shrink:0}
+.fitness-goal-grid,.fitness-goals-row,.fitness-record-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.fitness-goal-card,.fitness-insight-card,.fitness-recommendation,.fitness-achievements,.fitness-records{min-width:0;border:1px solid #30303c;border-radius:17px;background:linear-gradient(145deg,#1b1b24,#14141a);padding:16px}
+.fitness-goal-title{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+.fitness-goal-title>span{display:flex;align-items:center;gap:7px;color:#c5c5d1;font-size:12px;font-weight:700}
+.fitness-goal-title>span svg{color:#8589ff}
+.fitness-goal-title>b{font-size:11px;color:#a5a5b3}
+.fitness-goal-card>strong{display:block;font:700 25px 'Space Grotesk';letter-spacing:-.5px;white-space:normal}
+.fitness-goal-card>strong small{font:500 11px 'DM Sans';color:#9899a7;letter-spacing:0}
+.fitness-goal-track{height:7px;border-radius:9px;background:#30303b;overflow:hidden;margin:13px 0 10px}
+.fitness-goal-track i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#5142c9,#8b82ff);transition:width .2s}
+.fitness-goal-controls{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.fitness-goal-controls>span{font-size:10px;color:#a2a2b1;line-height:1.5}
+.fitness-goal-controls>div{display:flex;gap:5px;flex-shrink:0}
+.fitness-goal-controls button{width:29px;height:29px;border-radius:9px;border:1px solid #41415a;background:#25253a;color:#d9d8ff;font-size:18px;line-height:1}
+.fitness-goal-controls button:disabled{opacity:.35}
+.fitness-insight-card{display:flex;align-items:center;gap:12px}
+.fitness-insight-icon{width:39px;height:39px;display:grid;place-items:center;border-radius:12px;background:#29243b;color:#a99aff;flex-shrink:0}
+.fitness-insight-card>div{display:grid;gap:3px;min-width:0}
+.fitness-insight-card strong{font:700 23px 'Space Grotesk'}
+.fitness-insight-card small{font-size:10px;line-height:1.5;color:#9899a7}
+.fitness-recommendation{background:linear-gradient(140deg,#211f35,#171720);border-color:#3a3757}
+.fitness-recommendation-top{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.fitness-recommendation-icon{width:31px;height:31px;border-radius:10px;display:grid;place-items:center;background:#343052;color:#b9b0ff}
+.fitness-recommendation h3{font:700 17px 'Space Grotesk';margin:0 0 7px}
+.fitness-recommendation p{font-size:11px;line-height:1.65;color:#b4b3c5;margin:0}
+.fitness-recommendation-action{display:inline-flex;align-items:center;gap:7px;margin-top:13px;padding:10px 13px;border:1px solid #58517f;border-radius:10px;background:#353052;color:#e4e0ff;font-size:11px;font-weight:700}
+.fitness-achievements-heading{margin-bottom:13px}
+.fitness-badge-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.fitness-badge{display:grid;grid-template-columns:34px minmax(0,1fr);grid-template-rows:auto auto;gap:7px 9px;align-items:center;min-width:0;padding:11px;border:1px solid #373744;border-radius:12px;background:#19191f}
+.fitness-badge>span{grid-row:1/3;width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:#292932;color:#777783}
+.fitness-badge>div{display:grid;gap:3px;min-width:0}
+.fitness-badge strong{font-size:11px;color:#f0eff8}
+.fitness-badge small{font-size:9px;line-height:1.4;color:#92929f}
+.fitness-badge>b{font-size:8px;letter-spacing:.8px;color:#777783}
+.fitness-badge.unlocked{border-color:#45416a;background:#1e1d2b}
+.fitness-badge.unlocked>span{background:#343052;color:#b9b0ff}
+.fitness-badge.unlocked>b{color:#aaa0ff}
+.fitness-record-grid>div{display:grid;gap:6px;padding:13px;border-radius:12px;background:#19191f}
+.fitness-record-grid span{font-size:10px;color:#aaaab7}
+.fitness-record-grid strong{font:700 18px 'Space Grotesk'}
+.fitness-record-grid small{font-size:9px;line-height:1.4;color:#888896}
+.fitness-goals-footnote{font-size:9px;line-height:1.6;color:#777785;margin:0}
+@media(max-width:520px){.fitness-goal-grid,.fitness-goals-row,.fitness-record-grid,.fitness-badge-grid{grid-template-columns:1fr}.fitness-goals-heading h2{font-size:20px}.fitness-goal-card,.fitness-insight-card,.fitness-recommendation,.fitness-achievements,.fitness-records{border-radius:15px;padding:14px}}

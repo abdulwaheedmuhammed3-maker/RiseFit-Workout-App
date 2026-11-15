@@ -12,6 +12,7 @@ RiseFit is an Android-first fitness app built around automatic daily activity tr
 - **Wake-up alarms:** native Android exact-alarm scheduling, a foreground ringing service, and alarm recovery after device reboot.
 - **Alarm challenge:** the first configured exercise is required to stop the ringing alarm; additional configured exercises are optional follow-on workouts.
 - **Progress:** completed sessions and profile data are stored locally on the device; the calendar and statistics read the local workout history and available step history.
+- **Personal goals:** adjustable daily step and weekly workout targets, activity streaks, milestone badges, personal records, and a goal-aligned workout suggestion based on the saved fitness goal.
 
 ## Android requirements and behaviour
 
@@ -23,7 +24,8 @@ RiseFit is an Android-first fitness app built around automatic daily activity tr
 
 ## Current limitations
 
-- Profile, alarm settings, and completed workout history are device-local; there is no account or cloud sync in this version.
+- Profile, alarm settings, fitness targets, achievements, and completed workout history are device-local; there is no account or cloud sync in this version.
+- Daily step goal progress and step-based badges/records require Android step-counter access. Step records and activity streaks are limited by the step history available on the device.
 - Session duration and weight-based training volume are not measured yet.
 - A successful CI build proves compilation, not that a device's camera, hardware step sensor, background service, notifications, or alarm behaviour works on every phone.
 
