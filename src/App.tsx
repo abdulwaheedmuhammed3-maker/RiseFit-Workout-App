@@ -15,11 +15,12 @@ import FitnessGoals from './FitnessGoals';
 import DataPrivacy from './DataPrivacy';
 import DeviceHealth from './DeviceHealth';
 import VoiceSettings from './VoiceSettings';
+import { parseWorkoutHistory } from './workoutHistory';
 
 type AlarmDifficulty = 'Easy' | 'Normal' | 'Hard' | 'Extreme';
 type AlarmExerciseConfig = { exerciseId: ExerciseId; target: number; rounds: number };
 type WakeAlarm = { id: string; time: string; enabled: boolean; label: string; challenge?: AlarmExerciseConfig[]; difficulty?: AlarmDifficulty; requireAllMissions?: boolean };
-type CompletedSession = { id: string; title: string; kind: 'plan' | 'alarm' | 'exercise'; completedAt: string };
+type CompletedSession = import('./workoutHistory').CompletedSession;
 type RestState = { mode: 'plan-round' | 'plan-exercise' | 'library-round'; nextLabel: string };
 type ExerciseId = 'squat'|'pushup'|'jack'|'situp'|'plank'|'lunge'|'highknees'|'deadbug'|'bridge';
 type Exercise = { id:ExerciseId; name:string; category:string; target:number; unit:'reps'|'sec'; rounds:number; cues:string[]; easier:string };
@@ -90,13 +91,7 @@ const loadHistory = (): CompletedSession[] => {
  try {
   const raw = localStorage.getItem('risefit-workout-history-v1');
   if (!raw) return [];
-  const value: unknown = JSON.parse(raw);
-  if (!Array.isArray(value)) return [];
-  return value.filter((item): item is CompletedSession =>
-   isRecord(item) && typeof item.id === 'string' && typeof item.title === 'string' &&
-   ['plan','alarm','exercise'].includes(String(item.kind)) &&
-   typeof item.completedAt === 'string' && !Number.isNaN(Date.parse(item.completedAt)) && Date.parse(item.completedAt) <= Date.now()
-  );
+  return parseWorkoutHistory(JSON.parse(raw));
  } catch { return []; }
 };
 
