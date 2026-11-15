@@ -26,7 +26,7 @@ export default function StepCounter({ stats, loading, error, onConnect, onRefres
         <span className="step-counter-icon"><Footprints size={24}/></span>
       </div>
       <div className="step-counter-unavailable"><AlertCircle size={20}/><span>{stats?.message ?? 'Automatic step reading is not available on this Android device.'}</span></div>
-      <p className="muted">RiseFit needs Android Health Connect's daily step data to display an automatic counter.</p>
+      <p className="muted">Automatic counting uses this phone's built-in hardware step counter. It does not require Health Connect.</p>
       {error && <p className="step-counter-error" role="alert">{error}</p>}
     </section>;
   }
@@ -39,7 +39,7 @@ export default function StepCounter({ stats, loading, error, onConnect, onRefres
       </div>
       <div className="step-counter-permission">
         <span className="step-counter-permission-icon"><Smartphone size={22}/></span>
-        <div><b>Connect your phone's step counter</b><p>Allow RiseFit to read daily steps from Android Health Connect. This is a one-time permission, not a walking session.</p></div>
+        <div><b>Connect your phone's step counter</b><p>Allow Android's physical activity permission so RiseFit can read this phone's built-in step counter. This is a one-time permission, not a walking session.</p></div>
       </div>
       <button className="primary full step-counter-connect" onClick={onConnect}>Allow automatic step counting</button>
       <p className="muted step-counter-note">After permission is granted, Android counts steps in the background. You do not need to start or stop anything.</p>
@@ -60,13 +60,13 @@ export default function StepCounter({ stats, loading, error, onConnect, onRefres
     </div>
     <div className="step-counter-status"><ShieldCheck size={16}/><span>Automatic counting is enabled. Your phone records steps throughout the day, even when RiseFit is closed.</span></div>
     <div className="step-history-heading"><div><span className="eyebrow">RECENT RECORD</span><h3>Daily step history</h3></div><span className="step-history-period">LAST 30 DAYS</span></div>
-    {days.length===0 ? <p className="muted">No step records have reached Health Connect yet. The count will appear after your phone records steps.</p> :
+    {days.length===0 ? <p className="muted">No steps have been recorded by the phone yet. The count will appear after the sensor reports activity.</p> :
       <div className="step-history-list">{days.map(day=><div className="step-history-row" key={day.date}>
         <span>{dayLabel(day.date)}</span>
         <div className="step-history-track"><i style={{width:`${Math.min(100,(day.steps/10000)*100)}%`}}/></div>
         <b>{day.steps.toLocaleString()}</b>
       </div>)}</div>}
-    <div className="step-counter-footer"><TrendingUp size={15}/><span>Daily totals are read from Android Health Connect and may refresh about once per minute.</span></div>
+    <div className="step-counter-footer"><TrendingUp size={15}/><span>Daily totals come from this phone's built-in hardware step counter and are saved locally by RiseFit. The display refreshes about once per minute while the app is open.</span></div>
     {error && <p className="step-counter-error" role="alert">{error}</p>}
   </section>;
 }
