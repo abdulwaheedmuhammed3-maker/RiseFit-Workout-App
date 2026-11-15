@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Pause, Play, Plus, SkipForward, Timer } from 'lucide-react';
 
 type Props = { seconds?: number; nextLabel: string; onComplete: () => void };
@@ -49,7 +49,7 @@ export default function RestTimer({ seconds = 30, nextLabel, onComplete }: Props
       <div className="rest-timer-icon"><Timer size={22}/></div>
       <h2>Take a moment to recover.</h2>
       <p className="muted">Breathe, relax your muscles and get ready for the next movement.</p>
-      <div className="rest-timer-ring" style={{'--rest-progress': `${progress}%`} as React.CSSProperties}>
+      <div className="rest-timer-ring" style={{'--rest-progress': `${progress}%`} as CSSProperties}>
         <strong>{formatTime(remaining)}</strong><small>{paused ? 'PAUSED' : 'RESTING'}</small>
       </div>
       <div className="rest-next">
