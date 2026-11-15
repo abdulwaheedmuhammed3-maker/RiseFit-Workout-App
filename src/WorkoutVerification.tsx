@@ -37,6 +37,17 @@ function angle(a: Landmark, b: Landmark, c: Landmark) {
   return Math.acos(cosine) * (180 / Math.PI);
 }
 
+function isHighKneeRaised(pose: Landmark[], hipIndex: number, kneeIndex: number, ankleIndex: number) {
+  const hip = pose[hipIndex];
+  const knee = pose[kneeIndex];
+  const ankle = pose[ankleIndex];
+  if (!hip || !knee || !ankle) return false;
+  const kneeAngle = angle(hip, knee, ankle);
+  // A straight-leg raise is not a high-knee rep. Require clear knee flexion
+  // as well as lifting the knee above the hip line.
+  return knee.y < hip.y - 0.1 && kneeAngle < 145;
+}
+
 function getMovementPhase(pose: Landmark[], exercise: ExerciseType): { phase: Phase; valid: boolean } {
   const point = (index: number) => pose[index];
   const visible = (indices: number[]) => indices.every(index =>
@@ -151,10 +162,10 @@ function getMovementPhase(pose: Landmark[], exercise: ExerciseType): { phase: Ph
       && Math.abs(hipY - shoulderY) > Math.abs(hipX - shoulderX);
     if (!torsoUpright) return { phase: 'ready', valid: false };
 
-    const leftRaised = point(25).y < point(23).y - 0.1;
-    const rightRaised = point(26).y < point(24).y - 0.1;
     const leftKnee = angle(point(23), point(25), point(27));
     const rightKnee = angle(point(24), point(26), point(28));
+    const leftRaised = isHighKneeRaised(pose, 23, 25, 27);
+    const rightRaised = isHighKneeRaised(pose, 24, 26, 28);
     // One leg must remain nearly straight as the other knee lifts. This
     // rejects seated knee raises and double-knee tucks as high-knee reps.
     const hasStandingSupport = leftRaised && !rightRaised
@@ -356,8 +367,10 @@ export default function WorkoutVerification({
                   stableFramesRef.current = 0;
                 }
               } else if (exercise === 'highknees' && movement.valid) {
-                const leftRaised = pose[25].y < pose[23].y - 0.1;
-                const rightRaised = pose[26].y < pose[24].y - 0.1;
+                // Use the same bent-knee requirement as pose validation so
+                // straight-leg raises can never increment the repetition count.
+                const leftRaised = isHighKneeRaised(pose, 23, 25, 27);
+                const rightRaised = isHighKneeRaised(pose, 24, 26, 28);
                 if (!highKneesInitializedRef.current) {
                   leftKneeRaisedRef.current = leftRaised;
                   rightKneeRaisedRef.current = rightRaised;
