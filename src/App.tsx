@@ -199,6 +199,11 @@ export default function App(){
  };
  const scheduleWakeAlarm=async(alarm:WakeAlarm,closeEditor=false)=>{
   if(Capacitor.getPlatform()!=='android'){window.alert('The ringing wake-up alarm is available in the RiseFit Android app.');return;}
+  const duplicate=alarms.find(item=>item.id!==alarm.id&&item.enabled&&item.time===alarm.time);
+  if(duplicate){
+   setAlarmSaveNotice(`“${duplicate.label}” is already enabled for ${formatClockTime(alarm.time)}. Choose a different time so one alarm cannot overwrite another.`);
+   return;
+  }
   try{
    const permission=await LocalNotifications.requestPermissions();
    if(permission.display!=='granted'){window.alert('Allow RiseFit notifications so Android can show the ringing alarm controls.');return;}
