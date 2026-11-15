@@ -161,12 +161,22 @@ export default function App(){
   return()=>{disposed=true;window.clearInterval(timer);document.removeEventListener('visibilitychange',refresh);window.removeEventListener('focus',refresh);};
  },[]);
  const openAlarmChallenge=(alarmId:string|null)=>{
+  const sameActiveAlarm=activeAlarmId===alarmId && activeAlarmId!==null;
+  // Notification taps for an alarm that is already active must return to its
+  // current mission without resetting verified rounds or optional follow-ons.
+  if(sameActiveAlarm){
+   setPlanId(null);
+   setDetail(null);
+   setRestState(null);
+   setTab('Alarm Challenge');
+   return;
+  }
   setActiveAlarmId(alarmId);
   setAlarmChallengeDone(false);
   setFollowOnIndex(0);
   setAlarmRound(1);
-  // An alarm must take priority over a workout already in progress.
-  // Unmount camera verification/rest screens before showing the alarm mission.
+  // A new alarm takes priority over a workout already in progress.
+  // Unmount camera verification/rest screens before showing its first mission.
   setPlanId(null);
   setDetail(null);
   setRestState(null);
