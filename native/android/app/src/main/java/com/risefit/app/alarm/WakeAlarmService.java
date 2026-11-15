@@ -130,6 +130,10 @@ public class WakeAlarmService extends Service {
                 .setUsage(AudioAttributes.USAGE_ALARM)
                 .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                 .build());
+            // The service's launch wake lock has a 10-minute timeout. Keep the
+            // CPU awake for the full duration of ringtone playback instead of
+            // relying on that short-lived lock for a challenge that may last longer.
+            player.setWakeMode(getApplicationContext(), android.os.PowerManager.PARTIAL_WAKE_LOCK);
             player.setDataSource(getApplicationContext(), alarmSound);
             player.setLooping(true);
             player.setOnPreparedListener(prepared -> {
