@@ -715,3 +715,15 @@ footer{color:#777783}footer span{color:#8589ff}
 .fitness-record-grid small{font-size:9px;line-height:1.4;color:#888896}
 .fitness-goals-footnote{font-size:9px;line-height:1.6;color:#777785;margin:0}
 @media(max-width:520px){.fitness-goal-grid,.fitness-goals-row,.fitness-record-grid,.fitness-badge-grid{grid-template-columns:1fr}.fitness-goals-heading h2{font-size:20px}.fitness-goal-card,.fitness-insight-card,.fitness-recommendation,.fitness-achievements,.fitness-records{border-radius:15px;padding:14px}}
+
+/* Rest-day and low-impact training preferences */
+.fitness-mode-controls{display:grid;gap:13px;padding:16px;border:1px solid #343444;border-radius:17px;background:linear-gradient(145deg,#1b1b24,#14141a)}
+.fitness-mode-controls h3{font:700 16px 'Space Grotesk';margin:5px 0}
+.fitness-mode-controls>div:first-child p{font-size:10px;line-height:1.6;color:#9899a7;margin:0}
+.fitness-mode-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding-top:12px;border-top:1px solid #30303b}
+.fitness-mode-row>div{display:grid;gap:4px;min-width:0}
+.fitness-mode-row strong{font-size:12px;color:#f0eff8}
+.fitness-mode-row small{font-size:10px;line-height:1.5;color:#9899a7}
+.fitness-mode-switch{min-width:58px;padding:8px 12px;border:1px solid #42424f;border-radius:20px;background:#25252d;color:#aaaab6;font-size:11px;font-weight:700}
+.fitness-mode-switch.enabled{background:#39325f;border-color:#665a9c;color:#e4ddff}
+@media(max-width:520px){.fitness-mode-controls{border-radius:15px;padding:14px}.fitness-mode-row{align-items:flex-start}.fitness-mode-switch{flex-shrink:0}}

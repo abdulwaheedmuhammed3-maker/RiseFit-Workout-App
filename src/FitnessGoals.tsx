@@ -10,6 +10,10 @@ type Props = {
   stepsPermissionGranted: boolean;
   sessions: Session[];
   profileGoal: FitnessGoal;
+  lowImpactMode: boolean;
+  onLowImpactChange: (enabled: boolean) => void;
+  restDayEnabled: boolean;
+  onRestDayChange: (enabled: boolean) => void;
   onStartPlan: (planId: string) => void;
 };
 
@@ -54,7 +58,7 @@ const goalNames: Record<FitnessGoal, string> = {
   'upper-body': 'upper-body strength'
 };
 
-export default function FitnessGoals({ dailySteps, stepsPermissionGranted, sessions, profileGoal, onStartPlan }: Props) {
+export default function FitnessGoals({ dailySteps, stepsPermissionGranted, sessions, profileGoal, lowImpactMode, onLowImpactChange, restDayEnabled, onRestDayChange, onStartPlan }: Props) {
   const [goals, setGoals] = useState<Goals>(loadGoals);
   useEffect(() => {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(goals)); } catch { /* Keep the screen usable if storage is unavailable. */ }
@@ -136,7 +140,7 @@ export default function FitnessGoals({ dailySteps, stepsPermissionGranted, sessi
 
   const stepProgress = Math.min(100, Math.round((data.todaySteps / goals.dailySteps) * 100));
   const workoutProgress = Math.min(100, Math.round((data.weeklyWorkouts / goals.weeklyWorkouts) * 100));
-  const recommendation = goalPlans[profileGoal];
+  const recommendation = lowImpactMode ? { planId: 'low-impact', title: 'Low-impact Strength & Mobility', reason: 'A shorter session using controlled movements without jumping.' } : goalPlans[profileGoal];
   const bothGoalsComplete = stepsPermissionGranted && data.todaySteps >= goals.dailySteps && data.todayWorkouts > 0;
   const badges = [
     { title: 'First steps', description: 'Recorded movement on your phone', unlocked: dailySteps.some(item => item.steps > 0), icon: Footprints },
@@ -158,6 +162,22 @@ export default function FitnessGoals({ dailySteps, stepsPermissionGranted, sessi
         </div>
         <span className="fitness-goals-mark"><Target size={21} /></span>
       </div>
+
+      <article className="fitness-mode-controls">
+        <div>
+          <span className="stats-eyebrow">RECOVERY & ACCESSIBILITY</span>
+          <h3>Choose how you want to move</h3>
+          <p>These settings affect workout suggestions. They do not change alarm challenges or medical advice.</p>
+        </div>
+        <div className="fitness-mode-row">
+          <div><strong>Low-impact mode</strong><small>Suggests a separate plan without jumping, using shorter targets and two rounds.</small></div>
+          <button type="button" className={'fitness-mode-switch' + (lowImpactMode ? ' enabled' : '')} aria-pressed={lowImpactMode} onClick={() => onLowImpactChange(!lowImpactMode)}>{lowImpactMode ? 'On' : 'Off'}</button>
+        </div>
+        <div className="fitness-mode-row">
+          <div><strong>Rest day mode</strong><small>Pauses workout prompts for today. This resets automatically tomorrow.</small></div>
+          <button type="button" className={'fitness-mode-switch' + (restDayEnabled ? ' enabled' : '')} aria-pressed={restDayEnabled} onClick={() => onRestDayChange(!restDayEnabled)}>{restDayEnabled ? 'On' : 'Off'}</button>
+        </div>
+      </article>
 
       <div className="fitness-goal-grid">
         <article className="fitness-goal-card">
@@ -200,7 +220,12 @@ export default function FitnessGoals({ dailySteps, stepsPermissionGranted, sessi
 
       <article className="fitness-recommendation">
         <div className="fitness-recommendation-top"><span className="fitness-recommendation-icon"><Sparkles size={18} /></span><span className="stats-eyebrow">TODAY’S SUGGESTION</span></div>
-        {bothGoalsComplete ? (
+        {restDayEnabled ? (
+          <>
+            <h3>Today is set aside for recovery.</h3>
+            <p>Rest day mode pauses workout suggestions for today. Gentle movement is optional. Your scheduled wake-up alarms and automatic step tracking continue normally.</p>
+          </>
+        ) : bothGoalsComplete ? (
           <>
             <h3>Goals reached. Make recovery count.</h3>
             <p>You have reached your step target and logged a workout today. Gentle movement or rest is a sensible next choice; there is no need to add another hard session.</p>
