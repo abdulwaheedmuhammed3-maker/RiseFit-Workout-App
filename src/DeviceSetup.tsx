@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
-import { Activity, AlarmClock, Bell, Camera, CheckCircle2, ChevronRight, Footprints, ShieldCheck, Smartphone } from 'lucide-react';
-import { NativeAlarm, type DailyStepStats, type NativeAlarmStatus } from './nativeAlarm';
+import { AlarmClock, Bell, Camera, CheckCircle2, ChevronRight, Footprints, ShieldCheck, Smartphone } from 'lucide-react';
+import { NativeAlarm } from './nativeAlarm';
 
 type Props = { onComplete: () => void };
 type SetupState = {
