@@ -1,4 +1,5 @@
-import { getMovementPhase, isHighKneeRaised, type ExerciseType, type Landmark, type Phase } from './exerciseDetection';
+import { angle, getMovementPhase, isHighKneeRaised, type ExerciseType, type Landmark, type Phase } from './exerciseDetection';
+export type { ExerciseType } from './exerciseDetection';
 import { useEffect, useRef, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { FilesetResolver, PoseLandmarker } from '@mediapipe/tasks-vision';
