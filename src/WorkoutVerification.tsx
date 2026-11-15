@@ -112,10 +112,21 @@ function getMovementPhase(pose: Landmark[], exercise: ExerciseType): { phase: Ph
     return { phase: raised ? 'open' : 'closed', valid: true };
   }
   if (exercise === 'deadbug') {
-    const leg = side([11,23,25], [12,24,26]);
-    if (!leg) return { phase: 'ready', valid: false };
-    const hipExtension = angle(point(leg[0]), point(leg[1]), point(leg[2]));
-    return { phase: hipExtension > 148 ? 'up' : hipExtension < 125 ? 'down' : 'ready', valid: true };
+    // Dead bugs alternate legs. Track either extension and re-arm only when
+    // the visible legs return to their bent starting position.
+    const leftVisible = visible([11,23,25]);
+    const rightVisible = visible([12,24,26]);
+    if (!leftVisible && !rightVisible) return { phase: 'ready', valid: false };
+    const leftAngle = leftVisible ? angle(point(11), point(23), point(25)) : null;
+    const rightAngle = rightVisible ? angle(point(12), point(24), point(26)) : null;
+    const anyLegExtended = (leftAngle !== null && leftAngle > 148)
+      || (rightAngle !== null && rightAngle > 148);
+    const allVisibleLegsBent = (leftAngle === null || leftAngle < 125)
+      && (rightAngle === null || rightAngle < 125);
+    return {
+      phase: anyLegExtended ? 'up' : allVisibleLegsBent ? 'down' : 'ready',
+      valid: true
+    };
   }
   const torso = side([11,23,25], [12,24,26]);
   if (!torso) return { phase: 'ready', valid: false };
