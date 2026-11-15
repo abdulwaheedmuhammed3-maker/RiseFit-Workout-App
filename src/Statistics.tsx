@@ -78,7 +78,10 @@ export default function Statistics({ sessions = [], dailySteps = [], stepsPermis
     }).sort((a, b) => b.completedAt.localeCompare(a.completedAt));
   }, [sessions, period]);
   const workouts = filteredSessions.length;
-  const stepsLastSevenDays = dailySteps.reduce((sum, day) => sum + day.steps, 0);
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setHours(0, 0, 0, 0);
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+  const stepsLastSevenDays = dailySteps.filter(day => new Date(day.date + 'T12:00:00') >= sevenDaysAgo).reduce((sum, day) => sum + day.steps, 0);
   const levelProgress = Math.min(workouts * 10, 100);
   const nextLevel = 'Silver';
   const muscleGroups = useMemo(() => ['Chest', 'Back', 'Shoulders', 'Arms', 'Core', 'Legs'], []);
