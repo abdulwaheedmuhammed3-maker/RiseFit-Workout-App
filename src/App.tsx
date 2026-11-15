@@ -274,8 +274,8 @@ export default function App(){
   }
  };
  const deleteWakeAlarm=async(id:string)=>{
-  if(activeAlarmIdRef.current===id&&!alarmChallengeDone){
-   setAlarmSaveNotice('Complete the active alarm challenge before deleting this alarm.');
+  if(activeAlarmIdRef.current===id){
+   setAlarmSaveNotice('Finish the active alarm screen before deleting this alarm.');
    return;
   }
   try{
