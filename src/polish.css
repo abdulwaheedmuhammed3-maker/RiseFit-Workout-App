@@ -1501,3 +1501,53 @@ textarea {
     min-height: 38px;
   }
 }
+
+
+/* Keep the saved-alarm action row compact on narrow Android screens.
+   These scoped rules override legacy .alarm-card div flex-column styling
+   and the <=390px full-width button rule above. */
+.alarm-card .alarm-summary-footer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  gap: 10px;
+  min-width: 0;
+}
+
+.alarm-card .alarm-summary-footer > .alarm-edit-btn {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 0;
+  min-height: 40px;
+  padding: 9px 12px;
+  white-space: nowrap;
+}
+
+.alarm-card .alarm-summary-footer > .alarm-editor-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+@media (max-width: 390px) {
+  .alarm-card .alarm-summary-footer {
+    gap: 7px;
+  }
+
+  .alarm-card .alarm-summary-footer > .alarm-edit-btn {
+    flex: 0 1 auto;
+    padding: 8px 9px;
+    font-size: 10px;
+  }
+
+  .alarm-card .alarm-summary-footer > .alarm-editor-actions {
+    flex: 0 0 auto;
+    gap: 6px;
+  }
+}
