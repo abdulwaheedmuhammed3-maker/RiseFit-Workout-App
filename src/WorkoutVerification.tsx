@@ -18,7 +18,7 @@ type Phase = 'ready' | 'down' | 'up' | 'open' | 'closed' | 'hold';
 
 const EXERCISES: Record<ExerciseType, { title: string; instruction: string; setup: string }> = {
   squat: { title: 'bodyweight squats', instruction: 'Bend your knees and hips, then return to a fully upright position.', setup: 'Stand far enough back for your shoulders, hips, knees and ankles to stay visible. A side-facing camera angle works best.' },
-  pushup: { title: 'push-ups', instruction: 'Lower your chest with bent elbows while keeping your body aligned, then press back up.', setup: 'Place the phone low enough to see your shoulders, elbows, hips and wrists. Keep your full body in frame.' },
+  pushup: { title: 'push-ups', instruction: 'Lower your chest with bent elbows while keeping your body aligned, then press back up.', setup: 'Use a low, side-on camera angle. Keep your shoulders, elbows, wrists, hips and ankles visible so RiseFit can check your full body line.' },
   'jumping-jack': { title: 'jumping jacks', instruction: 'Jump or step your feet apart while raising both hands, then return to the closed position.', setup: 'Stand back so your hands and feet remain visible throughout the movement.' },
   situp: { title: 'sit-ups', instruction: 'Raise your upper body from the lowered position and return under control.', setup: 'Position the phone side-on and keep your shoulders, hips and knees visible.' },
   plank: { title: 'a forearm plank', instruction: 'Hold a straight line from your shoulders through your hips to your ankles. The timer only advances while your plank position is detected.', setup: 'Place the phone side-on at a low angle. Keep your shoulders, hips and ankles visible and hold your body in a straight line.' },
@@ -77,8 +77,15 @@ function getMovementPhase(pose: Landmark[], exercise: ExerciseType): { phase: Ph
   if (exercise === 'pushup') {
     const arm = side([11,13,15], [12,14,16]);
     if (!arm) return { phase: 'ready', valid: false };
-    const matchingHip = arm[0] === 11 ? 23 : 24;
-    if (!visible([matchingHip])) return { phase: 'ready', valid: false };
+    const body = arm[0] === 11 ? [11,23,27] : [12,24,28];
+    if (!visible(body)) return { phase: 'ready', valid: false };
+
+    // Elbow bending alone also occurs in standing arm curls. Require a
+    // straight, near-horizontal shoulder-to-ankle line before counting.
+    const bodyAngle = angle(point(body[0]), point(body[1]), point(body[2]));
+    const bodyLevel = Math.abs(point(body[0]).y - point(body[2]).y) < 0.35;
+    if (bodyAngle < 150 || !bodyLevel) return { phase: 'ready', valid: false };
+
     const elbow = angle(point(arm[0]), point(arm[1]), point(arm[2]));
     return { phase: elbow < 95 ? 'down' : elbow > 150 ? 'up' : 'ready', valid: true };
   }
