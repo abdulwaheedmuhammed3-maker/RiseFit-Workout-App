@@ -26,7 +26,10 @@ export default function ProgressInsights({ dailySteps, sessions }: Props) {
       return { date, key: dayKey(date), steps: stepMap.get(dayKey(date)) ?? 0 };
     });
     const weekSteps = week.reduce((sum, item) => sum + item.steps, 0);
-    const activeDays = week.filter(item => item.steps > 0 || validSessions.some(session => dayKey(new Date(session.completedAt)) === item.key)).length;
+    // Do not score future days as missed activity before they have happened.
+    const elapsedDays = Math.max(1, Math.min(7, Math.floor((today.getTime() - weekStart.getTime()) / 86_400_000) + 1));
+    const elapsedWeek = week.slice(0, elapsedDays);
+    const activeDays = elapsedWeek.filter(item => item.steps > 0 || validSessions.some(session => dayKey(new Date(session.completedAt)) === item.key)).length;
     const weekSessions = validSessions.filter(session => {
       const date = new Date(session.completedAt);
       return date >= weekStart && date <= now;
@@ -50,9 +53,9 @@ export default function ProgressInsights({ dailySteps, sessions }: Props) {
     const bestDay = dailySteps
       .filter(item => item.date >= cutoffKey && item.date <= todayKey && Number.isFinite(item.steps) && item.steps > 0)
       .sort((a,b)=>b.steps-a.steps)[0];
-    const score = Math.min(100, Math.round((activeDays/7)*70 + Math.min(weekSessions.length,3)*10));
-    const message = activeDays === 7 ? 'A full week of movement. Protect that consistency.' : activeDays >= 4 ? 'You are building a strong routine. Keep your rhythm steady.' : activeDays >= 1 ? 'You have started moving. A little consistency will compound.' : 'Your next win is simple: take the first walk or complete one short workout.';
-    return { week, weekSteps, activeDays, weekSessions: weekSessions.length, thisMonthSteps, previousMonthSteps, thisMonthSessions, previousMonthSessions, bestDay, score, message };
+    const score = Math.min(100, Math.round((activeDays/elapsedDays)*70 + Math.min(weekSessions.length,3)*10));
+    const message = elapsedDays === 7 && activeDays === 7 ? 'A full week of movement. Protect that consistency.' : activeDays >= Math.ceil(elapsedDays * 0.7) ? 'You are building a strong routine. Keep your rhythm steady.' : activeDays >= 1 ? 'You have started moving. A little consistency will compound.' : 'Your next win is simple: take the first walk or complete one short workout.';
+    return { week, weekSteps, activeDays, elapsedDays, weekSessions: weekSessions.length, thisMonthSteps, previousMonthSteps, thisMonthSessions, previousMonthSessions, bestDay, score, message };
   }, [dailySteps, sessions]);
 
   const delta = (current: number, previous: number) => previous === 0 ? (current > 0 ? 'Started this month' : 'No previous data') : `${current >= previous ? '+' : ''}${Math.round(((current-previous)/previous)*100)}% vs last month`;
@@ -80,7 +83,7 @@ export default function ProgressInsights({ dailySteps, sessions }: Props) {
       </div>
       <div className="progress-insights-metrics">
         <article><Footprints size={17}/><strong>{data.weekSteps.toLocaleString()}</strong><span>Steps this week</span></article>
-        <article><Flame size={17}/><strong>{data.activeDays}/7</strong><span>Active days</span></article>
+        <article><Flame size={17}/><strong>{data.activeDays}/{data.elapsedDays}</strong><span>Active days so far</span></article>
         <article><CalendarDays size={17}/><strong>{data.weekSessions}</strong><span>Workouts this week</span></article>
       </div>
       <div className="progress-month-comparison">
