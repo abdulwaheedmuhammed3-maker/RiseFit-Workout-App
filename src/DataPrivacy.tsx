@@ -82,7 +82,15 @@ const validSession = (value: unknown): value is Session => {
 const validStepEntry = (value: unknown): value is DailyStepEntry => {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
   const entry = value as Record<string, unknown>;
-  return typeof entry.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(entry.date)
+  if (typeof entry.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(entry.date)) return false;
+  const [year, month, day] = entry.date.split('-').map(Number);
+  const calendarDate = new Date(0);
+  calendarDate.setHours(12, 0, 0, 0);
+  calendarDate.setFullYear(year, month - 1, day);
+  const validCalendarDate = calendarDate.getFullYear() === year
+    && calendarDate.getMonth() === month - 1
+    && calendarDate.getDate() === day;
+  return validCalendarDate && entry.date <= todayKey()
     && typeof entry.steps === 'number' && Number.isFinite(entry.steps)
     && entry.steps >= 0 && entry.steps <= 300000;
 };
