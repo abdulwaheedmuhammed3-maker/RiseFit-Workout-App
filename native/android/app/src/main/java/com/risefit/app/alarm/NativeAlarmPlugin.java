@@ -333,6 +333,11 @@ public class NativeAlarmPlugin extends Plugin {
     protected void handleOnNewIntent(Intent intent) {
         super.handleOnNewIntent(intent);
         if (intent != null && intent.getBooleanExtra(AlarmScheduler.EXTRA_OPEN_CHALLENGE, false)) {
+            // Treat the notification launch flag as one-shot. Leaving it on the
+            // Activity intent would replay the mission when the app resumes later.
+            intent.removeExtra(AlarmScheduler.EXTRA_OPEN_CHALLENGE);
+            getActivity().setIntent(intent);
+
             JSObject event = new JSObject();
             event.put("openChallenge", true);
             String alarmId = intent.getStringExtra(AlarmScheduler.EXTRA_ALARM_ID);
