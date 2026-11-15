@@ -59,7 +59,7 @@ export default function StepCounter({ stats, loading, error, onConnect, onRefres
       <span>steps recorded today</span>
     </div>
     <div className="step-counter-status"><ShieldCheck size={16}/><span>Automatic counting is enabled. Your phone records steps throughout the day, even when RiseFit is closed.</span></div>
-    <div className="step-history-heading"><div><span className="eyebrow">RECENT RECORD</span><h3>Daily step history</h3></div><span className="step-history-period">LAST 7 DAYS</span></div>
+    <div className="step-history-heading"><div><span className="eyebrow">RECENT RECORD</span><h3>Daily step history</h3></div><span className="step-history-period">LAST 30 DAYS</span></div>
     {days.length===0 ? <p className="muted">No step records have reached Health Connect yet. The count will appear after your phone records steps.</p> :
       <div className="step-history-list">{days.map(day=><div className="step-history-row" key={day.date}>
         <span>{dayLabel(day.date)}</span>
