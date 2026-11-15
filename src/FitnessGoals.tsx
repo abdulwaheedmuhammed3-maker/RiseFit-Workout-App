@@ -115,7 +115,8 @@ export default function FitnessGoals({ dailySteps, stepsPermissionGranted, sessi
     }).length;
     const todayWorkouts = sessionCounts.get(todayKey) ?? 0;
     const bestStepDay = dailySteps.reduce<DailyStepEntry | null>((best, item) =>
-      Number.isFinite(item.steps) && (!best || item.steps > best.steps) ? item : best, null);
+      /^\\d{4}-\\d{2}-\\d{2}$/.test(item.date) && Number.isFinite(item.steps) && item.steps > 0
+        && item.date <= todayKey && (!best || item.steps > best.steps) ? item : best, null);
     const bestWorkoutDay = Array.from(sessionCounts.entries()).reduce<{ date: string; count: number } | null>(
       (best, entry) => !best || entry[1] > best.count ? { date: entry[0], count: entry[1] } : best, null
     );
