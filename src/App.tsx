@@ -138,8 +138,8 @@ export default function App(){
  const requestStepReadAccess=async()=>{
   setStepStatsError('');
   try{
-   const notificationPermission=await LocalNotifications.requestPermissions();
-   if(notificationPermission.display!=='granted')throw new Error('Allow RiseFit notifications so Android can show the background step-tracking notification.');
+   // Android can run the health foreground service without POST_NOTIFICATIONS.
+   // Activity Recognition and a hardware step counter are the actual requirements.
    await NativeAlarm.requestStepTrackingPermission();
    await refreshDailySteps();
   }catch(error){setStepStatsError(error instanceof Error?error.message:'Could not enable the phone step counter.');}
