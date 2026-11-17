@@ -313,6 +313,16 @@ public class NativeAlarmPlugin extends Plugin {
         }
     }
 
+    private void stopStepTrackingIfPermissionRevoked(Context context, boolean permissionGranted) {
+        if (permissionGranted) return;
+        android.content.SharedPreferences prefs = context.getSharedPreferences(
+            "risefit_native_steps", Context.MODE_PRIVATE
+        );
+        if (prefs.getBoolean("tracking_enabled", false)) {
+            StepCounterService.disable(context);
+        }
+    }
+
     @PluginMethod
     public void getDailyStepStats(PluginCall call) {
         Context context = getContext();
@@ -322,6 +332,7 @@ public class NativeAlarmPlugin extends Plugin {
         boolean activityPermissionGranted = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q
             || context.checkSelfPermission("android.permission.ACTIVITY_RECOGNITION")
                 == android.content.pm.PackageManager.PERMISSION_GRANTED;
+        stopStepTrackingIfPermissionRevoked(context, activityPermissionGranted);
 
         if (!available) {
             JSObject result = new JSObject();
@@ -389,6 +400,7 @@ public class NativeAlarmPlugin extends Plugin {
         boolean permissionGranted = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q
             || context.checkSelfPermission("android.permission.ACTIVITY_RECOGNITION")
                 == android.content.pm.PackageManager.PERMISSION_GRANTED;
+        stopStepTrackingIfPermissionRevoked(context, permissionGranted);
         android.content.SharedPreferences stepPrefs = context.getSharedPreferences(
             "risefit_native_steps", Context.MODE_PRIVATE
         );
