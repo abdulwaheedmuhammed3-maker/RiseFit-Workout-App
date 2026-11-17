@@ -87,7 +87,11 @@ public final class StepCounterService extends Service implements SensorEventList
 
     public static void startIfEnabled(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-        if (!prefs.getBoolean(KEY_ENABLED, false) || !hasActivityPermission(context)) return;
+        if (!prefs.getBoolean(KEY_ENABLED, false)) return;
+        if (!hasActivityPermission(context)) {
+            disable(context);
+            return;
+        }
         startService(context);
     }
 
@@ -119,7 +123,14 @@ public final class StepCounterService extends Service implements SensorEventList
             return START_NOT_STICKY;
         }
 
-        if (!preferences().getBoolean(KEY_ENABLED, false) || !hasActivityPermission(this)) {
+        if (!hasActivityPermission(this)) {
+            // Android may restart a sticky service after permission was revoked.
+            // Clear the persisted setting so RiseFit cannot report stale tracking.
+            preferences().edit().putBoolean(KEY_ENABLED, false).apply();
+            stopSelf();
+            return START_NOT_STICKY;
+        }
+        if (!preferences().getBoolean(KEY_ENABLED, false)) {
             stopSelf();
             return START_NOT_STICKY;
         }
