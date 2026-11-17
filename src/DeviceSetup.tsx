@@ -79,14 +79,11 @@ export default function DeviceSetup({ onComplete }: Props) {
 
   const enableNotifications = () => run('notifications', async () => {
     const result = await LocalNotifications.requestPermissions();
-    if (result.display !== 'granted') throw new Error('Notifications are needed for alarm alerts and the ongoing step-tracking notification.');
+    if (result.display !== 'granted') throw new Error('Notifications are used for alarm alerts and to show the ongoing step-tracking notification in the notification drawer.');
   });
 
   const enableSteps = () => run('steps', async () => {
-    if (!state.notifications) {
-      const notificationResult = await LocalNotifications.requestPermissions();
-      if (notificationResult.display !== 'granted') throw new Error('Allow notifications first so Android can show the step-tracking service notification.');
-    }
+    // Notification permission is optional for Android health foreground services.
     await NativeAlarm.requestStepTrackingPermission();
   });
 
@@ -117,14 +114,14 @@ export default function DeviceSetup({ onComplete }: Props) {
         {isAndroid && <div className="device-setup-list">
           <article className="device-permission-row">
             <span className="device-permission-icon"><Footprints size={19}/></span>
-            <div className="device-permission-copy"><b>Automatic step counting</b><p>Uses your phone's built-in step sensor and Activity Recognition permission. No GPS or location access.</p><small>{loading ? 'Checking access…' : !state.sensorAvailable ? 'Not supported by this phone' : state.steps ? 'Enabled in RiseFit · sensor available' : 'Needed for automatic daily steps'}</small></div>
+            <div className="device-permission-copy"><b>Automatic step counting</b><p>Uses your phone's built-in step sensor and Activity Recognition permission. Notification permission is optional for step counting.</p><small>{loading ? 'Checking access…' : !state.sensorAvailable ? 'Not supported by this phone' : state.steps ? 'Enabled in RiseFit · sensor available' : 'Needed for automatic daily steps'}</small></div>
             <span className={state.steps ? 'device-permission-status done' : 'device-permission-status'}>{state.steps ? <CheckCircle2 size={18}/> : 'Needed'}</span>
             {!state.steps && state.sensorAvailable && <button className="secondary device-permission-action" disabled={loading || !!busy} onClick={enableSteps}>{busy === 'steps' ? 'Enabling…' : 'Enable'}</button>}
           </article>
 
           <article className="device-permission-row">
             <span className="device-permission-icon"><Bell size={19}/></span>
-            <div className="device-permission-copy"><b>Notifications</b><p>Shows alarm alerts and the ongoing notification while your phone counts steps in the background.</p><small>{loading ? 'Checking access…' : state.notifications ? 'Allowed' : 'Needed for reliable background status and alerts'}</small></div>
+            <div className="device-permission-copy"><b>Notifications</b><p>Shows alarm alerts and the ongoing step-tracking notification in your notification drawer. Step counting can still run without this permission.</p><small>{loading ? 'Checking access…' : state.notifications ? 'Allowed' : 'Needed for alarm alerts; optional for step tracking'}</small></div>
             <span className={state.notifications ? 'device-permission-status done' : 'device-permission-status'}>{state.notifications ? <CheckCircle2 size={18}/> : 'Needed'}</span>
             {!state.notifications && <button className="secondary device-permission-action" disabled={loading || !!busy} onClick={enableNotifications}>{busy === 'notifications' ? 'Requesting…' : 'Allow'}</button>}
           </article>
